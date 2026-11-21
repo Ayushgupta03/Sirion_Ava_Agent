@@ -1,0 +1,150 @@
+{
+ "isSupplierCommunication": true,
+ "supplier": {
+  "name": "Trivenika Systems Pvt Ltd",
+  "domain": "trivenika.example",
+  "known": true
+ },
+ "filing": {
+  "project": "Salesforce migration",
+  "request": "REQ-1047",
+  "requestType": "new_sow",
+  "confidence": "high",
+  "reason": "Reply in the same thread, with the proposal for the Salesforce migration."
+ },
+ "facts": [
+  {
+   "field": "amount_pre_gst",
+   "value": "₹20,00,000",
+   "state": "confirmed",
+   "source": {
+    "file": "Trivenika_Proposal_v1.pdf",
+    "quote": "Subtotal (before GST) ₹20,00,000",
+    "page": 1
+   }
+  },
+  {
+   "field": "gst",
+   "value": "₹3,60,000",
+   "state": "confirmed",
+   "source": {
+    "file": "Trivenika_Proposal_v1.pdf",
+    "quote": "GST 18% ₹3,60,000",
+    "page": 1
+   }
+  },
+  {
+   "field": "total",
+   "value": "₹23,60,000",
+   "state": "confirmed",
+   "source": {
+    "file": "Trivenika_Proposal_v1.pdf",
+    "quote": "Total ₹23,60,000",
+    "page": 1
+   }
+  },
+  {
+   "field": "scope",
+   "value": "Migrate the sales pipeline, accounts, contacts and opportunity history from the legacy CRM to Salesforce",
+   "state": "confirmed",
+   "source": {
+    "file": "Trivenika_Proposal_v1.pdf",
+    "quote": "Scope: Migrate the sales pipeline, accounts, contacts and opportunity history from the legacy",
+    "page": 1
+   }
+  },
+  {
+   "field": "data_access",
+   "value": "Salesforce admin access to sync and validate customer records",
+   "state": "unconfirmed",
+   "source": {
+    "file": "Trivenika_Proposal_v1.pdf",
+    "quote": "Access required: Salesforce admin access to sync and validate customer records",
+    "page": 1
+   }
+  },
+  {
+   "field": "duration",
+   "value": "2 months (8 weeks)",
+   "state": "confirmed",
+   "source": {
+    "file": "Trivenika_Proposal_v1.pdf",
+    "quote": "Duration: 2 months (8 weeks), starting 16 Nov 2026.",
+    "page": 1
+   }
+  },
+  {
+   "field": "start_date",
+   "value": "16 Nov 2026",
+   "state": "confirmed",
+   "source": {
+    "file": "Trivenika_Proposal_v1.pdf",
+    "quote": "Duration: 2 months (8 weeks), starting 16 Nov 2026.",
+    "page": 1
+   }
+  },
+  {
+   "field": "validity",
+   "value": "30 days",
+   "state": "confirmed",
+   "source": {
+    "file": "Trivenika_Proposal_v1.pdf",
+    "quote": "Validity: 30 days from the date of this proposal.",
+    "page": 1
+   }
+  },
+  {
+   "field": "payment_terms",
+   "value": "30 days from invoice",
+   "state": "confirmed",
+   "source": {
+    "file": "Trivenika_Proposal_v1.pdf",
+    "quote": "Payment terms: 30 days from invoice.",
+    "page": 1
+   }
+  },
+  {
+   "field": "supplier_entity",
+   "value": "Trivenika Systems Pvt Ltd",
+   "state": "confirmed",
+   "source": {
+    "file": "Trivenika_Proposal_v1.pdf",
+    "quote": "Trivenika Systems Pvt Ltd",
+    "page": 1
+   }
+  },
+  {
+   "field": "data_access",
+   "value": "Admin access to the Salesforce instance to sync and validate customer records",
+   "state": "unconfirmed",
+   "source": {
+    "file": "email",
+    "quote": "we'll need admin access to your Salesforce instance so we can sync and validate the data"
+   }
+  }
+ ],
+ "changesVsKnown": [
+  {
+   "field": "amount_pre_gst",
+   "old": "about ₹20L",
+   "new": "₹20,00,000",
+   "source": {
+    "file": "Trivenika_Proposal_v1.pdf",
+    "page": 1,
+    "quote": "Subtotal (before GST) ₹20,00,000"
+   }
+  }
+ ],
+ "flags": [
+  {
+   "type": "unconfirmed",
+   "message": "Trivenika mentions admin access to sync customer records. Will they access customer data?",
+   "sendTo": "requester"
+  },
+  {
+   "type": "rate_increase",
+   "message": "Senior Developer rate is 11% above the 2025 rate card.",
+   "sendTo": "procurement"
+  }
+ ]
+}

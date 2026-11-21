@@ -1,0 +1,49 @@
+{
+ "isSupplierCommunication": true,
+ "supplier": {
+  "name": "Kosha Analytics Pvt Ltd",
+  "domain": "kosha.example",
+  "known": true
+ },
+ "filing": {
+  "project": "Kosha BI subscription",
+  "request": "NEW",
+  "requestType": "invoice",
+  "confidence": "medium",
+  "reason": "Invoice from Kosha billing to Suresh. No PO reference."
+ },
+ "facts": [
+  {
+   "field": "amount_pre_gst",
+   "value": "₹2,40,000",
+   "state": "confirmed",
+   "source": {
+    "file": "Kosha_Invoice_KA-7781.pdf",
+    "quote": "Amount (before GST) ₹2,40,000",
+    "page": 1
+   }
+  },
+  {
+   "field": "scope",
+   "value": "Forecast module add-on, Dec 2026 to Dec 2027",
+   "state": "confirmed",
+   "source": {
+    "file": "Kosha_Invoice_KA-7781.pdf",
+    "quote": "Description: Forecast module add-on, Dec 2026 to Dec 2027",
+    "page": 1
+   }
+  },
+  {
+   "field": "other",
+   "value": "Module activated during a free trial",
+   "state": "confirmed",
+   "source": {
+    "file": "Kosha_Invoice_KA-7781.pdf",
+    "quote": "Note: Module activated on 2 Nov 2026 at the end of a free trial.",
+    "page": 1
+   }
+  }
+ ],
+ "changesVsKnown": [],
+ "flags": []
+}

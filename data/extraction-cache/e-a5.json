@@ -1,0 +1,39 @@
+{
+ "isSupplierCommunication": true,
+ "supplier": {
+  "name": "Trivenika Systems Pvt Ltd",
+  "domain": "trivenika.example",
+  "known": true
+ },
+ "filing": {
+  "project": "Salesforce migration",
+  "request": "REQ-1047",
+  "requestType": "new_sow",
+  "confidence": "high",
+  "reason": "Same thread. Renewed ISO 27001 certificate."
+ },
+ "facts": [
+  {
+   "field": "certificate_expiry",
+   "value": "8 Dec 2029",
+   "state": "confirmed",
+   "source": {
+    "file": "Trivenika_ISO27001_2026-2029.pdf",
+    "quote": "Valid until: 8 Dec 2029",
+    "page": 1
+   }
+  },
+  {
+   "field": "scope",
+   "value": "IT consulting and CRM implementation, including handling of client CRM data",
+   "state": "confirmed",
+   "source": {
+    "file": "Trivenika_ISO27001_2026-2029.pdf",
+    "quote": "Scope: Provision of IT consulting and CRM implementation services, including handling of client",
+    "page": 1
+   }
+  }
+ ],
+ "changesVsKnown": [],
+ "flags": []
+}

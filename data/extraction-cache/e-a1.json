@@ -1,0 +1,55 @@
+{
+ "isSupplierCommunication": true,
+ "supplier": {
+  "name": "Trivenika Systems Pvt Ltd",
+  "domain": "trivenika.example",
+  "known": true
+ },
+ "filing": {
+  "project": "Salesforce migration",
+  "request": "NEW",
+  "requestType": "new_sow",
+  "confidence": "high",
+  "reason": "Rahul (Sales Ops) asks a known supplier for new work. No open request for this project."
+ },
+ "facts": [
+  {
+   "field": "scope",
+   "value": "Move the sales pipeline from the old CRM to Salesforce",
+   "state": "confirmed",
+   "source": {
+    "file": "email",
+    "quote": "we're moving our sales pipeline from the old CRM to Salesforce"
+   }
+  },
+  {
+   "field": "amount_pre_gst",
+   "value": "about ₹20L",
+   "state": "unconfirmed",
+   "source": {
+    "file": "email",
+    "quote": "Rough budget is about ₹20L"
+   }
+  },
+  {
+   "field": "start_date",
+   "value": "Monday 16 Nov 2026",
+   "state": "confirmed",
+   "source": {
+    "file": "email",
+    "quote": "Can your team start Monday?"
+   }
+  },
+  {
+   "field": "duration",
+   "value": "about 8 weeks",
+   "state": "unconfirmed",
+   "source": {
+    "file": "email",
+    "quote": "Need it done in about 8 weeks"
+   }
+  }
+ ],
+ "changesVsKnown": [],
+ "flags": []
+}

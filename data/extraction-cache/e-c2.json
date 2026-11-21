@@ -1,0 +1,79 @@
+{
+ "isSupplierCommunication": true,
+ "supplier": {
+  "name": "Trivenika Systems Pvt Ltd",
+  "domain": "trivenika.example",
+  "known": true
+ },
+ "filing": {
+  "project": "Marketing dashboard",
+  "request": "NEW",
+  "requestType": "amendment",
+  "confidence": "high",
+  "reason": "Same thread. SOW extension under the existing MSA."
+ },
+ "facts": [
+  {
+   "field": "amount_pre_gst",
+   "value": "₹6,00,000",
+   "state": "confirmed",
+   "source": {
+    "file": "Trivenika_SOW_Extension.pdf",
+    "quote": "Fees (before GST) ₹6,00,000",
+    "page": 1
+   }
+  },
+  {
+   "field": "data_access",
+   "value": "No access to personal or customer data",
+   "state": "confirmed",
+   "source": {
+    "file": "Trivenika_SOW_Extension.pdf",
+    "quote": "Data access: No access to personal or customer data. Work uses aggregated campaign data only.",
+    "page": 1
+   }
+  },
+  {
+   "field": "duration",
+   "value": "4 weeks",
+   "state": "confirmed",
+   "source": {
+    "file": "Trivenika_SOW_Extension.pdf",
+    "quote": "Duration: 4 weeks, starting on signature.",
+    "page": 1
+   }
+  },
+  {
+   "field": "start_date",
+   "value": "On signature",
+   "state": "confirmed",
+   "source": {
+    "file": "Trivenika_SOW_Extension.pdf",
+    "quote": "Duration: 4 weeks, starting on signature.",
+    "page": 1
+   }
+  },
+  {
+   "field": "scope",
+   "value": "Extend the marketing dashboard work for 4 more weeks with the same team",
+   "state": "confirmed",
+   "source": {
+    "file": "Trivenika_SOW_Extension.pdf",
+    "quote": "Scope: Extend the marketing dashboard work for 4 more weeks with the same team (1 BI",
+    "page": 1
+   }
+  },
+  {
+   "field": "supplier_entity",
+   "value": "Trivenika Systems Pvt Ltd",
+   "state": "confirmed",
+   "source": {
+    "file": "Trivenika_SOW_Extension.pdf",
+    "quote": "Trivenika Systems Pvt Ltd",
+    "page": 1
+   }
+  }
+ ],
+ "changesVsKnown": [],
+ "flags": []
+}

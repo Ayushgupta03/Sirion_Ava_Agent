@@ -1,0 +1,79 @@
+{
+ "isSupplierCommunication": true,
+ "supplier": {
+  "name": "Kosha Analytics Pvt Ltd",
+  "domain": "kosha.example",
+  "known": true
+ },
+ "filing": {
+  "project": "Kosha BI subscription",
+  "request": "REQ-1063",
+  "requestType": "renewal",
+  "confidence": "high",
+  "reason": "Same thread. Revised order form KOS-OF-2027-118."
+ },
+ "facts": [
+  {
+   "field": "amount_pre_gst",
+   "value": "₹18,90,000",
+   "state": "confirmed",
+   "source": {
+    "file": "Kosha_Renewal_Order_Form_v2.pdf",
+    "quote": "Annual fee: ₹18,90,000 (before GST)",
+    "page": 1
+   }
+  },
+  {
+   "field": "duration",
+   "value": "12 months",
+   "state": "confirmed",
+   "source": {
+    "file": "Kosha_Renewal_Order_Form_v2.pdf",
+    "quote": "Term: 12 months, 1 Jan 2027 to 31 Dec 2027",
+    "page": 1
+   }
+  },
+  {
+   "field": "other",
+   "value": "Does not renew automatically",
+   "state": "confirmed",
+   "source": {
+    "file": "Kosha_Renewal_Order_Form_v2.pdf",
+    "quote": "Renewal: This order does not renew automatically.",
+    "page": 1
+   }
+  },
+  {
+   "field": "supplier_entity",
+   "value": "Kosha Analytics Pvt Ltd",
+   "state": "confirmed",
+   "source": {
+    "file": "Kosha_Renewal_Order_Form_v2.pdf",
+    "quote": "Kosha Analytics Pvt Ltd",
+    "page": 1
+   }
+  },
+  {
+   "field": "amount_pre_gst",
+   "value": "₹18,90,000",
+   "state": "confirmed",
+   "source": {
+    "file": "email",
+    "quote": "The annual fee is ₹18,90,000, a 5% increase in line with our 2027 price list."
+   }
+  }
+ ],
+ "changesVsKnown": [
+  {
+   "field": "amount_pre_gst",
+   "old": "₹20,16,000",
+   "new": "₹18,90,000",
+   "source": {
+    "file": "Kosha_Renewal_Order_Form_v2.pdf",
+    "page": 1,
+    "quote": "Annual fee: ₹18,90,000 (before GST)"
+   }
+  }
+ ],
+ "flags": []
+}

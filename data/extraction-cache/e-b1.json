@@ -1,0 +1,88 @@
+{
+ "isSupplierCommunication": true,
+ "supplier": {
+  "name": "Kosha Analytics Pvt Ltd",
+  "domain": "kosha.example",
+  "known": true
+ },
+ "filing": {
+  "project": "Kosha BI subscription",
+  "request": "NEW",
+  "requestType": "renewal",
+  "confidence": "high",
+  "reason": "Renewal of the existing Kosha subscription ending 31 Dec 2026."
+ },
+ "facts": [
+  {
+   "field": "amount_pre_gst",
+   "value": "₹20,16,000",
+   "state": "confirmed",
+   "source": {
+    "file": "Kosha_Renewal_Order_Form.pdf",
+    "quote": "Annual fee: ₹20,16,000 (before GST)",
+    "page": 1
+   }
+  },
+  {
+   "field": "duration",
+   "value": "36 months",
+   "state": "confirmed",
+   "source": {
+    "file": "Kosha_Renewal_Order_Form.pdf",
+    "quote": "Term: 36 months from 1 Jan 2027",
+    "page": 1
+   }
+  },
+  {
+   "field": "notice_period",
+   "value": "Renews automatically for 12-month terms unless 60 days' written notice",
+   "state": "confirmed",
+   "source": {
+    "file": "Kosha_Renewal_Order_Form.pdf",
+    "quote": "This order renews automatically for successive 12-month terms unless either party gives 60 days' written notice.",
+    "page": 1
+   }
+  },
+  {
+   "field": "supplier_entity",
+   "value": "Kosha Analytics Pvt Ltd",
+   "state": "confirmed",
+   "source": {
+    "file": "Kosha_Renewal_Order_Form.pdf",
+    "quote": "Kosha Analytics Pvt Ltd",
+    "page": 1
+   }
+  },
+  {
+   "field": "amount_pre_gst",
+   "value": "Same as this year",
+   "state": "unconfirmed",
+   "source": {
+    "file": "email",
+    "quote": "Same price as this year"
+   }
+  },
+  {
+   "field": "other",
+   "value": "Nothing changes",
+   "state": "unconfirmed",
+   "source": {
+    "file": "email",
+    "quote": "Same price as this year, nothing changes."
+   }
+  }
+ ],
+ "changesVsKnown": [
+  {
+   "field": "amount_pre_gst",
+   "old": "₹18,00,000",
+   "new": "₹20,16,000",
+   "source": {
+    "file": "Kosha_Renewal_Order_Form.pdf",
+    "page": 1,
+    "quote": "Annual fee: ₹20,16,000 (before GST)"
+   }
+  }
+ ],
+ "flags": []
+}

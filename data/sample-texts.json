@@ -1,0 +1,409 @@
+{
+ "Kalakriti_Invoice_INV-KDS-2291.pdf": {
+  "kind": "pdf",
+  "pages": [
+   [
+    "Kalakriti Design Studio",
+    "Design agency, Bengaluru  |  kalakriti.example",
+    "Tax invoice INV-KDS-2291",
+    "Bill to: Prayaan Software Pvt Ltd",
+    "Attention: Neha Kapoor, Marketing Ops",
+    "Description: Brand refresh, phase 1",
+    "Amount (before GST)  ₹4,20,000",
+    "GST 18%  ₹75,600",
+    "Total  ₹4,95,600",
+    "PO number: none provided",
+    "Fictional document for the Ava prototype. All companies, people and numbers are invented."
+   ]
+  ]
+ },
+ "Kosha_Invoice_KA-7781.pdf": {
+  "kind": "pdf",
+  "pages": [
+   [
+    "Kosha Analytics Pvt Ltd",
+    "BI software, Bengaluru  |  kosha.example  |  GSTIN 29AAKCK5521L1Z2",
+    "Tax invoice KA-7781",
+    "Bill to: Prayaan Software Pvt Ltd (Finance), attention Suresh Pillai",
+    "Description: Forecast module add-on, Dec 2026 to Dec 2027",
+    "Note: Module activated on 2 Nov 2026 at the end of a free trial.",
+    "Amount (before GST)  ₹2,40,000",
+    "GST 18%  ₹43,200",
+    "Total  ₹2,83,200",
+    "Payment due: 30 days from invoice date (30 Nov 2026).",
+    "Fictional document for the Ava prototype. All companies, people and numbers are invented."
+   ]
+  ]
+ },
+ "Kosha_MSA_2025.pdf": {
+  "kind": "pdf",
+  "pages": [
+   [
+    "Kosha Analytics Pvt Ltd",
+    "BI software, Bengaluru  |  kosha.example  |  GSTIN 29AAKCK5521L1Z2",
+    "Master Subscription Agreement",
+    "Between Kosha Analytics Pvt Ltd and Prayaan Software Pvt Ltd. Signed 20 Dec 2025.",
+    "Fictional document for the Ava prototype. All companies, people and numbers are invented."
+   ]
+  ]
+ },
+ "Kosha_Renewal_Order_Form.pdf": {
+  "kind": "pdf",
+  "pages": [
+   [
+    "Kosha Analytics Pvt Ltd",
+    "BI software, Bengaluru  |  kosha.example  |  GSTIN 29AAKCK5521L1Z2",
+    "Order form KOS-OF-2027-118",
+    "Customer: Prayaan Software Pvt Ltd (Finance), attention Suresh Pillai",
+    "Product: Kosha BI Enterprise, 120 named users",
+    "Annual fee: ₹20,16,000 (before GST)",
+    "Term: 36 months from 1 Jan 2027",
+    "This order renews automatically for successive 12-month terms unless either party gives 60 days'",
+    "written notice.",
+    "Governed by the Master Subscription Agreement dated 20 Dec 2025.",
+    "Signature: ____________________  Date: __________",
+    "Fictional document for the Ava prototype. All companies, people and numbers are invented."
+   ]
+  ]
+ },
+ "Kosha_Renewal_Order_Form_v2.pdf": {
+  "kind": "pdf",
+  "pages": [
+   [
+    "Kosha Analytics Pvt Ltd",
+    "BI software, Bengaluru  |  kosha.example  |  GSTIN 29AAKCK5521L1Z2",
+    "Order form KOS-OF-2027-118 (revised)",
+    "Customer: Prayaan Software Pvt Ltd (Finance), attention Suresh Pillai",
+    "Product: Kosha BI Enterprise, 120 named users",
+    "Annual fee: ₹18,90,000 (before GST)",
+    "Term: 12 months, 1 Jan 2027 to 31 Dec 2027",
+    "Renewal: This order does not renew automatically.",
+    "Governed by the Master Subscription Agreement dated 20 Dec 2025.",
+    "Fictional document for the Ava prototype. All companies, people and numbers are invented."
+   ]
+  ]
+ },
+ "Lumina_Order_Form_AutoRenew.pdf": {
+  "kind": "pdf",
+  "pages": [
+   [
+    "Lumina HR Cloud Pvt Ltd",
+    "Order form LHC-2027-044",
+    "Product: Lumina HR Cloud, 3,000 employees",
+    "Annual fee: ₹14,40,000 (before GST)",
+    "Term: 24 months",
+    "This order renews automatically for successive 12-month terms unless either party gives 90 days'",
+    "written notice.",
+    "Fictional document for the Ava prototype. All companies, people and numbers are invented."
+   ]
+  ]
+ },
+ "Navkar_Logistics_Quote.pdf": {
+  "kind": "pdf",
+  "pages": [
+   [
+    "Navkar Logistics LLP",
+    "Quotation NL-Q-0912",
+    "Scope: Office relocation, Pune to Bengaluru, 60 workstations and IT equipment",
+    "Amount (before GST)  ₹7,80,000",
+    "GST 18%  ₹1,40,400",
+    "Total  ₹9,20,400",
+    "Validity: 15 days.",
+    "Fictional document for the Ava prototype. All companies, people and numbers are invented."
+   ]
+  ]
+ },
+ "Trivenika_ISO27001_2026-2029.pdf": {
+  "kind": "pdf",
+  "pages": [
+   [
+    "Certus Assurance Registrar",
+    "Certificate of Registration: ISO/IEC 27001:2022",
+    "Certificate no.: CAR-ISMS-4471-R2",
+    "Organisation: Trivenika Systems Pvt Ltd, Pune",
+    "Scope: Provision of IT consulting and CRM implementation services, including handling of client",
+    "CRM data.",
+    "Issued: 16 Nov 2026",
+    "Valid until: 8 Dec 2029",
+    "Fictional document for the Ava prototype. All companies, people and numbers are invented."
+   ]
+  ]
+ },
+ "Trivenika_ISO27001_expired.pdf": {
+  "kind": "pdf",
+  "pages": [
+   [
+    "Certus Assurance Registrar",
+    "Certificate of Registration: ISO/IEC 27001:2022",
+    "Certificate no.: CAR-ISMS-3920",
+    "Organisation: Trivenika Systems Pvt Ltd, Pune",
+    "Scope: Provision of IT consulting and CRM implementation services, including handling of client",
+    "CRM data.",
+    "Issued: 1 Oct 2023",
+    "Valid until: 30 Sep 2026",
+    "Fictional document for the Ava prototype. All companies, people and numbers are invented."
+   ]
+  ]
+ },
+ "Trivenika_Insurance_Certificate.pdf": {
+  "kind": "pdf",
+  "pages": [
+   [
+    "Sahyadri General Insurance Co. Ltd",
+    "Certificate of Insurance",
+    "Insured: Trivenika Systems Pvt Ltd, Pune",
+    "Policy: Professional indemnity, policy no. SGI/PI/2026/88213",
+    "Limit of indemnity: ₹2 crore (₹2,00,00,000) any one claim and in the aggregate",
+    "Period of insurance: 1 Apr 2026 to 31 Mar 2027",
+    "Valid until: 31 Mar 2027",
+    "Fictional document for the Ava prototype. All companies, people and numbers are invented."
+   ]
+  ]
+ },
+ "Trivenika_Invoice_TS-5520.pdf": {
+  "kind": "pdf",
+  "pages": [
+   [
+    "Trivenika Systems Pvt Ltd",
+    "IT services, Pune  |  trivenika.example  |  GSTIN 27AAACT1234K1Z5",
+    "Tax invoice TS-5520",
+    "Bill to: Prayaan Software Pvt Ltd, attention Rahul Mehta",
+    "Description: Salesforce migration, mobilisation (work started 16 Nov 2026)",
+    "Amount (before GST)  ₹3,00,000",
+    "GST 18%  ₹54,000",
+    "Total  ₹3,54,000",
+    "Fictional document for the Ava prototype. All companies, people and numbers are invented."
+   ]
+  ]
+ },
+ "Trivenika_MSA_2024.pdf": {
+  "kind": "pdf",
+  "pages": [
+   [
+    "Trivenika Systems Pvt Ltd",
+    "IT services, Pune  |  trivenika.example  |  GSTIN 27AAACT1234K1Z5",
+    "Master Services Agreement",
+    "Signed 2 Apr 2024. Term: 3 years. Renewal: renews automatically for 12 months unless either",
+    "party gives 60 days' notice.",
+    "Fictional document for the Ava prototype. All companies, people and numbers are invented."
+   ]
+  ]
+ },
+ "Trivenika_MSA_comments.pdf": {
+  "kind": "pdf",
+  "pages": [
+   [
+    "Trivenika Systems Pvt Ltd",
+    "IT services, Pune  |  trivenika.example  |  GSTIN 27AAACT1234K1Z5",
+    "Comments on the Master Services Agreement (2 April 2024)",
+    "1. Clause 9.2 (Limitation of liability): we propose a cap of 12 months' fees.",
+    "2. Clause 11 (Termination for convenience): we propose 60 days' notice instead of 30.",
+    "3. Clause 14 (Non-solicitation): we propose a mutual clause.",
+    "4. Schedule 3 (Rate revision): annual revision of up to 10%.",
+    "Fictional document for the Ava prototype. All companies, people and numbers are invented."
+   ]
+  ]
+ },
+ "Trivenika_NDA_2024.pdf": {
+  "kind": "pdf",
+  "pages": [
+   [
+    "Trivenika Systems Pvt Ltd",
+    "IT services, Pune  |  trivenika.example  |  GSTIN 27AAACT1234K1Z5",
+    "Mutual Non-Disclosure Agreement",
+    "Between Trivenika Systems Pvt Ltd and Prayaan Software Pvt Ltd. Signed 14 Mar 2024.",
+    "Fictional document for the Ava prototype. All companies, people and numbers are invented."
+   ]
+  ]
+ },
+ "Trivenika_Proposal_v1.pdf": {
+  "kind": "pdf",
+  "pages": [
+   [
+    "Trivenika Systems Pvt Ltd",
+    "IT services, Pune  |  trivenika.example  |  GSTIN 27AAACT1234K1Z5",
+    "Proposal TSPL-Q-2611-01 (v1)",
+    "Date: 12 Nov 2026",
+    "To: Rahul Mehta, Sales Ops, Prayaan Software Pvt Ltd",
+    "Subject: Salesforce migration (legacy CRM to Salesforce)",
+    "Scope: Migrate the sales pipeline, accounts, contacts and opportunity history from the legacy",
+    "CRM to Salesforce, including data mapping, migration runs and reconciliation.",
+    "Access required: Salesforce admin access to sync and validate customer records during",
+    "migration.",
+    "Duration: 2 months (8 weeks), starting 16 Nov 2026.",
+    "Role  Qty  Months  Rate/month  Amount",
+    "Salesforce Solution Architect  1  2  ₹3,00,000  ₹6,00,000",
+    "Senior Salesforce Developer  2  2  ₹2,00,000  ₹8,00,000",
+    "Data Migration Specialist  1  2  ₹2,00,000  ₹4,00,000",
+    "Project Manager (50%)  0.5  2  ₹2,00,000  ₹2,00,000",
+    "Subtotal (before GST)  ₹20,00,000",
+    "GST 18%  ₹3,60,000",
+    "Total  ₹23,60,000",
+    "Validity: 30 days from the date of this proposal.",
+    "Payment terms: 30 days from invoice.",
+    "Prices are subject to the Master Services Agreement dated 2 April 2024.",
+    "Arjun Deshpande, Engagement Manager",
+    "Fictional document for the Ava prototype. All companies, people and numbers are invented."
+   ]
+  ]
+ },
+ "Trivenika_Proposal_v2.pdf": {
+  "kind": "pdf",
+  "pages": [
+   [
+    "Trivenika Systems Pvt Ltd",
+    "IT services, Pune  |  trivenika.example  |  GSTIN 27AAACT1234K1Z5",
+    "Proposal TSPL-Q-2611-01 (v2)",
+    "Date: 13 Nov 2026",
+    "To: Rahul Mehta, Sales Ops, Prayaan Software Pvt Ltd",
+    "Subject: Salesforce migration (legacy CRM to Salesforce)",
+    "Scope: Migrate the sales pipeline, accounts, contacts and opportunity history from the legacy",
+    "CRM to Salesforce, including data mapping, migration runs and reconciliation.",
+    "Access required: Salesforce admin access to sync and validate customer records during",
+    "migration.",
+    "Duration: 2 months (8 weeks), starting 16 Nov 2026.",
+    "Role  Qty  Months  Rate/month  Amount",
+    "Salesforce Solution Architect  1  2  ₹3,00,000  ₹6,00,000",
+    "Senior Salesforce Developer  2  2  ₹2,00,000  ₹8,00,000",
+    "Data Migration Specialist  1  2  ₹2,00,000  ₹4,00,000",
+    "Project Manager (50%)  0.5  2  ₹2,00,000  ₹2,00,000",
+    "Data validation and UAT support  1  lump sum  ₹1,50,000",
+    "Subtotal (before GST)  ₹21,50,000",
+    "GST 18%  ₹3,87,000",
+    "Total  ₹25,37,000",
+    "Validity: 30 days from the date of this proposal.",
+    "Payment terms: 30 days from invoice.",
+    "Prices are subject to the Master Services Agreement dated 2 April 2024.",
+    "Arjun Deshpande, Engagement Manager",
+    "Fictional document for the Ava prototype. All companies, people and numbers are invented."
+   ]
+  ]
+ },
+ "Trivenika_Quote_23L.pdf": {
+  "kind": "pdf",
+  "pages": [
+   [
+    "Trivenika Systems Pvt Ltd",
+    "IT services, Pune  |  trivenika.example  |  GSTIN 27AAACT1234K1Z5",
+    "Proposal TSPL-Q-2611-01 (v3)",
+    "Date: 16 Nov 2026",
+    "To: Rahul Mehta, Sales Ops, Prayaan Software Pvt Ltd",
+    "Subject: Salesforce migration (legacy CRM to Salesforce)",
+    "Scope: Migrate the sales pipeline, accounts, contacts and opportunity history from the legacy",
+    "CRM to Salesforce, including data mapping, migration runs and reconciliation.",
+    "Access required: Salesforce admin access to sync and validate customer records during",
+    "migration.",
+    "Duration: 2 months (8 weeks), starting 16 Nov 2026.",
+    "Role  Qty  Months  Rate/month  Amount",
+    "Salesforce Solution Architect  1  2  ₹3,00,000  ₹6,00,000",
+    "Senior Salesforce Developer  2  2  ₹2,00,000  ₹8,00,000",
+    "Data Migration Specialist  1  2  ₹2,00,000  ₹4,00,000",
+    "Project Manager (50%)  0.5  2  ₹2,00,000  ₹2,00,000",
+    "Data validation and UAT support  1  lump sum  ₹1,50,000",
+    "Hypercare support, 4 weeks  1  lump sum  ₹1,50,000",
+    "Subtotal (before GST)  ₹23,00,000",
+    "GST 18%  ₹4,14,000",
+    "Total  ₹27,14,000",
+    "Validity: 30 days from the date of this proposal.",
+    "Payment terms: 30 days from invoice.",
+    "Prices are subject to the Master Services Agreement dated 2 April 2024.",
+    "Arjun Deshpande, Engagement Manager",
+    "Fictional document for the Ava prototype. All companies, people and numbers are invented."
+   ]
+  ]
+ },
+ "Trivenika_RateCard_2026.xlsx": {
+  "kind": "xlsx",
+  "pages": [
+   [
+    "Sheet: Rate card 2026",
+    "Role | Rate per month (INR, before GST)",
+    "Salesforce Solution Architect | 300000",
+    "Senior Salesforce Developer | 200000",
+    "Data Migration Specialist | 200000",
+    "Project Manager | 200000"
+   ],
+   [
+    "Sheet: Rate card 2025",
+    "Role | Rate per month (INR, before GST)",
+    "Salesforce Solution Architect | 300000",
+    "Senior Salesforce Developer | 180000",
+    "Data Migration Specialist | 200000",
+    "Project Manager | 200000"
+   ]
+  ],
+  "sheets": [
+   {
+    "name": "Rate card 2026",
+    "rows": [
+     [
+      "Role",
+      "Rate per month (INR, before GST)"
+     ],
+     [
+      "Salesforce Solution Architect",
+      "300000"
+     ],
+     [
+      "Senior Salesforce Developer",
+      "200000"
+     ],
+     [
+      "Data Migration Specialist",
+      "200000"
+     ],
+     [
+      "Project Manager",
+      "200000"
+     ]
+    ]
+   },
+   {
+    "name": "Rate card 2025",
+    "rows": [
+     [
+      "Role",
+      "Rate per month (INR, before GST)"
+     ],
+     [
+      "Salesforce Solution Architect",
+      "300000"
+     ],
+     [
+      "Senior Salesforce Developer",
+      "180000"
+     ],
+     [
+      "Data Migration Specialist",
+      "200000"
+     ],
+     [
+      "Project Manager",
+      "200000"
+     ]
+    ]
+   }
+  ]
+ },
+ "Trivenika_SOW_Extension.pdf": {
+  "kind": "pdf",
+  "pages": [
+   [
+    "Trivenika Systems Pvt Ltd",
+    "IT services, Pune  |  trivenika.example  |  GSTIN 27AAACT1234K1Z5",
+    "SOW-0391-E1: Extension of the marketing dashboard work",
+    "Customer: Prayaan Software Pvt Ltd, Marketing Ops (Neha Kapoor)",
+    "Under: Master Services Agreement dated 2 April 2024",
+    "Scope: Extend the marketing dashboard work for 4 more weeks with the same team (1 BI",
+    "developer, 1 analyst).",
+    "Duration: 4 weeks, starting on signature.",
+    "Data access: No access to personal or customer data. Work uses aggregated campaign data only.",
+    "Fees (before GST)  ₹6,00,000",
+    "GST 18%  ₹1,08,000",
+    "Total  ₹7,08,000",
+    "All other terms as per the Master Services Agreement.",
+    "Fictional document for the Ava prototype. All companies, people and numbers are invented."
+   ]
+  ]
+ }
+}

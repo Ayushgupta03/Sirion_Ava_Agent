@@ -1,0 +1,37 @@
+{
+ "isSupplierCommunication": true,
+ "supplier": {
+  "name": "Trivenika Systems Pvt Ltd",
+  "domain": "trivenika.example",
+  "known": true
+ },
+ "filing": {
+  "project": "Marketing dashboard",
+  "request": "NEW",
+  "requestType": "amendment",
+  "confidence": "high",
+  "reason": "Neha asks to extend earlier work with Trivenika (SOW-0391, Marketing dashboard)."
+ },
+ "facts": [
+  {
+   "field": "duration",
+   "value": "4 weeks",
+   "state": "confirmed",
+   "source": {
+    "file": "email",
+    "quote": "extend the marketing dashboard work for 4 more weeks"
+   }
+  },
+  {
+   "field": "scope",
+   "value": "Extend the marketing dashboard work, same team",
+   "state": "confirmed",
+   "source": {
+    "file": "email",
+    "quote": "can you extend the marketing dashboard work for 4 more weeks? Same team as last time."
+   }
+  }
+ ],
+ "changesVsKnown": [],
+ "flags": []
+}

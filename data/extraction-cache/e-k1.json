@@ -1,0 +1,55 @@
+{
+ "isSupplierCommunication": true,
+ "supplier": {
+  "name": "Kalakriti Design Studio",
+  "domain": "kalakriti.example",
+  "known": false
+ },
+ "filing": {
+  "project": "Brand refresh, phase 1",
+  "request": "NEW",
+  "requestType": "invoice",
+  "confidence": "low",
+  "reason": "Invoice with no matching request, contract or PO."
+ },
+ "facts": [
+  {
+   "field": "amount_pre_gst",
+   "value": "₹4,20,000",
+   "state": "confirmed",
+   "source": {
+    "file": "Kalakriti_Invoice_INV-KDS-2291.pdf",
+    "quote": "Amount (before GST) ₹4,20,000",
+    "page": 1
+   }
+  },
+  {
+   "field": "scope",
+   "value": "Brand refresh, phase 1",
+   "state": "confirmed",
+   "source": {
+    "file": "Kalakriti_Invoice_INV-KDS-2291.pdf",
+    "quote": "Description: Brand refresh, phase 1",
+    "page": 1
+   }
+  },
+  {
+   "field": "other",
+   "value": "Attention: Neha Kapoor",
+   "state": "confirmed",
+   "source": {
+    "file": "Kalakriti_Invoice_INV-KDS-2291.pdf",
+    "quote": "Attention: Neha Kapoor, Marketing Ops",
+    "page": 1
+   }
+  }
+ ],
+ "changesVsKnown": [],
+ "flags": [
+  {
+   "type": "missing",
+   "message": "Invoice INV-KDS-2291 has no request, contract or PO behind it.",
+   "sendTo": "procurement"
+  }
+ ]
+}
