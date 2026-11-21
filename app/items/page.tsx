@@ -5,7 +5,7 @@ import { useAva } from "@/lib/store";
 import { deriveItems, type Item } from "@/lib/engine/items";
 import { analyze } from "@/lib/engine/rules";
 import { PEOPLE, person, personName } from "@/lib/engine/world";
-import { fmtShort, hoursBetween, lakh } from "@/lib/format";
+import { fmtShort, hoursBetween, lakh, span } from "@/lib/format";
 import { DraftBox, ReceiptModal } from "@/components/request";
 import { Button, Card, CardHead, Chip, cx, Empty, PageTitle, Quote, StateChip } from "@/components/ui";
 import { roleOf } from "@/components/Shell";
@@ -27,7 +27,7 @@ export default function ItemsPage() {
   const myRequests = state.requestOrder.map((id) => state.requests[id]).filter((r) => r.requesterId === viewAs);
   return (
     <div>
-      <PageTitle title={items.length ? `${items.length} thing${items.length === 1 ? "" : "s"} waiting on ${personName(viewAs).split(" ")[0]}` : `Nothing is waiting on ${personName(viewAs).split(" ")[0]}`} sub={`You are viewing as ${personName(viewAs)}, ${roleOf(viewAs)}. Each person sees only what they can act on, with one question each. Switch person below or in the sidebar.`} />
+      <PageTitle title={items.length ? `${items.length} thing${items.length === 1 ? "" : "s"} waiting on ${personName(viewAs).split(" ")[0]}` : `Nothing is waiting on ${personName(viewAs).split(" ")[0]}`} sub="Only what is waiting on you." />
       <div role="tablist" aria-label="Department" className="mb-4 flex flex-wrap gap-1">
         {DEPTS.map(([id, label]) => { const n = deriveItems(state).filter((i) => i.personId === id).length; return (
           <button key={id} role="tab" aria-selected={viewAs === id} onClick={() => setViewAs(id)} className={cx("rounded-md border px-2.5 py-1 text-[12.5px]", viewAs === id ? "border-accent bg-accent-50 font-semibold text-accent-700" : "border-slate-300 bg-white text-slate-700 hover:bg-slate-50")}>{label}{n > 0 && <span className="ml-1.5 rounded-full bg-red-600 px-1.5 text-[10.5px] font-bold text-white">{n}</span>}</button>); })}
@@ -67,9 +67,10 @@ function ProcurementSide() {
 function LegalSide() {
   const state = useAva((s) => s.state);
   const ready = state.requestOrder.filter((id) => analyze(state, id).handoff.state === "ready_legal");
+  const withdrawn = state.requestOrder.filter((id) => !ready.includes(id) && state.requests[id].withdrawals?.length);
   return (
     <Card><CardHead title="Handoff packets" sub="Requests that reached Ready for Legal Review. This is where intake hands over to the next stage." />
-      <ul className="divide-y divide-slate-100">{ready.length ? ready.map((id) => <li key={id} className="px-4 py-2.5 text-[13px]"><Link className="font-medium text-accent hover:underline" href={`/requests/${id}#packet`}>{id} {state.requests[id].title}</Link><div className="text-slate-500">Ready {fmtShort(state.requests[id].readyAt!)}</div></li>) : <li className="px-4 py-3 text-[13px] text-slate-500">No packets yet.</li>}</ul></Card>
+      <ul className="divide-y divide-slate-100">{withdrawn.map((id) => { const w = state.requests[id].withdrawals!.at(-1)!; return <li key={id + "w"} className="bg-amber-50/60 px-4 py-2.5 text-[13px]"><Link className="font-medium text-accent hover:underline" href={`/requests/${id}`}>{id} {state.requests[id].title}</Link><div className="text-amber-900">Withdrawn from Legal review on {fmtShort(w.at)}: {w.reason}</div></li>; })}{ready.length ? ready.map((id) => <li key={id} className="px-4 py-2.5 text-[13px]"><Link className="font-medium text-accent hover:underline" href={`/requests/${id}#packet`}>{id} {state.requests[id].title}</Link><div className="text-slate-500">Ready {fmtShort(state.requests[id].readyAt!)}</div></li>) : (withdrawn.length ? null : <li className="px-4 py-3 text-[13px] text-slate-500">No packets yet.</li>)}</ul></Card>
   );
 }
 
@@ -88,7 +89,7 @@ function ItemCard({ it }: { it: Item }) {
       <div className="px-4 py-3">
         <div className="flex flex-wrap items-center justify-between gap-2 text-[12px] text-slate-500">
           <span>{it.requestId ? <Link className="font-medium text-accent hover:underline" href={`/requests/${it.requestId}`}>{it.requestId} · {it.title}</Link> : it.title}</span>
-          <span className="flex items-center gap-2">{rec && <>Opened {fmtShort(rec.openedAt)} · age {age}h · due {fmtShort(due(rec.openedAt))}</>}<Chip tone={tone as any}>{KIND[it.kind] ?? it.kind}</Chip></span>
+          <span className="flex items-center gap-2">{rec && <>Opened {fmtShort(rec.openedAt)} · waiting {span(hoursBetween(rec.openedAt, state.now))} · due {fmtShort(due(rec.openedAt))}</>}<Chip tone={tone as any}>{KIND[it.kind] ?? it.kind}</Chip></span>
         </div>
         <p className="mt-1.5 text-[14.5px] font-medium text-slate-900">{it.question}</p>
         {it.detail && <p className="text-[12.5px] text-slate-600">{it.detail}</p>}

@@ -2,7 +2,7 @@
 import Link from "next/link";
 import { useAva } from "@/lib/store";
 import { personName } from "@/lib/engine/world";
-import { fmtShort, hoursBetween } from "@/lib/format";
+import { closedAfter, hoursBetween, span } from "@/lib/format";
 import { CONFLICT_TYPE } from "./ConflictCard";
 import { Card, Empty, StateChip } from "./ui";
 
@@ -17,9 +17,9 @@ export function ConflictsTable() {
         <tbody>{list.map((c) => (
           <tr key={c.id} className="border-b border-slate-50">
             <td className="px-4 py-2"><Link className="font-medium text-accent hover:underline" href={`/requests/${c.requestId}#conflicts`}>{c.title}</Link></td>
-            <td className="px-2 py-2">{CONFLICT_TYPE[c.type]}</td><td className="px-2 py-2">{c.requestId}</td><td className="px-2 py-2">{personName(c.ownerId)}</td>
+            <td className="px-2 py-2">{CONFLICT_TYPE[c.type]}</td><td className="whitespace-nowrap px-2 py-2">{c.requestId}</td><td className="px-2 py-2">{personName(c.ownerId)}</td>
             <td className="px-2 py-2"><StateChip state={c.severity} /></td><td className="px-2 py-2"><StateChip state={c.status} /></td>
-            <td className="px-2 py-2 tabular text-slate-600">{Math.round(hoursBetween(c.openedAt, c.resolvedAt ?? state.now))}h{c.resolvedAt ? ` (closed ${fmtShort(c.resolvedAt)})` : ""}</td>
+            <td className="whitespace-nowrap px-2 py-2 text-slate-600">{c.resolvedAt ? closedAfter(c.openedAt, c.resolvedAt) : `open ${span(hoursBetween(c.openedAt, state.now))}`}</td>
           </tr>))}</tbody>
       </table></div>
     </Card>

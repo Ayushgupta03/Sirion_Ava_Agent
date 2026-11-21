@@ -321,7 +321,7 @@ export function analyze(state: State, reqId: string): Analysis {
       added.slice(0, 3).forEach((l) => bQuotes.push({ emailId: curSrc.emailId, file: curSrc.file, attachmentId: curSrc.attachmentId, page: 1, quote: l, note: "New line" }));
       conflicts.push({
         id: `cf:${reqId}:said_vs_written:amount:${curSrc.attachmentId ?? curSrc.emailId}`, type: "said_vs_written", severity: "blocking", field: "amount",
-        title: `Price changed in the attachment: ${inr(ref)} → ${inr(amountFact.num)}`,
+        title: `Price changed in the attachment: ${lakh(ref)} → ${lakh(amountFact.num)}`,
         a: { label: lastApproved != null ? "What was said and approved" : "What was said", quotes: aQuotes },
         b: { label: `What ${curSrc.file} says`, quotes: bQuotes },
         whyItMatters: `Amount is a material fact. Budget approval and the 90-day total (${lakh(spend.total)}) depend on it.`,

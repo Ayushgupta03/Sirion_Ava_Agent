@@ -6,7 +6,7 @@ import { useAva } from "@/lib/store";
 import { contractsFor, firstName, personName } from "@/lib/engine/world";
 import { fmtDate, fmtDT, fmtShort, inr, lakh } from "@/lib/format";
 import { docDiff } from "@/lib/engine/facts";
-import { Button, Card, CardHead, Chip, cx, Quote, SourceLink, StateChip } from "./ui";
+import { Button, Card, CardHead, Chip, cx, Quote, SourceLink, StateChip, supplierShort } from "./ui";
 
 export function FactsTable({ a }: { a: Analysis }) {
   const act = useAva((s) => s.act); const viewAs = useAva((s) => s.viewAs);
@@ -62,13 +62,12 @@ export function ChecklistView({ a }: { a: Analysis }) {
   );
 }
 
-export function RoutingPanel({ a }: { a: Analysis }) {
-  return (
-    <Card id="routing">
-      <CardHead title="Routing explanation" sub="Rules are plain code. Each decision shows the rule and the numbers." />
+export function RoutingPanel({ a, bare }: { a: Analysis; bare?: boolean }) {
+  const supName = supplierShort(useAva.getState().state.suppliers.find((s) => s.id === a.req.supplierId)?.name) || "this supplier";
+  const body = (
       <div className="px-4 py-3">
         <div className="mb-3 rounded-md bg-slate-50 px-3 py-2">
-          <div className="text-[12px] font-medium text-slate-500">90-day spend, {a.req.supplierId ?? "supplier"} in {a.req.costCentre} (before GST, since {fmtDate(a.spend.windowStart)})</div>
+          <div className="text-[12px] font-medium text-slate-500">90-day spend, {supName} in {a.req.costCentre} (before GST, since {fmtDate(a.spend.windowStart)})</div>
           <table className="mt-1 w-full text-[13px] tabular"><tbody>
             {a.spend.lines.map((l) => <tr key={l.ref}><td className="py-0.5">{l.label}{l.date ? `, ${fmtDate(l.date)}` : ""}</td><td className="text-right">{inr(l.amount)}</td></tr>)}
             <tr className="border-t border-slate-200 font-semibold"><td className="py-1">90-day total</td><td className={cx("text-right", a.spend.overLimit && "text-red-700")}>{inr(a.spend.total)}</td></tr>
@@ -77,9 +76,11 @@ export function RoutingPanel({ a }: { a: Analysis }) {
         <ol className="space-y-2">
           {a.routing.rules.map((r) => <li key={r.id} className="flex gap-2 text-[13px]"><Chip tone={r.fired ? "blue" : "grey"}>{r.title}</Chip><span>{r.text}</span></li>)}
         </ol>
+        <p className="mt-3 text-[12px] text-slate-500">Rules are plain code, not AI. Each decision shows the rule and the numbers.</p>
       </div>
-    </Card>
   );
+  if (bare) return body;
+  return <Card id="routing"><CardHead title="Why these approvers?" />{body}</Card>;
 }
 
 export function ApprovalsView({ a, compact }: { a: Analysis; compact?: boolean }) {
@@ -115,7 +116,7 @@ export function ReceiptCard({ a, ap, compact }: { a: Analysis; ap: ApprovalView;
 
 function snapText(a: Analysis, ap: ApprovalView) {
   if (ap.key === "budget_owner") return `${lakh(a.requestAmount)} for ${a.req.project}${a.retro ? ` (${lakh(a.amount)} + ${lakh(a.retro)} already invoiced)` : ""}`;
-  if (ap.key === "vp") return `${lakh(a.spend.total)} 90-day total for ${a.req.supplierId} in ${a.req.costCentre}${a.req.exceptions.some((e) => e.kind !== "retro") ? ", plus the competing-quote exception" : ""}`;
+  if (ap.key === "vp") return `${lakh(a.spend.total)} 90-day total for ${supplierShort(useAva.getState().state.suppliers.find((s) => s.id === a.req.supplierId)?.name)} in ${a.req.costCentre}${a.req.exceptions.some((e) => e.kind !== "retro") ? ", plus the competing-quote exception" : ""}`;
   return "Supplier access to customer data, and the security certificate";
 }
 
@@ -184,8 +185,8 @@ export function DocumentsPanel({ a, state }: { a: Analysis; state: State }) {
   return (
     <Card id="documents">
       <CardHead title="Documents" sub="Every file received on this request, plus existing agreements. Newer versions supersede older ones; old versions are kept." />
-      <div className="space-y-4 p-4">
-        <ul className="divide-y divide-slate-100 rounded-md border border-slate-200 text-[13px]">
+      <div className="flex flex-col gap-4 p-4">
+        <ul className="order-last divide-y divide-slate-100 rounded-md border border-slate-200 text-[13px]">
           {a.folded.documents.map((d) => (
             <li key={d.attachmentId} className="flex flex-wrap items-center gap-2 px-3 py-2">
               <SourceLink src={{ emailId: d.emailId, attachmentId: d.attachmentId, file: d.name, quote: "" }} label={d.name} />
@@ -207,8 +208,10 @@ export function DocumentsPanel({ a, state }: { a: Analysis; state: State }) {
           const [o, n] = [att(docs[docs.length - 2].attachmentId), att(docs[docs.length - 1].attachmentId)];
           if (!o || !n) return null;
           const diff = docDiff(o, n); const added = new Set(diff.added); const removed = new Set(diff.removed);
+          const closedHere = Object.values(state.conflicts).filter((c) => c.requestId === a.req.id && c.status === "resolved" && c.resolvedAt === docs[docs.length - 1].receivedAt);
           return (
             <div key={fam}>
+              {closedHere.map((c) => <p key={c.id} className="mb-2 flex items-center gap-2 rounded-lg border border-emerald-300 bg-emerald-50 px-3 py-2 text-[13.5px] font-semibold text-emerald-900"><span aria-hidden>✓</span>{c.type === "renewal_terms_changed" ? "Renewal conflict closed" : "Conflict closed"}: {c.resolution?.text}</p>)}
               <div className="mb-2 text-[13px] font-semibold">Side by side: {o.name} → {n.name}</div>
               <div className="grid gap-3 md:grid-cols-2">
                 {[{ x: o, set: removed, tone: "bg-red-50 text-red-900", tag: "Removed or changed" }, { x: n, set: added, tone: "bg-amber-100 text-amber-950 font-medium", tag: "New or changed" }].map(({ x, set, tone, tag }) => (

@@ -8,7 +8,7 @@ export default function SuppliersPage() {
   const state = useAva((s) => s.state);
   return (
     <div>
-      <PageTitle title="Suppliers" sub="The supplier list (simulated ERP vendor master). Ava matches email domains against it." />
+      <PageTitle title="Suppliers" sub="The supplier list Ava matches email domains against." />
       <div className="grid gap-3 md:grid-cols-3">
         {state.suppliers.map((s) => { const reqs = Object.values(state.requests).filter((r) => r.supplierId === s.id); return (
           <Link key={s.id} href={`/suppliers/${s.id}`}><Card className="h-full p-4 hover:border-accent">

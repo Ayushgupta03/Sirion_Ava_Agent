@@ -145,7 +145,7 @@ describe("timing and extraction-source independence", () => {
   it("timing panel: 3 business days, InfoSec longest wait Thu 12:05 to Tue 11:05", () => {
     const s = run(SCENARIO_A, 9); const t = timingFor(s, REQ(s, "t-sfm"));
     expect(t.days).toBe(3);
-    expect(t.longest).toBe("InfoSec, waiting on the supplier's renewed security certificate (Thu 12:05 to Tue 11:05)");
+    expect(t.longest).toBe("InfoSec, waiting on the supplier's renewed security certificate (Thu 12 Nov, 12:05 to Tue 17 Nov, 11:05)");
   });
   it("Scenario A with the basic extractor (no cache) reaches the same outcomes", () => {
     const noCache = SCENARIO_A.map((st) => ({ ...st, events: st.events.map((b) => (s: State) => { const e = b(s); if (e && e.kind === "email") { return { ...e, extraction: basicExtract(e.email, s.suppliers), extractionSource: "basic" as const }; } return e; }) }));
@@ -164,5 +164,21 @@ describe("Scenario B without cache", () => {
     expect(Object.values(s.conflicts).find((c) => c.requestId === id && c.type === "renewal_terms_changed")?.b.quotes.length).toBe(3);
     s = run(strip(SCENARIO_B).slice(1), 4, s);
     const a = analyze(s, id); expect(a.spend.total).toBe(2130000); expect(a.handoff.state).toBe("ready_po");
+  });
+});
+
+describe("revision: waits and withdrawals", () => {
+  it("Scenario B longest wait is the supplier's corrected order form", () => {
+    let s = run(SCENARIO_A, 9); s = run(SCENARIO_B, 5, s);
+    expect(timingFor(s, REQ(s, "t-kosha")).longest).toBe("Kosha, corrected order form (Mon 23 Nov, 10:20 to Tue 1 Dec, 14:30)");
+  });
+  it("a reopened handoff is recorded as withdrawn and Farah is told", () => {
+    let s = run(SCENARIO_A, 9);
+    const att = sampleAttachment("Trivenika_Quote_23L.pdf", "w-att1");
+    const email = { id: "w1", threadId: "t-sfm", from: "arjun.d@trivenika.example", to: ["rahul.mehta@prayaan.example"], cc: [], subject: "RE: quote", body: "Revised quote attached.", sentAt: "2026-11-18T10:00:00+05:30", attachments: [att], origin: "composed" as const };
+    s = applyEvent(s, { id: "evw", at: email.sentAt, kind: "email", email, extraction: basicExtract(email, []), extractionSource: "basic" });
+    const req = s.requests[REQ(s, "t-sfm")];
+    expect(req.withdrawals?.[0].reason).toBe("price changed in a new quote (₹21.5L → ₹23L). Approvals reopened.");
+    expect(deriveItems(s).some((i) => i.personId === "farah" && /withdrawn from Legal review/.test(i.question))).toBe(true);
   });
 });

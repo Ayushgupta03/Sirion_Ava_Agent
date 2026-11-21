@@ -10,6 +10,7 @@ import { cx } from "./ui";
 import { Icon, type IconName } from "./icons";
 import { DemoLink, Ext, Section, StoryFrame } from "./story";
 import { initials } from "./Shell";
+import ConnectDiagram from "./ConnectDiagram";
 
 const card = "rounded-xl border border-slate-200 bg-white";
 const label = "text-[11.5px] font-semibold uppercase tracking-[0.05em] text-slate-500";
@@ -363,6 +364,7 @@ export function Assumptions() {
           </table>
         </div>
       </Section>
+      <Section title="How Ava connects" sub="Where email comes from, and where AI and code each act."><ConnectDiagram /></Section>
       {GROUPS.map((g) => (
         <Section key={g.title} title={g.title}>
           <div className={cx(card, "divide-y divide-slate-100")}>
@@ -423,6 +425,11 @@ export function Sirion() {
           </table>
         </div>
         <p className="mt-2 text-[12.5px] text-slate-500">Sources: <Ext href="https://www.legaltechnologyhub.com/vendors/sirion-clm-by-sirion/">Legaltech Hub profile</Ext> · <Ext href="https://www.getapp.com/operations-management-software/a/sirionone">GetApp profile</Ext> · <Ext href="https://marketplace.microsoft.com/en-us/product/web-apps/sirionlabsinc1658837034847.sirionlabs">Microsoft Marketplace listing</Ext></p>
+      </Section>
+      <Section title="Different from a typical intake tool">
+        <ul className="grid gap-3 sm:grid-cols-3">
+          {["No form, no portal, no forwarding.", "Ava reads attachments, not just email text.", "An approval belongs to the facts it was given for."].map((t) => <li key={t} className={cx(card, "flex gap-2 p-4 text-[14px] font-medium")}><Icon name="check" className="mt-0.5 shrink-0 text-emerald-600" />{t}</li>)}
+        </ul>
       </Section>
       <Section title="What Ava adds in four lines">
         <ol className="grid gap-3 sm:grid-cols-2 lg:grid-cols-4">

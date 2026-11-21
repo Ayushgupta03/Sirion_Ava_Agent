@@ -22,5 +22,9 @@ mark.src { background: oklch(0.92 0.12 95); color: inherit; padding: 0 2px; bord
 .tabular, .font-mono { font-variant-numeric: tabular-nums; }
 button:not(:disabled):active { transform: scale(0.97); transition: transform 150ms ease-out; }
 @media (prefers-reduced-motion: reduce) { *, *::before, *::after { animation: none !important; transition: none !important; } button:active { transform: none !important; } }
-.enter { animation: enter 300ms ease-out both; }
-@keyframes enter { from { opacity: 0; transform: translateY(8px); } to { opacity: 1; transform: none; } }
+.enter { animation: enter 150ms ease-out both; }
+@keyframes enter { from { opacity: 0.9; } to { opacity: 1; } }
+/* Guided-demo highlight: what a step changed. */
+[data-pulse] { scroll-margin-top: 196px; }
+.pulse-ring { outline: 3px solid var(--color-accent); outline-offset: 4px; border-radius: 12px; animation: ava-pulse 2s ease-out; }
+@keyframes ava-pulse { 0% { box-shadow: 0 0 0 0 oklch(0.49 0.17 262 / 0.45); } 60% { box-shadow: 0 0 0 12px oklch(0.49 0.17 262 / 0); } 100% { box-shadow: none; } }

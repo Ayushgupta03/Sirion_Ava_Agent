@@ -2,15 +2,18 @@
 import { Suspense, useEffect, useMemo, useState } from "react";
 import { useRouter, useSearchParams } from "next/navigation";
 import Link from "next/link";
-import type { Attachment, Email } from "@/lib/types";
+import type { Attachment, Email, Source, State } from "@/lib/types";
 import { useAva } from "@/lib/store";
 import { displayAddr, PEOPLE, personByEmail, personName } from "@/lib/engine/world";
 import { labelSource } from "@/lib/engine/pipeline";
 import { analyze } from "@/lib/engine/rules";
-import { addMinutes, fmtDT, fmtShort, lakh, uid } from "@/lib/format";
+import { deriveItems } from "@/lib/engine/items";
+import { addMinutes, fmtDT, fmtShort, inr, lakh, parseAmount, parseMonths, uid } from "@/lib/format";
+import { FIELD_LABEL, mapField } from "@/lib/engine/facts";
+import { Icon } from "@/components/icons";
 import { sampleAttachment, SAMPLE_GROUPS } from "@/lib/samples";
 import { extractForEmail, uploadForText } from "@/lib/extractClient";
-import { Button, Card, CardHead, Chip, cx, Empty, PageTitle, SourceLink, StateChip } from "@/components/ui";
+import { Button, Card, CardHead, Chip, cx, Empty, PageTitle, SourceLink, StateChip, supplierShort } from "@/components/ui";
 
 export default function InboxPage() { return <Suspense><Inbox /></Suspense>; }
 
@@ -21,12 +24,13 @@ function Inbox() {
   const sp = useSearchParams(); const router = useRouter();
   const [filter, setFilter] = useState<string>("all");
   const [composing, setComposing] = useState(sp.get("compose") === "1");
+  const [outlook, setOutlook] = useState(false);
   const selected = sp.get("email");
   const emails = useMemo(() => [...state.emails].filter((e) => filter === "all" || [e.from, ...e.to, ...e.cc].some((a) => personByEmail(a)?.id === filter)).sort((a, b) => b.sentAt.localeCompare(a.sentAt)), [state.emails, filter]);
   const email = state.emails.find((e) => e.id === selected) ?? (composing ? undefined : emails[0]);
   return (
     <div>
-      <PageTitle title="Inbox" sub="A simulated mailbox of supplier email. Ava records every email and attachment exchanged with supplier domains. Compose any email, from anyone, to test the full pipeline." right={<Button variant="primary" onClick={() => setComposing(true)}>New email</Button>} />
+      <PageTitle title="Inbox" sub="Supplier email Ava has recorded. Simulated." right={<Button variant="primary" onClick={() => setComposing(true)}>New email</Button>} />
       <div className="grid grid-cols-1 gap-4 break-words lg:grid-cols-[300px_minmax(0,1fr)_360px]">
         <Card>
           <div role="tablist" aria-label="Mailbox filter" className="flex gap-1 border-b border-slate-100 p-2">
@@ -44,7 +48,11 @@ function Inbox() {
             {!emails.length && <li className="p-4"><Empty>No email yet. Press Start in the story bar, or compose one.</Empty></li>}
           </ul>
         </Card>
-        {composing ? <Composer onDone={(id) => { setComposing(false); router.replace(`/inbox?email=${id}`); }} onCancel={() => setComposing(false)} /> : email ? <EmailView email={email} /> : <Empty>Select an email.</Empty>}
+        {composing ? <Composer onDone={(id) => { setComposing(false); router.replace(`/inbox?email=${id}`); }} onCancel={() => setComposing(false)} /> : email ? (
+          <div className="min-w-0 space-y-2">
+            {employeeOf(email) && <div className="flex flex-wrap items-center justify-between gap-2"><button onClick={() => setOutlook(!outlook)} aria-pressed={outlook} className={cx("flex h-9 items-center gap-2 rounded-md border px-3 text-[13px] font-medium", outlook ? "border-accent bg-accent-50 text-accent-700" : "border-slate-300 bg-white hover:bg-slate-50")}><Icon name="mail" size={15} />{outlook ? "Back to Ava's view" : `See it as ${personName(employeeOf(email)).split(" ")[0]} does in Outlook`}</button>{outlook && <span className="text-[12px] text-slate-500">Optional add-in, for reading; capture happens centrally.</span>}</div>}
+            {outlook && employeeOf(email) ? <OutlookView email={email} personId={employeeOf(email)!} /> : <EmailView email={email} />}
+          </div>) : <Empty>Select an email.</Empty>}
         {!composing && email ? <AvaRecorded email={email} /> : <TryThis />}
       </div>
     </div>
@@ -75,40 +83,99 @@ function EmailView({ email }: { email: Email }) {
   );
 }
 
+function changeBanner(state: State, email: Email, reqId?: string) {
+  if (!reqId) return null;
+  const a = analyze(state, reqId);
+  const opened = Object.values(state.conflicts).filter((c) => c.requestId === reqId && c.openedAt === email.sentAt);
+  const closed = Object.values(state.conflicts).filter((c) => c.requestId === reqId && c.resolvedAt === email.sentAt);
+  const bodyHasPrice = /₹|\brs\b|\binr\b|lakh|\d+\s?l\b/i.test(email.body);
+  const prevDoc = (attId?: string) => { const docs = a.folded.documents.filter((d) => ["quote", "order_form", "sow"].includes(d.docType)); const k = docs.findIndex((d) => d.attachmentId === attId); return k > 0 ? docs[k - 1].attachmentId : undefined; };
+  for (const c of opened) {
+    const att = c.b.quotes[0]?.attachmentId;
+    const line = c.b.quotes.find((q) => q.note === "New line")?.quote ?? c.b.quotes[0]?.quote;
+    const pdf = att ? { emailId: email.id, attachmentId: att, quote: c.type === "renewal_terms_changed" ? undefined : line, quotes: c.type === "renewal_terms_changed" ? c.b.quotes.map((q) => q.quote) : undefined, compareWith: c.type === "said_vs_written" ? prevDoc(att) : undefined, title: c.type === "said_vs_written" ? "What changed in the quote" : "What the order form says" } : undefined;
+    if (c.type === "said_vs_written" && c.field === "amount") {
+      const diff = (parseAmount(c.bValue) ?? 0) - (parseAmount(c.aValue) ?? 0);
+      return { tone: "amber" as const, text: `Price changed in the attachment: ${c.aValue} → ${c.bValue} (${diff >= 0 ? "+" : "−"}${inr(Math.abs(diff))}).${bodyHasPrice ? "" : " The email body says nothing about price."}`, pdf, conflict: c.id };
+    }
+    if (c.type === "renewal_terms_changed") {
+      const claim = c.a.quotes[0]?.quote.replace(/\.$/, "") ?? "nothing changes";
+      const bits = c.b.quotes.map((q) => { if (/renews automatically|auto-?renew/i.test(q.quote)) return "auto-renewal"; const months = parseMonths(q.quote); if (/^term|months/i.test(q.quote) && months) return `${months} months`; const amt = /₹/.test(q.quote) ? parseAmount(q.quote) : undefined; if (amt) return `${inr(amt)} (${q.note?.replace(/ above /, " on ").replace(/^(\d+)%/, "+$1%") ?? ""})`; return q.quote; });
+      return { tone: "amber" as const, text: `The email says “${claim}”. The order form says ${bits.join(", ")}.`, pdf, conflict: c.id };
+    }
+    if (c.type === "hidden_scope") return { tone: "amber" as const, text: `${c.title} Rahul is asked to confirm.`.replace("Rahul", personName(state.requests[reqId].requesterId).split(" ")[0]), pdf: c.b.quotes[0]?.attachmentId ? { emailId: email.id, attachmentId: c.b.quotes[0].attachmentId, quote: c.b.quotes[0].quote } : undefined, conflict: c.id };
+    if (c.type === "started_before_approval") return { tone: "amber" as const, text: `${c.title}. It arrived before any approval.`, pdf: c.b.quotes[0]?.attachmentId ? { emailId: email.id, attachmentId: c.b.quotes[0].attachmentId, quote: c.b.quotes[0].quote } : undefined, conflict: c.id };
+  }
+  for (const c of closed) {
+    const att = email.attachments[0]?.id;
+    return { tone: "green" as const, text: `${c.type === "renewal_terms_changed" ? "Renewal conflict closed" : "Conflict closed"}: ${c.resolution?.text ?? "the sources now agree"}`, pdf: att ? { emailId: email.id, attachmentId: att, compareWith: prevDoc(att), title: "Before and after" } : undefined, conflict: c.id };
+  }
+  const ch = state.changes.filter((c) => c.requestId === reqId && c.at === email.sentAt)[0];
+  if (ch) return { tone: "amber" as const, text: `${ch.field} changed: ${ch.old} → ${ch.new}.`, pdf: ch.source.attachmentId ? { emailId: email.id, attachmentId: ch.source.attachmentId, quote: ch.source.quote } : undefined, conflict: undefined };
+  return null;
+}
+
 function AvaRecorded({ email }: { email: Email }) {
-  const state = useAva((s) => s.state);
+  const state = useAva((s) => s.state); const open = useAva((s) => s.openSource);
   const ex = state.extractions[email.id];
   const reqId = Object.values(state.requests).find((r) => r.emailIds.includes(email.id))?.id;
   const req = reqId ? state.requests[reqId] : undefined;
   const orphan = state.orphans.find((o) => o.emailId === email.id);
   const sup = state.suppliers.find((s) => s.id === req?.supplierId);
-  const flags = req ? req.flags.filter((f) => f.createdAt === email.sentAt) : [];
+  const flags = req ? req.flags.filter((f) => f.createdAt === email.sentAt && f.type !== "mention") : [];
   const conflicts = Object.values(state.conflicts).filter((c) => c.requestId === reqId && c.openedAt === email.sentAt);
-  const changes = state.changes.filter((c) => c.requestId === reqId && c.at === email.sentAt);
   const a = reqId ? analyze(state, reqId) : undefined;
+  const banner = changeBanner(state, email, reqId);
+  // One row per request field, showing the request-level state (not the per-email state).
+  const rows: { key: string; label: string; value: string; src: Source; state: string; by?: string }[] = [];
+  for (const f of ex?.result?.facts ?? []) {
+    const field = mapField(f) ?? f.field;
+    const att = email.attachments.find((x) => x.name.toLowerCase() === f.source.file.toLowerCase());
+    const src: Source = { emailId: email.id, file: f.source.file, attachmentId: att?.id, page: f.source.page, quote: f.source.quote };
+    const existing = rows.find((r) => r.key === field);
+    if (existing) { if (f.source.file !== "email" && existing.src.file === "email") { existing.value = f.value; existing.src = src; } continue; }
+    const rf = a?.facts[field];
+    let st = rf?.displayState ?? f.state; let by: string | undefined;
+    if (rf?.confirmedBy) by = `Confirmed by ${personName(rf.confirmedBy)}, ${fmtDT(rf.versions[rf.versions.length - 1].at)}`;
+    else if (rf && rf.origin === "document" && rf.displayState === "confirmed") by = "Confirmed by a document";
+    if (!rf) st = f.state;
+    rows.push({ key: field, label: FIELD_LABEL[field] ?? f.field.replace(/_/g, " "), value: f.value, src, state: st, by });
+  }
+  const who = (role: string) => role === "requester" ? personName(req?.requesterId) : ({ procurement: "Karan Shah", infosec: "Meera Nair", legal: "Farah Khan", finance: "Suresh Pillai", vp: "Vikram Rao", budget_owner: "the budget owner" } as Record<string, string>)[role] ?? role;
   return (
-    <Card className="self-start">
+    <Card className="self-start" >
+      <div data-pulse="ava-recorded">
       <CardHead title="Ava recorded" right={ex && ex.source !== "none" ? <Chip tone={ex.source === "basic" ? "amber" : "blue"}>{labelSource(ex.source)}</Chip> : undefined} />
       <div className="space-y-4 px-4 py-3 text-[13px]">
-        {email.origin === "ava_draft" && <p>Ava's draft, sent by {personByEmail(email.from)?.name}. Recorded in the thread. No facts are extracted from our own questions.</p>}
-        {req && <div><div className="text-[12px] font-semibold uppercase tracking-wide text-slate-500">Filed under</div>
-          <div className="mt-1 font-medium">{sup?.name ?? `Possible new supplier: ${req.supplierGuess?.name}`} › {req.project} › <Link className="text-accent hover:underline" href={`/requests/${req.id}`}>{req.id}</Link></div>
-          <div className="mt-0.5 text-[12.5px] text-slate-600">{req.title}. Confidence: <b>{req.filing.confidence}</b>. {ex?.result?.filing.reason}</div></div>}
-        {orphan && <div className="rounded-md bg-amber-50 px-3 py-2"><b>Invoice with no request.</b> {orphan.invoiceNo}, {lakh(orphan.amount)} before GST. {orphan.likelyOwnerId ? `Likely owner: ${personName(orphan.likelyOwnerId)} (named as "Attention" on the invoice).` : "No likely owner found."} <Link className="text-accent underline" href="/dashboard">See the dashboard card</Link></div>}
-        {!req && !orphan && email.origin !== "ava_draft" && <p className="text-slate-600">Not filed: no supplier domain or commercial content in this email.</p>}
-        {ex?.result && ex.result.facts.length > 0 && <div><div className="mb-1 text-[12px] font-semibold uppercase tracking-wide text-slate-500">Facts extracted</div>
-          <ul className="space-y-1.5">{ex.result.facts.map((f, i) => {
-            const att = email.attachments.find((x) => x.name.toLowerCase() === f.source.file.toLowerCase());
-            return <li key={i} className="rounded-md border border-slate-100 px-2.5 py-1.5"><div className="flex flex-wrap items-center gap-1.5"><span className="text-[12px] text-slate-500">{f.field.replace(/_/g, " ")}</span><StateChip state={f.state} /></div>
-              <div className="font-medium">{f.value}</div><SourceLink src={{ emailId: email.id, file: f.source.file, attachmentId: att?.id, page: f.source.page, quote: f.source.quote }} label={`Source: ${f.source.file === "email" ? "email" : `${f.source.file}${f.source.page ? `, p.${f.source.page}` : ""}`}`} /></li>;
-          })}</ul></div>}
-        {(changes.length > 0 || flags.length > 0 || conflicts.length > 0) && <div><div className="mb-1 text-[12px] font-semibold uppercase tracking-wide text-slate-500">What changed and who was told</div>
+        {email.origin === "ava_draft" && <p>Ava&apos;s draft, sent by {personByEmail(email.from)?.name}. Recorded in the thread. No facts are taken from our own questions.</p>}
+        {banner && (
+          <div data-pulse="change-banner" className={cx("rounded-lg border px-3 py-2.5", banner.tone === "amber" ? "border-amber-300 bg-amber-50 text-amber-950" : "border-emerald-300 bg-emerald-50 text-emerald-950")}>
+            <p className="text-[11px] font-semibold uppercase tracking-[0.05em]">{banner.tone === "amber" ? "What changed" : "Resolved"}</p>
+            <p className="mt-0.5 text-[14px] font-semibold leading-snug">{banner.text}</p>
+            <div className="mt-2 flex flex-wrap gap-1.5">
+              {banner.pdf && <button onClick={() => open(banner.pdf as any)} className="rounded-md border border-current/20 bg-white px-2 py-1 text-[12.5px] font-medium">{banner.tone === "green" ? "Compare the versions" : "See the line in the PDF"}</button>}
+              {banner.conflict && reqId && <Link href={`/requests/${reqId}#conflicts`} className="rounded-md border border-current/20 bg-white px-2 py-1 text-[12.5px] font-medium">Open the conflict</Link>}
+            </div>
+          </div>
+        )}
+        {orphan && <div data-pulse="change-banner" className="rounded-lg border border-amber-300 bg-amber-50 px-3 py-2.5"><p className="text-[11px] font-semibold uppercase tracking-[0.05em]">Invoice with no request</p><p className="mt-0.5 font-semibold">{orphan.invoiceNo}, {lakh(orphan.amount)} before GST. No request, contract or PO behind it.</p><p className="text-[12.5px]">{orphan.likelyOwnerId ? `Asked ${personName(orphan.likelyOwnerId)} to confirm (named as "Attention" on the invoice).` : "Sent to Procurement's Unsorted tray."}</p></div>}
+        {(conflicts.length > 0 || flags.length > 0) && <div><div className="mb-1 text-[11.5px] font-semibold uppercase tracking-[0.05em] text-slate-500">Needs attention</div>
           <ul className="space-y-1">
-            {changes.map((c) => <li key={c.id} className="text-red-800">{c.field}: {c.old} → {c.new}</li>)}
-            {flags.map((f) => <li key={f.id}>Flag to {f.sendTo === "requester" ? personName(req?.requesterId) : f.sendTo.replace("_", " ")}: {f.message}</li>)}
-            {conflicts.map((c) => <li key={c.id}>Conflict for {personName(c.ownerId)}: <Link className="text-accent underline" href={`/requests/${c.requestId}#conflicts`}>{c.title}</Link></li>)}
+            {conflicts.map((c) => <li key={c.id} className="flex gap-2"><Icon name="alert" className="mt-0.5 shrink-0 text-red-600" size={14} /><span><Link className="font-medium text-slate-900 hover:underline" href={`/requests/${c.requestId}#conflicts`}>{c.title}</Link> <span className="text-slate-500">→ {personName(c.ownerId)}</span></span></li>)}
+            {flags.map((f) => <li key={f.id} className="flex gap-2"><Icon name={f.question ? "users" : "bell"} className="mt-0.5 shrink-0 text-amber-600" size={14} /><span>{f.message} <span className="text-slate-500">→ {who(f.sendTo)}</span></span></li>)}
           </ul></div>}
-        {a && <div className="rounded-md bg-slate-50 px-3 py-2 text-[12.5px]">Request now: <StateChip state={a.handoff.state} /> {a.spend.total > 0 && <>· 90-day total {lakh(a.spend.total)}</>} {a.waitingOn && <>· waiting on {a.waitingOn}</>}</div>}
+        {req && <div><div className="text-[11.5px] font-semibold uppercase tracking-[0.05em] text-slate-500">Filed under</div>
+          <div className="mt-1 font-medium">{sup ? <Link className="hover:underline" href={`/suppliers/${sup.id}`}>{supplierShort(sup.name)}</Link> : `Possible new supplier: ${req.supplierGuess?.name}`} › {req.project} › <Link className="whitespace-nowrap text-accent hover:underline" href={`/requests/${req.id}`}>{req.id}</Link></div>
+          <div className="mt-0.5 text-[12.5px] text-slate-600">Filing confidence: <b>{req.filing.confidence}</b>{a && <> · now <StateChip state={a.handoff.state} /></>}</div></div>}
+        {!req && !orphan && email.origin !== "ava_draft" && <p className="text-slate-600">Not filed: no supplier domain or commercial content in this email.</p>}
+        {rows.length > 0 && <details className="rounded-lg border border-slate-200">
+          <summary className="cursor-pointer px-3 py-2 text-[13px] font-medium">{rows.length} facts extracted <span className="font-normal text-slate-500">· show</span></summary>
+          <ul className="divide-y divide-slate-100 border-t border-slate-100">{rows.map((r) => (
+            <li key={r.key} className="px-3 py-2"><div className="flex flex-wrap items-center gap-1.5"><span className="text-[12px] text-slate-500">{r.label}</span><StateChip state={r.state} /></div>
+              <div className="font-medium">{r.value}</div>{r.by && <div className="text-[12px] text-slate-500">{r.by}</div>}<SourceLink src={r.src} label={`Source: ${r.src.file === "email" ? "email" : `${r.src.file}${r.src.page ? `, p.${r.src.page}` : ""}`}`} /></li>))}
+          </ul>
+        </details>}
+      </div>
       </div>
     </Card>
   );
@@ -189,7 +256,7 @@ function TryThis() {
   const state = useAva((s) => s.state); const ai = useAva((s) => s.aiAvailable);
   const sfm = state.threadRequest["t-sfm"] ? "t-sfm" : "";
   const items: { label: string; expect: string; d: Partial<Draft> }[] = [
-    { label: "As Arjun, reply with a quote for ₹23L", expect: "A said-vs-written conflict; approvals reopen; 90-day total ₹41L if steps 1 to 9 ran.", d: { from: "arjun.d@trivenika.example", to: "rahul.mehta@prayaan.example", threadId: sfm, subject: "RE: Salesforce migration – can you help?", body: "Hi Rahul, our revised quote is attached. Regards, Arjun", files: [sampleAttachment("Trivenika_Quote_23L.pdf", uid("s"))] } },
+    { label: "As Arjun, reply with a quote for ₹23L", expect: "A said-vs-written conflict; the 90-day total updates; approvals reopen.", d: { from: "arjun.d@trivenika.example", to: "rahul.mehta@prayaan.example", threadId: sfm, subject: "RE: Salesforce migration – can you help?", body: "Hi Rahul, our revised quote is attached. Regards, Arjun", files: [sampleAttachment("Trivenika_Quote_23L.pdf", uid("s"))] } },
     { label: "As Arjun: \"Our team has started work today\"", expect: "A started-before-approval conflict.", d: { from: "arjun.d@trivenika.example", to: "rahul.mehta@prayaan.example", threadId: sfm, subject: "RE: Salesforce migration – can you help?", body: "Hi Rahul, quick update: our team has started work today on the migration. Regards, Arjun" } },
     { label: "As a new supplier, send a quote", expect: "Possible new supplier, sent to Procurement.", d: { from: "sales@navkar.example", to: "karan.shah@prayaan.example", subject: "Quotation: office relocation", body: "Dear Karan, please find our quotation for the office relocation from Pune to Bengaluru. Regards, Navkar Logistics", files: [sampleAttachment("Navkar_Logistics_Quote.pdf", uid("s"))] } },
     { label: "As Rahul, ask a supplier to renew with no changes", expect: "A new renewal request.", d: { from: "rahul.mehta@prayaan.example", to: "arjun.d@trivenika.example", subject: "Renewal: Salesforce support retainer", body: "Hi Arjun, please renew the Salesforce support retainer for Q1 2027 with no changes. Thanks, Rahul" } },
@@ -197,11 +264,67 @@ function TryThis() {
   ];
   return (
     <Card className="self-start">
-      <CardHead title="Try this" sub={<>Each one pre-fills the composer. Extraction: <b>{ai ? "Live AI (key set)" : "Basic extraction (no API key on this deployment)"}</b>.</>} />
+      <CardHead title="Try this" sub={<>Each one pre-fills the composer. {ai ? <>Extraction: <b>Live AI</b>.</> : <>AI unavailable right now; basic extraction used.</>}</>} />
       <ul className="divide-y divide-slate-100">
         {items.map((it) => <li key={it.label} className="px-4 py-2.5"><button className="text-left text-[13px] font-medium text-accent hover:underline" onClick={() => prefill(it.d)}>{it.label}</button><div className="text-[12px] text-slate-500">Expect: {it.expect}</div></li>)}
       </ul>
       <p className="px-4 pb-3 text-[12px] text-slate-500">Tip: switch "View as" to act as each stakeholder after sending.</p>
     </Card>
+  );
+}
+
+function employeeOf(email: Email): string | undefined {
+  const p = personByEmail(email.from) ?? [...email.to, ...email.cc].map((a) => personByEmail(a)).find(Boolean);
+  return p?.id;
+}
+
+/** The same email as the employee sees it in their mail client, with a narrow Ava add-in. */
+function OutlookView({ email, personId }: { email: Email; personId: string }) {
+  const { state, act } = useAva(); const open = useAva((s) => s.openSource);
+  const reqId = Object.values(state.requests).find((r) => r.emailIds.includes(email.id))?.id;
+  const a = reqId ? analyze(state, reqId) : undefined;
+  const mine = deriveItems(state).filter((i) => i.personId === personId && (!reqId || i.requestId === reqId));
+  const first = personName(personId).split(" ")[0];
+  return (
+    <div className="overflow-hidden rounded-xl border border-slate-300 bg-white shadow-sm">
+      <div className="flex items-center gap-3 bg-[#0f5fb8] px-3 py-2 text-white">
+        <span className="text-[13px] font-semibold">Mail</span>
+        <span className="hidden flex-1 rounded bg-white/20 px-2 py-1 text-[12px] text-white/80 sm:block">Search</span>
+        <span className="ml-auto grid h-6 w-6 place-items-center rounded-full bg-white/25 text-[10.5px] font-semibold">{personName(personId).split(" ").map((w) => w[0]).join("")}</span>
+      </div>
+      <div className="grid md:grid-cols-[minmax(0,1fr)_240px]">
+        <div className="min-w-0 border-r border-slate-200 p-4">
+          <h2 className="text-[17px] font-semibold">{email.subject}</h2>
+          <div className="mt-1 text-[12.5px] text-slate-600">{displayAddr(email.from, state)} · {fmtDT(email.sentAt)}</div>
+          <div className="text-[12.5px] text-slate-500">To: {email.to.map((t) => displayAddr(t, state)).join(", ")}</div>
+          <p className="mt-3 whitespace-pre-wrap text-[14px] leading-relaxed">{email.body}</p>
+          {email.attachments.length > 0 && <div className="mt-3 flex flex-wrap gap-2">{email.attachments.map((x) => <button key={x.id} onClick={() => open({ emailId: email.id, attachmentId: x.id })} className="rounded border border-slate-300 px-2 py-1 text-[12.5px] hover:bg-slate-50">{x.name}</button>)}</div>}
+        </div>
+        <aside aria-label="Ava add-in" className="bg-slate-50 p-3">
+          <div className="flex items-center gap-2"><span className="grid h-6 w-6 place-items-center rounded bg-accent text-[11px] font-bold text-white">A</span><span className="text-[13px] font-semibold">Ava</span></div>
+          {reqId && a ? <>
+            <Link href={`/requests/${reqId}`} className="mt-2 block rounded-lg border border-slate-200 bg-white p-2.5 hover:border-accent">
+              <span className="font-mono text-[12px] text-slate-500">{reqId}</span>
+              <span className="block text-[13px] font-semibold leading-snug">{state.requests[reqId].title}</span>
+              <span className="mt-1 block"><StateChip state={a.handoff.state} /></span>
+            </Link>
+            <p className="mt-3 text-[11.5px] font-semibold uppercase tracking-[0.05em] text-slate-500">Waiting on {first}</p>
+            {mine.length === 0 && <p className="mt-1 text-[12.5px] text-slate-600">Nothing. Ava will tell you if something changes.</p>}
+            <ul className="mt-1 space-y-2">{mine.map((it) => (
+              <li key={it.key} className="rounded-lg border border-slate-200 bg-white p-2.5 text-[12.5px]">
+                <p className="font-medium leading-snug">{it.question}</p>
+                <div className="mt-1.5 flex flex-wrap gap-1">
+                  {it.kind === "question" && it.flagId && <><button className="rounded bg-accent px-2 py-0.5 font-medium text-white" onClick={() => act({ type: "answer_flag", requestId: it.requestId!, flagId: it.flagId!, answer: "yes" }, personId)}>Yes</button><button className="rounded border border-slate-300 px-2 py-0.5" onClick={() => act({ type: "answer_flag", requestId: it.requestId!, flagId: it.flagId!, answer: "no" }, personId)}>No</button></>}
+                  {(it.kind === "info" || it.kind === "mention") && it.flagId && <button className="rounded border border-slate-300 px-2 py-0.5" onClick={() => act({ type: "dismiss_flag", requestId: it.requestId!, flagId: it.flagId! }, personId)}>Noted</button>}
+                  {it.kind === "draft" && it.draftId && <button className="rounded bg-accent px-2 py-0.5 font-medium text-white" onClick={() => act({ type: "mark_sent", draftId: it.draftId! }, personId)}>Send draft</button>}
+                  {!["question", "info", "mention", "draft"].includes(it.kind) && <Link href="/items" className="rounded border border-slate-300 px-2 py-0.5">Open in Ava</Link>}
+                </div>
+              </li>))}
+            </ul>
+          </> : <p className="mt-2 text-[12.5px] text-slate-600">Ava did not file this email.</p>}
+          <p className="mt-3 text-[11px] text-slate-500">Optional add-in, for reading; capture happens centrally.</p>
+        </aside>
+      </div>
+    </div>
   );
 }

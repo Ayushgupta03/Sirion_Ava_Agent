@@ -95,3 +95,6 @@ export function ReqLink({ id, children }: { id: string; children?: ReactNode }) 
 export function Empty({ children }: { children: ReactNode }) {
   return <div className="rounded-lg border border-dashed border-slate-300 px-4 py-6 text-center text-[13px] text-slate-500">{children}</div>;
 }
+
+/** Supplier display name: "Trivenika Systems", "Kosha Analytics" (never the lowercase id). */
+export function supplierShort(name?: string) { return (name ?? "").replace(/\s+(Pvt\.? Ltd\.?|Private Limited|LLP|Ltd\.?)$/i, ""); }

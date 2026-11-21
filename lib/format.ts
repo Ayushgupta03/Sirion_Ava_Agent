@@ -104,7 +104,8 @@ function parts(iso: string) {
   return { dow: DOW[t.getUTCDay()], d: t.getUTCDate(), mon: MON[t.getUTCMonth()], y: t.getUTCFullYear(), hh: String(t.getUTCHours()).padStart(2, "0"), mm: String(t.getUTCMinutes()).padStart(2, "0"), day: t.getUTCDay() };
 }
 export function fmtDT(iso: string) { const p = parts(iso); return `${p.dow} ${p.d} ${p.mon}, ${p.hh}:${p.mm}`; }
-export function fmtShort(iso: string) { const p = parts(iso); return `${p.dow} ${p.hh}:${p.mm}`; }
+/** One date format everywhere: "Thu 12 Nov, 10:12". */
+export function fmtShort(iso: string) { return fmtDT(iso); }
 export function fmtTime(iso: string) { const p = parts(iso); return `${p.hh}:${p.mm}`; }
 export function fmtDate(ymdOrIso: string) {
   const iso = ymdOrIso.length === 10 ? ymdOrIso + "T12:00:00+05:30" : ymdOrIso;
@@ -135,3 +136,12 @@ export function nextWeekday(fromIso: string, dow: number): string {
 export function domainOf(addr: string) { const m = addr.toLowerCase().match(/@([^>\s]+)/); return m ? m[1] : ""; }
 export function norm(s: string) { return s.toLowerCase().replace(/[‘’]/g, "'").replace(/[–—]/g, "-").replace(/\s+/g, " ").trim(); }
 export function uid(prefix = "id") { return `${prefix}-${Math.random().toString(36).slice(2, 9)}`; }
+
+/** Human time spans: "just now", "3 h", "2 days". */
+export function span(hours: number): string {
+  if (hours < 1) return "just now";
+  if (hours < 24) return `${Math.round(hours)} h`;
+  const d = Math.round(hours / 24); return `${d} day${d === 1 ? "" : "s"}`;
+}
+export function ago(fromIso: string, toIso: string) { const h = hoursBetween(fromIso, toIso); return h < 1 ? "just now" : `${span(h)} ago`; }
+export function closedAfter(fromIso: string, toIso: string) { const h = hoursBetween(fromIso, toIso); return h < 1 ? "closed within the hour" : `closed after ${span(h)}`; }

@@ -1,0 +1,222 @@
+[
+ {
+  "id": "REQ-1029",
+  "supplier": "TalentBridge Staffing",
+  "category": "Staffing",
+  "project": "Contract QA engineers, Q1",
+  "requester": "Priya Sharma",
+  "dept": "Engineering",
+  "stage": "Approvals",
+  "waitingOn": "Vikram Rao: approve",
+  "amount": 3240000,
+  "createdAt": "2026-11-03T11:20:00+05:30",
+  "routes": [
+   "VP"
+  ]
+ },
+ {
+  "id": "REQ-1030",
+  "supplier": "Nimbus Cloud Services",
+  "category": "Cloud / SaaS",
+  "project": "Log storage expansion",
+  "requester": "Arvind Menon",
+  "dept": "Platform",
+  "stage": "Waiting on someone",
+  "waitingOn": "Meera Nair: security review",
+  "amount": 1150000,
+  "createdAt": "2026-11-04T09:40:00+05:30",
+  "routes": [
+   "InfoSec"
+  ]
+ },
+ {
+  "id": "REQ-1031",
+  "supplier": "Rangmanch Media",
+  "category": "Marketing agency",
+  "project": "Q4 product launch campaign",
+  "requester": "Neha Kapoor",
+  "dept": "Marketing Ops",
+  "stage": "Ready",
+  "waitingOn": "PO issue",
+  "amount": 780000,
+  "createdAt": "2026-11-02T15:05:00+05:30",
+  "routes": []
+ },
+ {
+  "id": "REQ-1032",
+  "supplier": "Sukhda Facility Services",
+  "category": "Facilities",
+  "project": "Housekeeping, Pune office",
+  "requester": "Imran Qureshi",
+  "dept": "Workplace",
+  "stage": "Waiting on someone",
+  "waitingOn": "Sukhda: insurance certificate",
+  "amount": 420000,
+  "createdAt": "2026-11-05T10:10:00+05:30",
+  "routes": []
+ },
+ {
+  "id": "REQ-1033",
+  "supplier": "Swift Movers Logistics",
+  "category": "Logistics",
+  "project": "Laptop shipments to new hires",
+  "requester": "Kavya Rao",
+  "dept": "IT",
+  "stage": "New",
+  "waitingOn": "Karan Shah: first look",
+  "amount": 260000,
+  "createdAt": "2026-11-11T17:30:00+05:30",
+  "routes": []
+ },
+ {
+  "id": "REQ-1034",
+  "supplier": "Pixelwise Analytics",
+  "category": "Cloud / SaaS",
+  "project": "Product analytics renewal",
+  "requester": "Sanjay Gupta",
+  "dept": "Product",
+  "stage": "Blocked",
+  "waitingOn": "Karan Shah: renewal terms differ",
+  "amount": 2280000,
+  "createdAt": "2026-11-06T12:00:00+05:30",
+  "routes": [
+   "InfoSec"
+  ]
+ },
+ {
+  "id": "REQ-1035",
+  "supplier": "TalentBridge Staffing",
+  "category": "Staffing",
+  "project": "Support desk contractors",
+  "requester": "Lata Iyer",
+  "dept": "Customer Support",
+  "stage": "Ready",
+  "waitingOn": "Farah Khan: legal review",
+  "amount": 1680000,
+  "createdAt": "2026-10-29T10:00:00+05:30",
+  "routes": [
+   "InfoSec"
+  ]
+ },
+ {
+  "id": "REQ-1036",
+  "supplier": "Kalpana Translations",
+  "category": "Language services",
+  "project": "Hindi and Tamil UI strings",
+  "requester": "Rohit Bansal",
+  "dept": "Product",
+  "stage": "New",
+  "waitingOn": "Rohit Bansal: confirm scope",
+  "amount": 95000,
+  "createdAt": "2026-11-12T08:45:00+05:30",
+  "routes": []
+ },
+ {
+  "id": "REQ-1037",
+  "supplier": "Nimbus Cloud Services",
+  "category": "Cloud / SaaS",
+  "project": "Disaster-recovery region",
+  "requester": "Arvind Menon",
+  "dept": "Platform",
+  "stage": "Approvals",
+  "waitingOn": "Ananya Iyer: approve",
+  "amount": 640000,
+  "createdAt": "2026-11-09T14:20:00+05:30",
+  "routes": [
+   "InfoSec"
+  ]
+ },
+ {
+  "id": "REQ-1038",
+  "supplier": "Greenleaf Events",
+  "category": "Events",
+  "project": "Sales kickoff venue, Goa",
+  "requester": "Rahul Mehta",
+  "dept": "Sales Ops",
+  "stage": "Waiting on someone",
+  "waitingOn": "Rahul Mehta: answer a question",
+  "amount": 1890000,
+  "createdAt": "2026-11-10T16:00:00+05:30",
+  "routes": []
+ },
+ {
+  "id": "REQ-1039",
+  "supplier": "Shieldline Security",
+  "category": "Facilities",
+  "project": "Office access control upgrade",
+  "requester": "Imran Qureshi",
+  "dept": "Workplace",
+  "stage": "Approvals",
+  "waitingOn": "Budget owner: approve",
+  "amount": 530000,
+  "createdAt": "2026-11-08T11:00:00+05:30",
+  "routes": []
+ },
+ {
+  "id": "REQ-1040",
+  "supplier": "Rangmanch Media",
+  "category": "Marketing agency",
+  "project": "Brand video, 3 cuts",
+  "requester": "Neha Kapoor",
+  "dept": "Marketing Ops",
+  "stage": "Blocked",
+  "waitingOn": "Neha Kapoor: work started before approval",
+  "amount": 310000,
+  "createdAt": "2026-11-07T13:30:00+05:30",
+  "routes": []
+ },
+ {
+  "id": "REQ-1041",
+  "supplier": "Codehive Consulting",
+  "category": "IT services",
+  "project": "Data warehouse audit",
+  "requester": "Sanjay Gupta",
+  "dept": "Product",
+  "stage": "Waiting on someone",
+  "waitingOn": "Codehive: revised quote",
+  "amount": 1420000,
+  "createdAt": "2026-11-09T10:15:00+05:30",
+  "routes": [
+   "InfoSec"
+  ]
+ },
+ {
+  "id": "REQ-1042",
+  "supplier": "Swift Movers Logistics",
+  "category": "Logistics",
+  "project": "Mumbai office move",
+  "requester": "Imran Qureshi",
+  "dept": "Workplace",
+  "stage": "Ready",
+  "waitingOn": "PO issue",
+  "amount": 870000,
+  "createdAt": "2026-10-30T09:30:00+05:30",
+  "routes": []
+ },
+ {
+  "id": "REQ-1043",
+  "supplier": "LearnLoop Academy",
+  "category": "Training",
+  "project": "Manager training cohort",
+  "requester": "Meenal Joshi",
+  "dept": "People",
+  "stage": "Approvals",
+  "waitingOn": "Budget owner: approve",
+  "amount": 360000,
+  "createdAt": "2026-11-11T12:40:00+05:30",
+  "routes": []
+ },
+ {
+  "id": "REQ-1044",
+  "supplier": "Pixelwise Analytics",
+  "category": "Cloud / SaaS",
+  "project": "Extra seats, 40 users",
+  "requester": "Sanjay Gupta",
+  "dept": "Product",
+  "stage": "New",
+  "waitingOn": "Karan Shah: first look",
+  "amount": 210000,
+  "createdAt": "2026-11-12T08:10:00+05:30",
+  "routes": []
+ }
+]

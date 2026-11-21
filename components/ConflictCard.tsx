@@ -6,7 +6,7 @@ import { useAva } from "@/lib/store";
 import { firstName, PEOPLE, personName, POLICY } from "@/lib/engine/world";
 import { extractForEmail } from "@/lib/extractClient";
 import { labelSource } from "@/lib/engine/pipeline";
-import { fmtDT, fmtShort, hoursBetween } from "@/lib/format";
+import { closedAfter, fmtDT, fmtShort, hoursBetween, span } from "@/lib/format";
 import { Button, Chip, cx, Quote, StateChip } from "./ui";
 import { DraftBox } from "./request";
 
@@ -34,7 +34,7 @@ export default function ConflictCard({ c, showRequest }: { c: Conflict; showRequ
             {showRequest && <Link className="text-[12.5px] font-medium text-accent hover:underline" href={`/requests/${c.requestId}`}>{c.requestId} · {req?.title}</Link>}</div>
           <h3 className="text-[14.5px] font-semibold">{c.title}</h3>
         </div>
-        <div className="text-right text-[12px] text-slate-500">Opened {fmtDT(c.openedAt)}<br />{c.status === "open" ? `Age ${Math.round(hoursBetween(c.openedAt, state.now))}h` : `Closed ${fmtDT(c.resolvedAt!)}`}</div>
+        <div className="text-right text-[12px] text-slate-500">Opened {fmtDT(c.openedAt)}<br />{c.status === "open" ? `Open ${span(hoursBetween(c.openedAt, state.now))}` : `Closed ${fmtDT(c.resolvedAt!)}, ${closedAfter(c.openedAt, c.resolvedAt!)}`}</div>
       </header>
       <div className="space-y-3 px-4 py-3 text-[13px]">
         <div><div className="mb-1.5 text-[12px] font-semibold uppercase tracking-wide text-slate-500">1. What conflicts</div>

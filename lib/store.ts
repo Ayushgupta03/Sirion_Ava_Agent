@@ -1,7 +1,7 @@
 "use client";
 // Client store: an event log persisted to localStorage. Every screen reads state computed by the engine.
 import { create } from "zustand";
-import type { Action, AvaEvent, Email, Extraction, ExtractionSource, Source, State } from "./types";
+import type { Action, AvaEvent, Email, Extraction, ExtractionSource, Source, State, ViewerTarget } from "./types";
 import { applyEvent, initialState, replay } from "./engine/pipeline";
 import { SCENARIO_A, SCENARIO_B, SEED_EVENTS, type Step } from "./story";
 import { contrastEmails } from "./scripted";
@@ -11,7 +11,7 @@ import { addMinutes, uid } from "./format";
 const KEY = "ava-prototype-v1";
 type Scn = "A" | "B";
 
-export interface ViewerTarget { emailId: string; attachmentId?: string; quote?: string; page?: number }
+export type { ViewerTarget };
 
 interface Store {
   hydrated: boolean;
@@ -25,6 +25,10 @@ interface Store {
   focus?: string;
   viewer: ViewerTarget | null;
   aiAvailable?: boolean;
+  pulse: { target?: string; n: number };
+  toast: { actors: string[]; n: number } | null;
+  firePulse: (target?: string) => void;
+  dismissToast: () => void;
   hydrate: () => void;
   act: (action: Action, actor?: string) => void;
   addEmail: (email: Email, extraction: Extraction | null, source: ExtractionSource) => void;
@@ -50,8 +54,13 @@ function save(s: Pick<Store, "events" | "viewAs" | "scenario" | "pos" | "checkpo
 }
 
 function runStep(state: State, events: AvaEvent[], step: Step) {
-  for (const b of step.events) { const ev = b(state); if (ev) { state = applyEvent(state, ev); events = [...events, ev]; } }
-  return { state, events };
+  const actors: string[] = [];
+  for (const b of step.events) { const ev = b(state); if (ev) { state = applyEvent(state, ev); events = [...events, ev]; if (ev.kind === "action" && ev.actor !== "system" && !actors.includes(ev.actor)) actors.push(ev.actor); } }
+  return { state, events, actors };
+}
+function afterStep(get: () => Store, step: Step, state: State, actors: string[]) {
+  const others = actors.filter((a) => a !== get().viewAs);
+  return { pulse: { target: step.pulse, n: get().pulse.n + 1 }, viewer: step.reveal?.(state) ?? null, toast: others.length ? { actors: others, n: get().pulse.n + 1 } : null };
 }
 
 export const useAva = create<Store>((set, get) => ({
@@ -63,6 +72,10 @@ export const useAva = create<Store>((set, get) => ({
   pos: { A: 0, B: 0 },
   checkpoints: { A: [], B: [] },
   viewer: null,
+  pulse: { n: 0 },
+  toast: null,
+  firePulse: (target) => set({ pulse: { target, n: get().pulse.n + 1 } }),
+  dismissToast: () => set({ toast: null }),
   hydrate: () => {
     if (get().hydrated) return;
     try {
@@ -98,8 +111,8 @@ export const useAva = create<Store>((set, get) => ({
     if (i >= steps.length) return;
     let { state, events } = get();
     const cp = { ...checkpoints, [scenario]: [...checkpoints[scenario].slice(0, i), events.length] };
-    ({ state, events } = runStep(state, events, steps[i]));
-    set({ state, events, pos: { ...pos, [scenario]: i + 1 }, checkpoints: cp, caption: steps[i].caption, focus: steps[i].focus });
+    const r = runStep(state, events, steps[i]); state = r.state; events = r.events;
+    set({ state, events, pos: { ...pos, [scenario]: i + 1 }, checkpoints: cp, caption: steps[i].caption, focus: steps[i].focus, ...afterStep(get, steps[i], state, r.actors) });
     save(get());
     return steps[i].focus;
   },
@@ -113,7 +126,7 @@ export const useAva = create<Store>((set, get) => ({
     save(get());
   },
   reset: () => {
-    set({ events: [...SEED_EVENTS], state: seedState(), pos: { A: 0, B: 0 }, checkpoints: { A: [], B: [] }, caption: undefined, focus: undefined, scenario: "A" });
+    set({ events: [...SEED_EVENTS], state: seedState(), pos: { A: 0, B: 0 }, checkpoints: { A: [], B: [] }, caption: "Reset complete. Every composed email and action is cleared. Press Start to begin.", focus: undefined, scenario: "A", viewer: null, toast: null });
     save(get());
   },
   setScenario: (sc) => {
@@ -134,7 +147,7 @@ export const useAva = create<Store>((set, get) => ({
     const run = (k: Scn, n: number) => { for (let i = 0; i < n; i++) { cp[k][i] = events.length; ({ state, events } = runStep(state, events, STEPS[k][i])); } };
     if (sc === "A") run("A", step); else { run("A", SCENARIO_A.length); run("B", step); }
     const st = STEPS[sc][step - 1];
-    set({ state, events, scenario: sc, pos: { A: sc === "A" ? step : SCENARIO_A.length, B: sc === "B" ? step : 0 }, checkpoints: cp, caption: st?.caption, focus: st?.focus });
+    set({ state, events, scenario: sc, pos: { A: sc === "A" ? step : SCENARIO_A.length, B: sc === "B" ? step : 0 }, checkpoints: cp, caption: st?.caption, focus: st?.focus, ...(st ? { pulse: { target: st.pulse, n: get().pulse.n + 1 }, viewer: st.reveal?.(state) ?? null } : {}) });
     save(get());
     return st?.focus;
   },
@@ -150,7 +163,7 @@ export const useAva = create<Store>((set, get) => ({
     save(get());
   },
   setViewAs: (id) => { set({ viewAs: id }); save(get()); },
-  openSource: (s) => set({ viewer: { emailId: s.emailId, attachmentId: (s as any).attachmentId, quote: (s as any).quote, page: (s as any).page } }),
+  openSource: (s) => set({ viewer: { emailId: s.emailId, attachmentId: (s as any).attachmentId, quote: (s as any).quote, quotes: (s as any).quotes, page: (s as any).page, compareWith: (s as any).compareWith, title: (s as any).title } }),
   closeViewer: () => set({ viewer: null }),
   setAi: (v) => set({ aiAvailable: v }),
 }));

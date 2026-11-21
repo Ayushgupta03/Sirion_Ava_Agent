@@ -1,7 +1,7 @@
 // The single pipeline. Every email (scripted or composed) and every user action goes through applyEvent.
 // ingest → classify → extract (done before, stored on the event) → file → diff → rules → notify → log
 import type { Action, AvaEvent, Conflict, Draft, Email, Extraction, Request, RequestType, State, TimelineEntry } from "../types";
-import { domainOf, hoursBetween, inr, lakh, norm, parseAmount } from "../format";
+import { domainOf, fmtDT, hoursBetween, inr, lakh, norm, parseAmount, parseDate } from "../format";
 import { classifyDoc, FIELD_LABEL, foldFacts, MATERIAL } from "./facts";
 import { analyze } from "./rules";
 import { deriveItems } from "./items";
@@ -310,7 +310,7 @@ function runRules(prev: State, state: State, at: string, ctx: Ctx): State {
     for (const field of [...MATERIAL, "start_date", "auto_renew"]) {
       const b = before[field], a2 = after[field];
       if (!b || !a2 || !b.value) continue;
-      const differs = b.num != null && a2.num != null ? Math.abs(b.num - a2.num) > 0.5 : norm(b.value) !== norm(a2.value);
+      const differs = b.num != null && a2.num != null ? Math.abs(b.num - a2.num) > 0.5 : field === "start_date" && parseDate(b.value) && parseDate(a2.value) ? parseDate(b.value) !== parseDate(a2.value) : norm(b.value) !== norm(a2.value);
       if (!differs || (field === "scope" && a2.origin === "document" && b.origin !== "document")) continue;
       if (field === "data_access" && b.num === a2.num) continue;
       if (field === "scope" && (norm(a2.value).includes(norm(b.value)) || norm(b.value).includes(norm(a2.value)) || a2.origin !== "document" || b.origin !== "document")) continue;
@@ -393,7 +393,15 @@ function runRules(prev: State, state: State, at: string, ctx: Ctx): State {
     const req = s.requests[id]; const an = analyze(s, id);
     const ready = an.handoff.state === "ready_legal" || an.handoff.state === "ready_po";
     if (ready && !req.readyAt) { req.readyAt = at; log(req, at, an.handoff.state === "ready_legal" ? "All checks pass. Ready for Legal Review. Handoff packet generated." : "All checks pass. Ready to issue PO.", "handoff"); }
-    if (!ready && req.readyAt) { req.readyAt = undefined; log(req, at, `Handoff withdrawn: ${an.handoff.reasons[0] ?? "facts changed"}.`, "handoff"); }
+    if (!ready && req.readyAt) {
+      const wasLegal = req.handoffState === "ready_legal";
+      req.readyAt = undefined;
+      const amt = s.changes.filter((c) => c.requestId === id && c.at === at && c.field === FIELD_LABEL.amount).pop();
+      const reason = amt ? `price changed in a new quote (${lakh(parseAmount(amt.old))} → ${lakh(parseAmount(amt.new))}). Approvals reopened.` : `${an.handoff.reasons[0] ?? "facts changed"}.`;
+      (req.withdrawals ??= []).push({ at, reason });
+      log(req, at, `Handoff withdrawn: ${reason}`, "handoff");
+      if (wasLegal) req.flags.push({ id: `flag:${id}:withdrawn:${at}`, type: "mention", message: `${id} withdrawn from Legal review on ${fmtDT(at).split(",")[0]}: ${reason}`, sendTo: "legal", personId: POLICY.legal, status: "open", createdAt: at });
+    }
     req.handoffState = an.handoff.state;
   }
   const items = deriveItems(s);

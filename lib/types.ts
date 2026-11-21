@@ -233,6 +233,7 @@ export interface Request {
   checklistDone: Record<string, { at: string; how: string }>;
   approvalCache: Record<string, string>;
   supplierDocsAt?: string;
+  withdrawals?: { at: string; reason: string }[];
 }
 
 export type FactEvent =
@@ -359,3 +360,6 @@ export type Action =
 export type AvaEvent =
   | { id: string; at: string; kind: "email"; email: Email; extraction: Extraction | null; extractionSource: ExtractionSource; tag?: string }
   | { id: string; at: string; kind: "action"; actor: string; action: Action; tag?: string };
+
+/** What the source viewer shows: one file or email, optional highlighted quotes, optional older version beside it. */
+export interface ViewerTarget { emailId: string; attachmentId?: string; quote?: string; quotes?: string[]; page?: number; compareWith?: string; title?: string }
