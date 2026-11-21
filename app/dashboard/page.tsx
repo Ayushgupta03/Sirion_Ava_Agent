@@ -34,9 +34,9 @@ export default function Dashboard() {
       {tab === "conflicts" ? <ConflictsTable /> : (
         <div className="overflow-x-auto"><div className="grid min-w-[1100px] grid-cols-7 gap-2">
           {COLS.map((col) => { const cards = all.filter((a) => a.pipeline === col); return (
-            <div key={col} className="rounded-lg bg-slate-50 p-2">
+            <div key={col} className="min-h-[160px] rounded-xl bg-slate-100/80 p-2">
               <div className="mb-2 flex items-center justify-between px-1 text-[12px] font-semibold text-slate-600"><span>{col}</span><span>{cards.length}</span></div>
-              <div className="space-y-2">{cards.map((a) => { const sup = state.suppliers.find((s) => s.id === a.req.supplierId); return (
+              <div className="space-y-2">{cards.length === 0 && <p className="px-1 py-6 text-center text-[12px] text-slate-400">None</p>}{cards.map((a) => { const sup = state.suppliers.find((s) => s.id === a.req.supplierId); return (
                 <Link key={a.req.id} href={`/requests/${a.req.id}`} className={cx("block rounded-md border bg-white p-2.5 text-[12.5px] hover:border-accent", col === "Blocked by change" ? "border-red-300" : col === "Ready" ? "border-emerald-300" : "border-slate-200")}>
                   <div className="font-semibold text-slate-900">{sup?.name.replace(" Pvt Ltd", "") ?? a.req.supplierGuess?.name}</div>
                   <div className="text-slate-600">{a.req.project}</div>

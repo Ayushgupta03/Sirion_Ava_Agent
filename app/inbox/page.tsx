@@ -27,7 +27,7 @@ function Inbox() {
   return (
     <div>
       <PageTitle title="Inbox" sub="A simulated mailbox of supplier email. Ava records every email and attachment exchanged with supplier domains. Compose any email, from anyone, to test the full pipeline." right={<Button variant="primary" onClick={() => setComposing(true)}>New email</Button>} />
-      <div className="grid gap-4 lg:grid-cols-[320px_1fr_380px]">
+      <div className="grid grid-cols-1 gap-4 break-words lg:grid-cols-[300px_minmax(0,1fr)_360px]">
         <Card>
           <div role="tablist" aria-label="Mailbox filter" className="flex gap-1 border-b border-slate-100 p-2">
             {FILTERS.map(([k, l]) => <button key={k} role="tab" aria-selected={filter === k} onClick={() => setFilter(k)} className={cx("rounded-md px-2.5 py-1 text-[12.5px]", filter === k ? "bg-accent-50 font-semibold text-accent-700" : "text-slate-600 hover:bg-slate-100")}>{l}</button>)}

@@ -8,7 +8,7 @@ import { PEOPLE, person, personName } from "@/lib/engine/world";
 import { fmtShort, hoursBetween, lakh } from "@/lib/format";
 import { DraftBox, ReceiptModal } from "@/components/request";
 import { Button, Card, CardHead, Chip, cx, Empty, PageTitle, Quote, StateChip } from "@/components/ui";
-import { VIEW_AS } from "@/components/Shell";
+import { roleOf } from "@/components/Shell";
 
 const DEPTS = [["karan", "Procurement"], ["meera", "InfoSec"], ["suresh", "Finance"], ["farah", "Legal"], ["ananya", "Budget owner (Ananya)"], ["deepa", "Budget owner (Deepa)"], ["ritu", "Budget owner (Ritu)"], ["vikram", "VP"], ["rahul", "Requester (Rahul)"], ["neha", "Requester (Neha)"]];
 
@@ -27,7 +27,7 @@ export default function ItemsPage() {
   const myRequests = state.requestOrder.map((id) => state.requests[id]).filter((r) => r.requesterId === viewAs);
   return (
     <div>
-      <PageTitle title={`My items: ${personName(viewAs)}`} sub={`${p?.title ?? ""}. Each person sees only what is waiting on them, with one question each. Actions here go through the same engine as the story player.`} />
+      <PageTitle title={items.length ? `${items.length} thing${items.length === 1 ? "" : "s"} waiting on ${personName(viewAs).split(" ")[0]}` : `Nothing is waiting on ${personName(viewAs).split(" ")[0]}`} sub={`You are viewing as ${personName(viewAs)}, ${roleOf(viewAs)}. Each person sees only what they can act on, with one question each. Switch person below or in the sidebar.`} />
       <div role="tablist" aria-label="Department" className="mb-4 flex flex-wrap gap-1">
         {DEPTS.map(([id, label]) => { const n = deriveItems(state).filter((i) => i.personId === id).length; return (
           <button key={id} role="tab" aria-selected={viewAs === id} onClick={() => setViewAs(id)} className={cx("rounded-md border px-2.5 py-1 text-[12.5px]", viewAs === id ? "border-accent bg-accent-50 font-semibold text-accent-700" : "border-slate-300 bg-white text-slate-700 hover:bg-slate-50")}>{label}{n > 0 && <span className="ml-1.5 rounded-full bg-red-600 px-1.5 text-[10.5px] font-bold text-white">{n}</span>}</button>); })}

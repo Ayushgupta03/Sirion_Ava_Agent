@@ -32,7 +32,7 @@ export function StateChip({ state }: { state: string }) {
 }
 
 export function Card({ children, className, id }: { children: ReactNode; className?: string; id?: string }) {
-  return <section id={id} className={cx("rounded-lg border border-slate-200 bg-white", className)}>{children}</section>;
+  return <section id={id} className={cx("rounded-xl border border-slate-200 bg-white", className)}>{children}</section>;
 }
 export function CardHead({ title, right, sub }: { title: ReactNode; right?: ReactNode; sub?: ReactNode }) {
   return (
@@ -71,7 +71,7 @@ export function Quote({ src, note }: { src: Source & { note?: string }; note?: s
 
 export function Stat({ label, value, sub, tone }: { label: string; value: ReactNode; sub?: ReactNode; tone?: Tone }) {
   return (
-    <div className="rounded-lg border border-slate-200 bg-white px-4 py-3">
+    <div className="rounded-xl border border-slate-200 bg-white px-4 py-3">
       <div className="text-[12px] font-medium text-slate-500">{label}</div>
       <div className={cx("mt-1 text-2xl font-semibold tabular", tone === "red" ? "text-red-700" : tone === "green" ? "text-emerald-700" : "text-slate-900")}>{value}</div>
       {sub && <div className="mt-0.5 text-[12px] text-slate-500">{sub}</div>}
@@ -81,8 +81,8 @@ export function Stat({ label, value, sub, tone }: { label: string; value: ReactN
 
 export function PageTitle({ title, sub, right }: { title: string; sub?: ReactNode; right?: ReactNode }) {
   return (
-    <div className="mb-5 flex flex-wrap items-end justify-between gap-3">
-      <div><h1 className="text-xl font-semibold text-slate-900">{title}</h1>{sub && <p className="mt-1 max-w-3xl text-[13.5px] text-slate-600">{sub}</p>}</div>
+    <div className="mb-6 flex flex-wrap items-end justify-between gap-3">
+      <div><h1 className="text-[22px] font-semibold tracking-[-0.01em] text-slate-900">{title}</h1>{sub && <p className="mt-1 max-w-3xl text-[14px] leading-relaxed text-slate-600">{sub}</p>}</div>
       {right}
     </div>
   );
