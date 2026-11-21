@@ -34,6 +34,7 @@ interface Store {
   reset: () => void;
   setScenario: (s: Scn) => void;
   runContrast: () => void;
+  jumpTo: (sc: Scn, step: number) => string | undefined;
   setViewAs: (id: string) => void;
   openSource: (s: Source | ViewerTarget) => void;
   closeViewer: () => void;
@@ -125,6 +126,17 @@ export const useAva = create<Store>((set, get) => ({
       set({ state, events, scenario: "B", pos: { ...pos, A: SCENARIO_A.length }, checkpoints: { ...checkpoints, A: cpA }, caption: get().pos.B ? SCENARIO_B[get().pos.B - 1].caption : "Scenario A is complete. Press Next to start the Kosha renewal." });
     } else set({ scenario: "A", caption: get().pos.A ? SCENARIO_A[get().pos.A - 1].caption : undefined });
     save(get());
+  },
+  jumpTo: (sc, step) => {
+    // Replay from the seed up to a step, through the same engine. Scenario B runs after all of A.
+    let state = seedState(); let events = [...SEED_EVENTS];
+    const cp: Record<Scn, number[]> = { A: [], B: [] };
+    const run = (k: Scn, n: number) => { for (let i = 0; i < n; i++) { cp[k][i] = events.length; ({ state, events } = runStep(state, events, STEPS[k][i])); } };
+    if (sc === "A") run("A", step); else { run("A", SCENARIO_A.length); run("B", step); }
+    const st = STEPS[sc][step - 1];
+    set({ state, events, scenario: sc, pos: { A: sc === "A" ? step : SCENARIO_A.length, B: sc === "B" ? step : 0 }, checkpoints: cp, caption: st?.caption, focus: st?.focus });
+    save(get());
+    return st?.focus;
   },
   runContrast: () => {
     let { state, events } = get();
