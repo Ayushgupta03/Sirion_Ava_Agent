@@ -50,7 +50,7 @@ Intro: "Supplier email Ava received through the mail rule. Simulated here." Head
 
 Person tabs with counts (Procurement, InfoSec, Finance, Legal, three budget owners, VP, two requesters). For the selected person:
 
-- **Needs your decision**: decision cards (`ItemCard`) for engine items, each with the question, evidence quote, draft, **Ava recommends** (where one applies), and actions (Yes/No, Keep it/Remove it with a note, Review and approve/reconfirm with the Decision Receipt, Record exception, Attach competing quote, Record reason, Confirm/Not mine for orphan invoices, Ask a question, Reassign). Background decisions appear as cards with cached recommendations, marked outside the guided demo.
+- **Needs your decision**: sorted by due date, so overdue items come first and say "N days overdue" in red. Decision cards (`ItemCard`) for engine items, each with the question, evidence quote, draft, **Ava recommends** (where one applies), and actions (Yes/No, Keep it/Remove it with a note, Review and approve/reconfirm with the Decision Receipt, Record exception, Attach competing quote, Record reason, Confirm/Not mine for orphan invoices, Ask a question, Reassign). Background decisions appear as cards with cached recommendations, marked outside the guided demo.
 - **Coming up**: the person's open steps from every plan (live and background), with dates.
 - **Since yesterday, Ava handled X things for you**: Ava's actions in the last 36 hours on requests the person is involved in, plus background actions tagged for them. Show all.
 - My requests (for requesters), Procurement summary (requests, open conflicts including background, exceptions, unsorted), Legal's handoff packets and withdrawn packets.
@@ -79,7 +79,7 @@ Type chip (Said vs written, Hidden scope or data access, Renewal terms changed, 
 
 ### Decision Receipt (`ReceiptModal` in `request.tsx`)
 
-Opens with **Ava's summary for you** (3 bullets) when present. Then Needs reconfirmation (given for vs current, and the source line), You are approving (amount, scope, term, 90-day total, data access, document versions), what Ava checked, what nobody checked (clause wording, supplier MSA comments, DPA terms, value for money), exceptions, Approve/Reconfirm (only the named approver can act; others get "View as …").
+Opens with **Ava's summary for you** (3 bullets) when present. Then Needs reconfirmation (given for vs current, and the source line), You are approving (amount, scope, term, 90-day total, data access, document versions), what Ava checked, what nobody checked (clause wording, supplier MSA comments, DPA terms, value for money), exceptions, then **Approve/Reconfirm** and **Send back with a note** (only the named approver can act; others get "View as …"). Send back asks for a reason, approves and rejects nothing, leaves the approval open, and puts a mention item on the requester's and Karan's Today. The header and action bar stay fixed; only the body scrolls. Scope and other values are shown in full: wrapped PDF lines are rejoined at extraction (`lib/joinLines.ts`).
 
 ### Drafts
 

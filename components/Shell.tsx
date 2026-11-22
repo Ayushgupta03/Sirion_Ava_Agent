@@ -5,6 +5,7 @@ import { useEffect, useMemo, useRef, useState, type ReactNode } from "react";
 import { useAva, STEPS, type Ripple } from "@/lib/store";
 import { resolveFocus } from "@/lib/story";
 import { deriveItems } from "@/lib/engine/items";
+import { BACKGROUND, bgNeedCount } from "@/lib/background";
 import { fmtDT } from "@/lib/format";
 import { person } from "@/lib/engine/world";
 import { cx } from "./ui";
@@ -16,6 +17,7 @@ export const VIEW_AS: { id: string; role: string }[] = [
   { id: "karan", role: "Procurement, owns every request" }, { id: "meera", role: "InfoSec reviewer" }, { id: "farah", role: "Legal" },
   { id: "ananya", role: "Budget owner, Sales Ops" }, { id: "deepa", role: "Budget owner, Finance" }, { id: "ritu", role: "Budget owner, Marketing" }, { id: "vikram", role: "VP Sales, approves over ₹25L" },
 ];
+const PEOPLE_IDS = VIEW_AS.map((v) => v.id);
 export const roleOf = (id: string) => VIEW_AS.find((v) => v.id === id)?.role ?? "";
 export const initials = (id: string) => (person(id)?.name ?? id).split(" ").map((w) => w[0]).join("").slice(0, 2);
 
@@ -33,7 +35,8 @@ function useCounts() {
   return useMemo(() => {
     const items = deriveItems(state); const byPerson: Record<string, number> = {};
     items.forEach((i) => { byPerson[i.personId] = (byPerson[i.personId] ?? 0) + 1; });
-    return { mine: byPerson[viewAs] ?? 0, byPerson, requests: state.requestOrder.length, conflicts: Object.values(state.conflicts).filter((c) => c.status === "open").length };
+    PEOPLE_IDS.forEach((id) => { byPerson[id] = (byPerson[id] ?? 0) + bgNeedCount(id); });
+    return { mine: byPerson[viewAs] ?? 0, byPerson, requests: state.requestOrder.length + BACKGROUND.length, conflicts: Object.values(state.conflicts).filter((c) => c.status === "open").length };
   }, [state, viewAs]);
 }
 

@@ -152,6 +152,8 @@ export function AvaRecommends({ recKey, requestId, readOnly }: { recKey: string;
   const [text, setText] = useState("");
   const v = recFallback(state, recKey); if (!v) return null;
   const r = v.output;
+  // The rules fallback ("AI is unavailable") has nothing to use, dismiss or edit. Say so quietly instead of showing a primary button.
+  if (v.source === "rules" && r.action === "review") return <p aria-label="No recommendation from Ava" className="rounded-lg border border-slate-200 bg-slate-50 px-3.5 py-2.5 text-[12.5px] text-slate-600">Ava has no recommendation for this one because AI is unavailable. Compare both sources and decide.</p>;
   const done = v.used ? `Used by ${ownerName(v.used.by, state)}, ${fmtDT(v.used.at)}` : v.dismissed ? `Dismissed by ${ownerName(v.dismissed.by, state)}: ${v.dismissed.reason}` : null;
   const conf = r.confidence === "high" ? "bg-emerald-100 text-emerald-800" : r.confidence === "medium" ? "bg-amber-100 text-amber-900" : "bg-slate-200 text-slate-700";
   return (
