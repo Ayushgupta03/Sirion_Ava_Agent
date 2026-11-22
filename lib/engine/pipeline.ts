@@ -6,6 +6,7 @@ import { classifyDoc, FIELD_LABEL, foldFacts, MATERIAL } from "./facts";
 import { analyze } from "./rules";
 import { deriveItems } from "./items";
 import { emptyAi, fingerprint, planContext, planDiff, validatePlan } from "./ai";
+import { simulatedRec } from "./simulated";
 import type { AiPlan, AiRec, AiRead } from "../aiTypes";
 import { evalPlan, evalRead, evalRec } from "../evals";
 import { COMPANY_DOMAIN, CONTRACTS, firstName, isInternal, PEOPLE, person, personByEmail, personName, POLICY, SEED_SUPPLIERS, START_CLOCK } from "./world";
@@ -48,7 +49,9 @@ export function applyEvent(prev: State, ev: AvaEvent): State {
 interface Ctx { reopened: string[]; touched: Set<string>; resolvedConflict?: string }
 
 // ---------------- AI layers (read, plan, recommend) ----------------
-const SRC_WORD = { live: "Live AI", cached: "Cached", rules: "Summary from rules (AI unavailable)" } as const;
+const SRC_WORD = { live: "Live AI", cached: "Cached", rules: "Simulated" } as const;
+/** The advice shown when nothing is stored: simulated from the conflict, or the plain "review it" stub. */
+const simulatedFor = (state: State, key: string) => (state.conflicts[key] && simulatedRec(state, state.conflicts[key])) || { recommendation: "Review the conflict.", reasoning: "", citations: [], confidence: "low" as const, action: "review" as const };
 function applyAi(state: State, ev: Extract<AvaEvent, { kind: "ai" }>) {
   const req = state.requests[ev.requestId]; if (!req) return;
   state.ai ??= emptyAi();
@@ -227,7 +230,7 @@ function sendDraft(state: State, d: Draft, at: string, evId: string, actor: stri
   log(req, at, auto ? `Ava sent ${personName(d.forPersonId)}'s routine message (${d.purpose}) to ${d.to}. Auto-send is on for this kind of message; it commits no money and changes no terms.` : `${personName(d.forPersonId)} sent Ava's draft to ${d.to}.`, "email", actor);
 }
 
-export function labelSource(s: string) { return s === "live" ? "Live AI" : s === "cached" ? "Cached AI" : s === "basic" ? "Basic extraction (AI unavailable)" : "None"; }
+export function labelSource(s: string) { return s === "live" ? "Live AI" : s === "cached" ? "Cached AI" : s === "basic" ? "Basic extraction (rules)" : "None"; }
 
 function cleanProject(s: string) {
   return s.replace(/^((re|fwd?|fw):\s*)+/i, "").replace(/\s*[–—-]\s*can you help\??$/i, "").replace(/\?$/, "").replace(/^your\s+/i, "").trim() || "General";
@@ -358,7 +361,7 @@ function applyAction(state: State, actor: string, a: Action, at: string, evId: s
       log(req, at, `${personName(actor)} asked ${personName(POLICY.legal)} (Legal) about "${c.title}".`, "conflict", actor); return;
     }
     case "rec_use": {
-      const req = reqOf(a.requestId); const v = (state.ai.recs[a.recKey] ??= { at, source: "rules", fingerprint: "", output: { recommendation: "Review the conflict.", reasoning: "", citations: [], confidence: "low", action: "review" } });
+      const req = reqOf(a.requestId); const v = (state.ai.recs[a.recKey] ??= { at, source: "rules", fingerprint: "", output: simulatedFor(state, a.recKey) });
       v.used = { by: actor, at, edited: !!a.draft && a.draft !== v.output.draft };
       const rec = a.draft ? { ...v.output, draft: a.draft } : v.output; const c = state.conflicts[a.recKey];
       if (rec.action === "draft_supplier" && rec.draft) {
@@ -372,7 +375,7 @@ function applyAction(state: State, actor: string, a: Action, at: string, evId: s
       log(req, at, `${personName(actor)} used Ava's recommendation${a.draft ? " (edited)" : ""}: ${rec.recommendation}`, "action", actor); return;
     }
     case "rec_dismiss": {
-      const req = reqOf(a.requestId); const v = (state.ai.recs[a.recKey] ??= { at, source: "rules", fingerprint: "", output: { recommendation: "Review the conflict.", reasoning: "", citations: [], confidence: "low", action: "review" } });
+      const req = reqOf(a.requestId); const v = (state.ai.recs[a.recKey] ??= { at, source: "rules", fingerprint: "", output: simulatedFor(state, a.recKey) });
       v.dismissed = { by: actor, at, reason: a.reason };
       log(req, at, `${personName(actor)} dismissed Ava's recommendation. Reason: ${a.reason}`, "action", actor); return;
     }

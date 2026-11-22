@@ -100,7 +100,7 @@ Edit `data/background.json` (fields in [08](08-data.md)). Keep reads consistent 
 - **Reset:** the reset button in the dock, or clear localStorage.
 - **A step looks wrong:** reproduce it in a test with `run(SCENARIO_A, n)` and inspect `analyze(s, id)`.
 - **A conflict closes and reopens:** its id is not stable; key it by something that survives new documents.
-- **An AI output shows "Summary from rules":** its fingerprint no longer matches; a new read or plan is needed for the current facts.
+- **An AI output shows "Simulated":** no stored or live output fits the current facts (its fingerprint no longer matches, or none was ever stored), so code wrote it. That is the normal state for anything outside the scripted scenarios.
 - **Hydration flashes:** the shell shows skeletons until the store hydrates from localStorage.
 
 ## Gotchas

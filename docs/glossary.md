@@ -30,7 +30,7 @@
 | Ava recommends | One next step with reasoning, confidence and an optional draft |
 | Ava did | Ava's logged actions; people's actions are decisions |
 | Fingerprint | What an AI output depends on; when it changes, the output is stale |
-| Live AI / Cached / Summary from rules | Where an AI output came from |
+| Live AI / Cached / Simulated | Where an AI output came from: the model, a hand-written stored answer, or code writing it from the facts |
 | Eval | An automatic check of an AI output against the prompt's rules |
 | Background request | Another team's request: static sample data, outside the guided demo |
 | Test lab | The composer for simulating any incoming email |
