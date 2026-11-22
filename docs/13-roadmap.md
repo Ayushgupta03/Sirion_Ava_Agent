@@ -2,6 +2,10 @@
 
 A prioritized list a developer can pick up. Each item says why it matters, where in the code it lands, and how to know it is done. Effort: S (under a day), M (1 to 3 days), L (a week or more).
 
+## Done in revision 4
+
+Ask Ava (the front door), autonomy for routine messages, the supplier view, "What this reached", live sync across windows, the own-time north star, deterministic sample files. See [18 Ask Ava](18-ask-ava.md) and ADRs 0011 to 0013.
+
 ## Now: make the AI real and measurable
 
 | # | Item | Why | Where | Done when | Effort |
@@ -24,7 +28,7 @@ A prioritized list a developer can pick up. Each item says why it matters, where
 | X4 | Merge, split and refile requests | Filing can be wrong | New actions `merge_requests`, `move_email`; UI on the request header | Moving an email re-folds facts and re-runs rules | M |
 | X5 | More commitment checks | Only rates, delivery, renewal, insurance and DPA are checked | `checkCommitments`: payment terms (MSA 6), key personnel (7.1, TB 5.1), liability cap (10), termination notice (13) | Each with a unit test and a clause-backed conflict | M per check |
 | X6 | Clause extraction from uploaded contracts | Contracts are hand-entered in `data/contracts.json` | An AI layer that turns a contract PDF into clauses with kinds and dues, reviewed by Legal before use | Upload an MSA, see Commitments filled, Legal approves | L |
-| X7 | Notifications and digests | People need to know without opening the app | Email or Slack digest from `deriveItems` per person | Daily "Today" digest | M |
+| X7 | Notifications and digests | People need to know without opening the app. Highest-value next step after X2: an approver should be able to approve from the message | Email or Slack digest from `deriveItems` per person, with a signed one-click link to the Decision Receipt | Daily "Today" digest; approving from the message writes the same `approve` event | M |
 | X8 | Live re-planning on new info | Plans refresh only when facts change | Trigger re-plan on approvals and supplier replies too (extend `fingerprint`) | Plan "What changed" after each approval | S |
 | X9 | Supplier portal reply parsing | Suppliers reply in threads with quotes | Strip quoted history before extraction | Quoted lines never become facts | S |
 

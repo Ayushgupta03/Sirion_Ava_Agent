@@ -52,7 +52,7 @@ Playwright (Python, system Chrome) against `next start`, run during the build:
 | Step 8: ₹21,10,800 and ₹39,10,800; a decrease never reopens | Unit tests |
 | Step 9: computed banner; prediction line | Unit test and screenshot |
 | Scenario B: 7% cap, late notice and auto-renewal lines; recommendation with draft; 5% tick; ₹1,26,000 saved a year | Built; 5% tick unit-tested; the saving is computed in `lib/insights.ts` (not unit-tested) |
-| Fresh session: At risk ≥ 2, Ava caught this ≥ 3, counters > 0 except Forms filled | Seen on the dashboard screenshot (2 at risk, 4 caught, ₹11.5L, 100 : 11, 32) |
+| Fresh session: At risk ≥ 2, Ava caught this ≥ 3, counters > 0 (Touches per request, Started in Ask Ava excepted until a request exists) | Seen on the dashboard screenshot (2 at risk, 4 caught, ₹11.5L, 100 : 11, 32) |
 | Conflicts list shows REQ-1029, 1034, 1040, 1041 | Built |
 | Today has all three sections for every person | Background data covers each of the 10 View-as people; checked for Karan by screenshot |
 | Every contract opens as a PDF; clause links open at the clause | Built |
