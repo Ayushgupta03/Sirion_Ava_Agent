@@ -56,7 +56,7 @@ Request: `requestContext(state, reqId)` (`lib/aiContext.ts`):
 }
 ```
 
-Response `{ "source": "live", "result": AiRead }`:
+Response `{ "source": "live", "promptVersion": "9f3a1c20", "model": "claude-sonnet-5-5", "result": AiRead }`. `promptVersion` is a hash of the prompt text (`PROMPT_VERSION` in `lib/aiLayers.ts`), so it changes whenever a prompt does. The plan and recommend routes return the same two fields. They are stored on the output and shown in the AI label's tooltip:
 
 ```json
 { "sentences": [{ "text": "Proposal v1 prices the Salesforce migration at ₹20,00,000 for 8 weeks from Mon 16 Nov.", "citations": [{ "type": "doc", "id": "e-a2-att1", "quote": "Subtotal (before GST) ₹20,00,000" }] }], "risks": ["Rates over the MSA cap by ₹39,200"] }
@@ -116,6 +116,7 @@ Dispatched with `useAva().act(action, actor?)`. All are logged.
 | `comment` | requestId, conflictId?, text | Comment with @mentions |
 | `rerun` | requestId, emailId?, extraction?, source? | Re-extraction |
 | `approve` | requestId, key budget_owner/vp/infosec | Adds a receipt with the current snapshot |
+| `send_back` | requestId, key, note | An approver cannot sign yet. Approves and rejects nothing; the approval stays open. Tells the requester and Procurement (a mention item each) and logs it |
 | `record_exception` | requestId, kind sole_supplier/retro/other, reason | Exception |
 | `competing_quote` | requestId, note | Competing quote |
 | `reassign` | itemKey, to | Reassigns an item |

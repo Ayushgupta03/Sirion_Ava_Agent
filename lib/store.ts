@@ -1,6 +1,7 @@
 "use client";
 // Client store: an event log persisted to localStorage. Every screen reads state computed by the engine.
 import { create } from "zustand";
+import type { AiMeta } from "./promptVersion";
 import type { Action, AvaEvent, Email, Extraction, ExtractionSource, Source, State, ViewerTarget } from "./types";
 import { applyEvent, initialState, replay } from "./engine/pipeline";
 import { deriveItems, type ItemKind } from "./engine/items";
@@ -64,7 +65,7 @@ interface Store {
   openSource: (s: Source | ViewerTarget) => void;
   closeViewer: () => void;
   setAi: (v: boolean) => void;
-  addAi: (requestId: string, layer: "read" | "plan" | "rec", key: string, output: unknown, source: "live" | "cached" | "rules") => void;
+  addAi: (requestId: string, layer: "read" | "plan" | "rec", key: string, output: unknown, source: "live" | "cached" | "rules", meta?: AiMeta) => void;
 }
 
 export const STEPS: Record<Scn, Step[]> = { A: SCENARIO_A, B: SCENARIO_B };
@@ -219,9 +220,9 @@ export const useAva = create<Store>((set, get) => ({
   openSource: (s) => set({ viewer: { docId: (s as any).docId, clause: (s as any).clause, emailId: s.emailId, attachmentId: (s as any).attachmentId, quote: (s as any).quote, quotes: (s as any).quotes, page: (s as any).page, compareWith: (s as any).compareWith, title: (s as any).title } }),
   closeViewer: () => set({ viewer: null }),
   setAi: (v) => set({ aiAvailable: v }),
-  addAi: (requestId, layer, key, output, source) => {
+  addAi: (requestId, layer, key, output, source, meta) => {
     const { state, events } = get();
-    const ev: AvaEvent = { id: uid("ev"), at: state.now, kind: "ai", requestId, layer, key, output, source };
+    const ev: AvaEvent = { id: uid("ev"), at: state.now, kind: "ai", requestId, layer, key, output, source, promptVersion: meta?.promptVersion, model: meta?.model };
     set({ state: applyEvent(state, ev), events: [...events, ev] }); save(get());
   },
 }));

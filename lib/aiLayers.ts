@@ -1,6 +1,7 @@
 // Server-only: Ava's read, plan and recommendations (Part 7). Validated with zod, retried once, then the caller falls back.
 import Anthropic from "@anthropic-ai/sdk";
 import { z } from "zod";
+import { promptVersionOf } from "./promptVersion";
 
 const Cite = z.object({ type: z.enum(["email", "doc", "clause"]), id: z.string(), quote: z.string().optional().nullable() });
 export const ReadSchema = z.object({ sentences: z.array(z.object({ text: z.string(), citations: z.array(Cite).min(1) })).min(1).max(4), risks: z.array(z.string()).default([]) });
@@ -27,11 +28,15 @@ const TASK = {
   recommend: `Recommend what the owner should do about this one conflict or decision. One-sentence recommendation, at most 2 sentences of reasoning with citations, a confidence (high, medium or low), and an optional ready draft email the person can send (never sent by you). Shape: {"recommendation":string,"reasoning":string,"citations":[...],"confidence":"high"|"medium"|"low","draft"?:string,"action"?:"draft_supplier"|"ask_requester"|"require_cr"|"ask_legal"|"review"}`,
 } as const;
 
+/** Changes whenever RULES or any task prompt changes. Returned by the routes and stored on every live output. */
+export const PROMPT_VERSION = promptVersionOf(RULES + JSON.stringify(TASK));
+export const modelName = () => process.env.AVA_MODEL || "claude-sonnet-5-5";
+
 export async function runLayer(layer: keyof typeof TASK, input: unknown) {
   const key = process.env.ANTHROPIC_API_KEY;
   if (!key) throw Object.assign(new Error("No ANTHROPIC_API_KEY"), { code: "NO_KEY" });
   const client = new Anthropic({ apiKey: key });
-  const model = process.env.AVA_MODEL || "claude-sonnet-5-5";
+  const model = modelName();
   const schema = layer === "read" ? ReadSchema : layer === "plan" ? PlanSchema : RecSchema;
   const user = `${TASK[layer]}\n\nInput:\n${JSON.stringify(input)}`;
   let lastErr: unknown;

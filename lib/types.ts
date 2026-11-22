@@ -369,6 +369,7 @@ export type Action =
   | { type: "comment"; requestId: string; conflictId?: string; text: string }
   | { type: "rerun"; requestId: string; emailId?: string; extraction?: Extraction; source?: ExtractionSource }
   | { type: "approve"; requestId: string; key: ApprovalKey }
+  | { type: "send_back"; requestId: string; key: ApprovalKey; note: string }
   | { type: "record_exception"; requestId: string; kind: "sole_supplier" | "retro" | "other"; reason: string }
   | { type: "competing_quote"; requestId: string; note: string }
   | { type: "reassign"; itemKey: string; to: string }
@@ -382,7 +383,7 @@ export type Action =
 export type AvaEvent =
   | { id: string; at: string; kind: "email"; email: Email; extraction: Extraction | null; extractionSource: ExtractionSource; tag?: string }
   | { id: string; at: string; kind: "action"; actor: string; action: Action; tag?: string }
-  | { id: string; at: string; kind: "ai"; requestId: string; layer: "read" | "plan" | "rec"; key: string; output: unknown; source: import("./aiTypes").AiSource; tag?: string };
+  | { id: string; at: string; kind: "ai"; requestId: string; layer: "read" | "plan" | "rec"; key: string; output: unknown; source: import("./aiTypes").AiSource; promptVersion?: string; model?: string; tag?: string };
 
 /** What the source viewer shows: one file or email, optional highlighted quotes, optional older version beside it. */
 export interface ViewerTarget { docId?: string; clause?: string; emailId: string; attachmentId?: string; quote?: string; quotes?: string[]; page?: number; compareWith?: string; title?: string }

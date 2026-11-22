@@ -7,9 +7,9 @@ import { deriveItems } from "@/lib/engine/items";
 import { analyze } from "@/lib/engine/rules";
 import { currentPlan } from "@/lib/engine/ai";
 import { person, personName } from "@/lib/engine/world";
-import { BACKGROUND, type BgNeed, type Bg } from "@/lib/background";
+import { BACKGROUND, bgNeedCount, type BgNeed, type Bg } from "@/lib/background";
 import { fmtDT, fmtShort, hoursBetween } from "@/lib/format";
-import { ItemCard } from "@/components/ItemCard";
+import { ItemCard, due } from "@/components/ItemCard";
 import { AiLabel } from "@/components/ai";
 import { Card, CardHead, Chip, cx, Empty, PageTitle, StateChip } from "@/components/ui";
 import type { State } from "@/lib/types";
@@ -29,7 +29,8 @@ function involved(state: State, id: string, who: string) {
 export default function TodayPage() {
   const { state, viewAs, setViewAs } = useAva();
   const [all, setAll] = useState(false);
-  const items = useMemo(() => deriveItems(state).filter((i) => i.personId === viewAs), [state, viewAs]);
+  // Earliest due date first, so whatever is overdue is at the top.
+  const items = useMemo(() => deriveItems(state).filter((i) => i.personId === viewAs).sort((x, y) => due(state.items[x.key]?.openedAt ?? state.now).localeCompare(due(state.items[y.key]?.openedAt ?? state.now))), [state, viewAs]);
   const p = person(viewAs); const first = personName(viewAs).split(" ")[0];
   const since = (at: string) => hoursBetween(at, state.now) <= 36 && at <= state.now;
   const handled = [
@@ -47,7 +48,7 @@ export default function TodayPage() {
     <div>
       <PageTitle title={`Today for ${first}`} sub={`${fmtDT(state.now)} · ${p?.title ?? ""}. Ava does the legwork; you make the decisions.`} />
       <div role="tablist" aria-label="Person" className="mb-5 flex flex-wrap gap-1">
-        {DEPTS.map(([id, label]) => { const k = deriveItems(state).filter((i) => i.personId === id).length + BACKGROUND.reduce((s, b) => s + b.needs.filter((x) => x.personId === id).length, 0); return (
+        {DEPTS.map(([id, label]) => { const k = deriveItems(state).filter((i) => i.personId === id).length + bgNeedCount(id); return (
           <button key={id} role="tab" aria-selected={viewAs === id} onClick={() => setViewAs(id)} className={cx("rounded-md border px-2.5 py-1 text-[12.5px]", viewAs === id ? "border-accent bg-accent-50 font-semibold text-accent-700" : "border-slate-300 bg-white text-slate-700 hover:bg-slate-50")}>{label}{k > 0 && <span className="ml-1.5 rounded-full bg-red-600 px-1.5 text-[10.5px] font-bold text-white">{k}</span>}</button>); })}
       </div>
       <div className="grid gap-5 lg:grid-cols-[1fr_360px]">

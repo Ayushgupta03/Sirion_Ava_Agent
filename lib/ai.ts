@@ -1,4 +1,5 @@
 // Server-only: the AI extraction call. The model extracts facts with quotes; code decides policy.
+import { stripQuoted } from "./quoted";
 import Anthropic from "@anthropic-ai/sdk";
 import { z } from "zod";
 import type { Extraction } from "./types";
@@ -52,7 +53,7 @@ export async function extractWithAI(input: { email: any; attachments: { name: st
   if (!key) throw Object.assign(new Error("No ANTHROPIC_API_KEY"), { code: "NO_KEY" });
   const client = new Anthropic({ apiKey: key });
   const model = process.env.AVA_MODEL || "claude-sonnet-5-5";
-  const user = JSON.stringify({ email: input.email, attachments: input.attachments, context: input.context }, null, 1);
+  const user = JSON.stringify({ email: { ...input.email, body: stripQuoted(String(input.email?.body ?? "")) }, attachments: input.attachments, context: input.context }, null, 1);
   let lastErr: unknown;
   for (let attempt = 0; attempt < 2; attempt++) {
     const msg = await client.messages.create({

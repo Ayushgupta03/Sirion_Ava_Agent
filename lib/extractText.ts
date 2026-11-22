@@ -1,6 +1,7 @@
 // Server-side text extraction for PDF and XLSX. Used by the sample script and /api/extract.
 import * as XLSX from "xlsx";
 import type { Sheet } from "./types";
+import { joinWrappedLines } from "./joinLines";
 
 export interface ExtractedFile {
   kind: "pdf" | "xlsx" | "other";
@@ -26,7 +27,7 @@ export async function extractPdf(data: Uint8Array): Promise<string[][]> {
     const lines = [...rows.entries()]
       .sort((a, b) => b[0] - a[0])
       .map(([, parts]) => parts.sort((a, b) => a.x - b.x).map((p) => p.s.trim()).join("  ").replace(/\s{3,}/g, "  ").trim());
-    pages.push(lines);
+    pages.push(joinWrappedLines(lines));
   }
   return pages;
 }

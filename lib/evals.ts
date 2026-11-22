@@ -95,4 +95,16 @@ export function evalRec(o: AiRec, state: State, reqId: string): EvalIssue[] {
   return issues;
 }
 
-export interface EvalRow { step: string; requestId: string; layer: string; key: string; source: string; issues: EvalIssue[] }
+export interface EvalRow { step: string; requestId: string; layer: string; key: string; source: string; promptVersion?: string; issues: EvalIssue[] }
+
+/** Results per prompt version, so a prompt change shows up as its own row. Scripted outputs have no prompt and group as "cached". */
+export function groupByVersion(rows: EvalRow[]) {
+  const m = new Map<string, { version: string; outputs: number; failing: number; warnings: number }>();
+  for (const r of rows) {
+    const version = r.promptVersion ?? (r.source === "cached" ? "cached (hand-written)" : r.source);
+    const g = m.get(version) ?? { version, outputs: 0, failing: 0, warnings: 0 };
+    g.outputs++; if (r.issues.some((i) => i.severity === "fail")) g.failing++; else if (r.issues.some((i) => i.severity === "warn")) g.warnings++;
+    m.set(version, g);
+  }
+  return [...m.values()];
+}

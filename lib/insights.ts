@@ -3,7 +3,7 @@ import type { State } from "./types";
 import { analyze } from "./engine/rules";
 import { actionsOf, currentPlan } from "./engine/ai";
 import { BACKGROUND, BG_CONFLICTS, BG_TOTALS } from "./background";
-import { inr, istYmd, parseAmount, parseDate } from "./format";
+import { businessDays, inr, istYmd, parseAmount, parseDate } from "./format";
 import { waitSplit } from "./engine/timing";
 
 export interface Catch { reqId: string; live: boolean; text: string; impact?: number; impactText: string; status: "open" | "resolved"; supplier: string }
@@ -83,4 +83,52 @@ export function northStar(state: State) {
     fromAsk, withdrawn: ids.filter((id) => state.requests[id].withdrawals?.length).length,
     cleanReady: rows.filter((r) => r.clean).length,
   };
+}
+
+
+// ---- N6: what people did with Ava's advice ----
+export interface AdviceBucket { total: number; used: number; edited: number; dismissed: number; open: number }
+const emptyBucket = (): AdviceBucket => ({ total: 0, used: 0, edited: 0, dismissed: 0, open: 0 });
+export interface AdviceStats extends AdviceBucket {
+  adoption?: number; // (used + edited) / decided, once anyone has decided
+  byConfidence: Record<"high" | "medium" | "low", AdviceBucket>;
+  byAction: Record<string, AdviceBucket>;
+  reasons: { key: string; by: string; reason: string; action?: string; confidence: string }[];
+}
+
+/** Recommendations Ava made, and whether each was used as is, edited then used, dismissed, or is still open.
+ *  Receipt summaries are not advice to accept or reject, and the rules fallback ("no recommendation") is not advice at all. */
+export function adviceOutcomes(state: State): AdviceStats {
+  const out: AdviceStats = { ...emptyBucket(), byConfidence: { high: emptyBucket(), medium: emptyBucket(), low: emptyBucket() }, byAction: {}, reasons: [] };
+  for (const [key, v] of Object.entries(state.ai.recs)) {
+    if (key.startsWith("receipt:") || (v.source === "rules" && v.output.action === "review")) continue;
+    const action = v.output.action ?? "review"; const conf = v.output.confidence;
+    const kind: keyof AdviceBucket = v.dismissed ? "dismissed" : v.used ? (v.used.edited ? "edited" : "used") : "open";
+    for (const b of [out, out.byConfidence[conf], (out.byAction[action] ??= emptyBucket())]) { b.total++; b[kind]++; }
+    if (v.dismissed) out.reasons.push({ key, by: v.dismissed.by, reason: v.dismissed.reason, action, confidence: conf });
+  }
+  const decided = out.used + out.edited + out.dismissed;
+  out.adoption = decided ? (out.used + out.edited) / decided : undefined;
+  return out;
+}
+
+// ---- N7: were the predicted dates right? ----
+export interface PredictionRow { reqId: string; title: string; first: string; final: string; actual: string; firstOff: number; finalOff: number }
+/** For each request that reached Ready: the date its first plan predicted, the date its last plan before Ready predicted, and the real date.
+ *  "Off" is in business days. The first prediction is what people planned around; the final one shows whether re-planning caught up. */
+export function predictionAccuracy(state: State) {
+  const day = (iso: string) => `${iso}T12:00:00+05:30`;
+  const off = (a: string, b: string) => (a <= b ? businessDays(day(a), day(b)) : businessDays(day(b), day(a)));
+  const rows: PredictionRow[] = [];
+  for (const id of state.requestOrder) {
+    const r = state.requests[id]; if (!r.readyAt || r.type === "invoice") continue;
+    const plans = (state.ai.plans[id] ?? []).filter((p) => p.output.predictedReady && p.at <= r.readyAt!);
+    if (!plans.length) continue;
+    const ymd = (p: (typeof plans)[number]) => parseDate(p.output.predictedReady.replace(/^[A-Za-z]{3}\s+/, ""));
+    const first = ymd(plans[0]); const last = ymd(plans[plans.length - 1]); const actual = istYmd(r.readyAt);
+    if (!first || !last) continue;
+    rows.push({ reqId: id, title: r.title, first, final: last, actual, firstOff: off(first, actual), finalOff: off(last, actual) });
+  }
+  const within = (f: (x: PredictionRow) => number) => rows.filter((x) => f(x) <= 1).length;
+  return { rows, total: rows.length, firstWithin: within((x) => x.firstOff), finalWithin: within((x) => x.finalOff) };
 }

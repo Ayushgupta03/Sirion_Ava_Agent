@@ -1,4 +1,5 @@
 "use client";
+import { QuotedBody } from "@/components/QuotedBody";
 import { Suspense, useEffect, useMemo, useState } from "react";
 import { useRouter, useSearchParams } from "next/navigation";
 import Link from "next/link";
@@ -71,7 +72,7 @@ function EmailView({ email }: { email: Email }) {
         <div className="text-[12.5px] text-slate-600">To {email.to.map((t) => `${displayAddr(t, state)} <${t}>`).join(", ")}{email.cc.length > 0 && `; Cc ${email.cc.join(", ")}`}</div>
         <div className="text-[12.5px] text-slate-500">{fmtDT(email.sentAt)}</div>
       </div>
-      <div className="whitespace-pre-wrap px-5 py-4 text-[14px] leading-relaxed">{email.body}</div>
+      <QuotedBody body={email.body} className="px-5 py-4 text-[14px] leading-relaxed" />
       {email.attachments.length > 0 && <div className="border-t border-slate-100 px-5 py-3">
         <div className="mb-2 text-[12px] font-semibold text-slate-500">Attachments</div>
         <div className="flex flex-wrap gap-2">{email.attachments.map((a) => (
@@ -302,7 +303,7 @@ function OutlookView({ email, personId }: { email: Email; personId: string }) {
           <h2 className="text-[17px] font-semibold">{email.subject}</h2>
           <div className="mt-1 text-[12.5px] text-slate-600">{displayAddr(email.from, state)} · {fmtDT(email.sentAt)}</div>
           <div className="text-[12.5px] text-slate-500">To: {email.to.map((t) => displayAddr(t, state)).join(", ")}</div>
-          <p className="mt-3 whitespace-pre-wrap text-[14px] leading-relaxed">{email.body}</p>
+          <QuotedBody body={email.body} className="mt-3 text-[14px] leading-relaxed" />
           {email.attachments.length > 0 && <div className="mt-3 flex flex-wrap gap-2">{email.attachments.map((x) => <button key={x.id} onClick={() => open({ emailId: email.id, attachmentId: x.id })} className="rounded border border-slate-300 px-2 py-1 text-[12.5px] hover:bg-slate-50">{x.name}</button>)}</div>}
         </div>
         <aside aria-label="Ava add-in" className="bg-slate-50 p-3">

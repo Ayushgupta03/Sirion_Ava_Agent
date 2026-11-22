@@ -15,6 +15,13 @@ export function fingerprint(state: State, reqId: string) {
   return JSON.stringify([f.amount?.num, f.scope?.sources[0]?.quote, f.data_access?.num, f.duration?.num, f.auto_renew?.num, open, a.checks.map((c) => `${c.id}:${c.status}`).sort()]);
 }
 
+/** What a plan depends on besides the facts: who has signed, and how many emails the request holds.
+ *  Reads and recommendations ignore this (an approval does not change what an email said). A live plan is refreshed when it changes. */
+export function planContext(state: State, reqId: string) {
+  const a = analyze(state, reqId);
+  return JSON.stringify([a.approvals.map((x) => `${x.key}:${x.status}`), state.requests[reqId].emailIds.length]);
+}
+
 // ── Policy steps the plan must contain (from the rules engine) ──
 export function requiredSteps(a: Analysis): PlanStep[] {
   const out: PlanStep[] = [];
@@ -129,12 +136,15 @@ export function currentRead(state: State, reqId: string): { v: Versioned<AiRead>
   if (last && last.fingerprint === fp) return { v: last, prev: list[list.length - 2], stale: false };
   return { v: { at: state.now, source: "rules", fingerprint: fp, output: rulesRead(state, analyze(state, reqId)) }, prev: last, stale: !!last };
 }
-export function currentPlan(state: State, reqId: string): { v: Versioned<AiPlan>; stale: boolean } {
+/** `refresh`: a live plan whose facts still hold but whose approvals or replies have moved on, so Ava should re-plan.
+ *  Cached plans cannot be regenerated, so they never ask to refresh. */
+export function currentPlan(state: State, reqId: string): { v: Versioned<AiPlan>; stale: boolean; refresh: boolean } {
   const a = analyze(state, reqId); const list = state.ai.plans[reqId] ?? []; const fp = fingerprint(state, reqId);
   const last = list[list.length - 1];
   const base = last && last.fingerprint === fp ? last : { at: state.now, source: "rules" as AiSource, fingerprint: fp, output: rulesPlan(a, state), changes: last?.changes };
   const { plan } = validatePlan(base.output, a, state);
-  return { v: { ...base, output: plan }, stale: !!last && last.fingerprint !== fp };
+  const refresh = !!last && last.fingerprint === fp && last.source === "live" && last.context !== planContext(state, reqId);
+  return { v: { ...base, output: plan }, stale: !!last && last.fingerprint !== fp, refresh };
 }
 export function currentRec(state: State, key: string): Versioned<AiRec> {
   return state.ai.recs[key] ?? { at: state.now, source: "rules", fingerprint: "", output: rulesRec() };

@@ -53,6 +53,8 @@ The output is still shown, so people can judge it; the badge tells them not to t
 
 ## Comparing prompts or models
 
+Live outputs carry the prompt version that produced them, and `npm run eval` ends with results grouped by version (`groupByVersion` in `lib/evals.ts`), so a prompt change shows up as its own row. Scripted outputs group as "cached (hand-written)".
+
 1. Set `ANTHROPIC_API_KEY` and `AVA_MODEL`.
 2. Generate outputs for every scripted step (roadmap N2 script) into a folder per prompt or model version.
 3. Run the evals over each folder and compare fail counts per check.

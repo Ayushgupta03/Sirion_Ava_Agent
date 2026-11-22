@@ -34,6 +34,7 @@ The front door: an employee describes a need before any supplier email exists. F
 
 Intro: "Supplier email Ava received through the mail rule. Simulated here." Header button: "Test lab: simulate an incoming email".
 
+- The email body shows what the sender wrote this time. Quoted earlier messages fold under "Earlier messages in this thread · Ava ignores quoted text".
 - Left: mailbox list with person filters (All, Rahul, Neha, Suresh), attachment chips, "Sent from Ava's draft" and "Composed" tags.
 - Middle: the email with attachment buttons, or "See it as Rahul does in Outlook" (a mail client view with a narrow Ava add-in showing the request, status and what waits on that person, with Yes/No, Noted and Send draft).
 - Right, **Ava recorded** panel, top to bottom:
@@ -50,7 +51,7 @@ Intro: "Supplier email Ava received through the mail rule. Simulated here." Head
 
 Person tabs with counts (Procurement, InfoSec, Finance, Legal, three budget owners, VP, two requesters). For the selected person:
 
-- **Needs your decision**: decision cards (`ItemCard`) for engine items, each with the question, evidence quote, draft, **Ava recommends** (where one applies), and actions (Yes/No, Keep it/Remove it with a note, Review and approve/reconfirm with the Decision Receipt, Record exception, Attach competing quote, Record reason, Confirm/Not mine for orphan invoices, Ask a question, Reassign). Background decisions appear as cards with cached recommendations, marked outside the guided demo.
+- **Needs your decision**: sorted by due date, so overdue items come first and say "N days overdue" in red. Decision cards (`ItemCard`) for engine items, each with the question, evidence quote, draft, **Ava recommends** (where one applies), and actions (Yes/No, Keep it/Remove it with a note, Review and approve/reconfirm with the Decision Receipt, Record exception, Attach competing quote, Record reason, Confirm/Not mine for orphan invoices, Ask a question, Reassign). Background decisions appear as cards with cached recommendations, marked outside the guided demo.
 - **Coming up**: the person's open steps from every plan (live and background), with dates.
 - **Since yesterday, Ava handled X things for you**: Ava's actions in the last 36 hours on requests the person is involved in, plus background actions tagged for them. Show all.
 - My requests (for requesters), Procurement summary (requests, open conflicts including background, exceptions, unsorted), Legal's handoff packets and withdrawn packets.
@@ -79,7 +80,7 @@ Type chip (Said vs written, Hidden scope or data access, Renewal terms changed, 
 
 ### Decision Receipt (`ReceiptModal` in `request.tsx`)
 
-Opens with **Ava's summary for you** (3 bullets) when present. Then Needs reconfirmation (given for vs current, and the source line), You are approving (amount, scope, term, 90-day total, data access, document versions), what Ava checked, what nobody checked (clause wording, supplier MSA comments, DPA terms, value for money), exceptions, Approve/Reconfirm (only the named approver can act; others get "View as …").
+Opens with **Ava's summary for you** (3 bullets) when present. Then Needs reconfirmation (given for vs current, and the source line), You are approving (amount, scope, term, 90-day total, data access, document versions), what Ava checked, what nobody checked (clause wording, supplier MSA comments, DPA terms, value for money), exceptions, then **Approve/Reconfirm** and **Send back with a note** (only the named approver can act; others get "View as …"). Send back asks for a reason, approves and rejects nothing, leaves the approval open, and puts a mention item on the requester's and Karan's Today. The header and action bar stay fixed; only the body scrolls. Scope and other values are shown in full: wrapped PDF lines are rejoined at extraction (`lib/joinLines.ts`).
 
 ### Drafts
 
@@ -99,7 +100,8 @@ Read, plan, conflict with recommendation, Ava did, all labelled Cached and "outs
 2. **Ava caught this**: catches with ₹ or risk impact from open and resolved conflicts, live and background, largest first (₹5.6L Codehive, ₹3.1L Rangmanch, ₹2.8L Pixelwise, TalentBridge risk on a fresh session; ₹1,50,000 UAT line, ₹90,000 credit, ₹39,200 rates, ₹1,26,000 a year saved on Kosha as the scenarios run).
 3. **Counters**: ₹ at stake caught, Touches per request (people decisions per request; lower is better), Started in Ask Ava, Clean and fast (the north star: complete, never withdrawn, Prayaan's time under 1 day). Second row: requests captured from email, questions answered from documents, approvals reopened by changed facts, started before approval. Below: one line of activity for context, not success (Ava actions, people decisions, contract terms checked).
 4. **Pipeline / Conflicts** tabs: 5 columns (New, Waiting on someone, Approvals, Blocked, Ready) with live and background cards; conflicts table including background.
-5. Timing (first message to Ready, split into the supplier's wait and Prayaan's own time; open requests show Prayaan's hours so far), Changes feed, Invoices with no request.
+5. **Ava's advice** and **Predicted dates** cards. Advice: used, edited, dismissed and still open, by confidence, with the reasons people gave for dismissing. Dates: for each request that reached Ready, what its first plan predicted, what its final plan predicted, and the real date, in business days; "within a day" is one business day or less, and misses are shown on purpose.
+6. Timing (first message to Ready, split into the supplier's wait and Prayaan's own time; open requests show Prayaan's hours so far), Changes feed, Invoices with no request.
 
 ## Conflicts (`/conflicts`)
 

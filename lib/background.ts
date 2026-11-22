@@ -25,3 +25,6 @@ export const BG_TOTALS = {
   checks: BACKGROUND.reduce((s, b) => s + b.checks, 0),
   atStake: BG_CONFLICTS.reduce((s, x) => s + (x.c.impact ?? 0), 0),
 };
+
+/** Background decisions waiting on a person. Today, the bell and the sidebar all count these the same way. */
+export const bgNeedCount = (personId: string) => BACKGROUND.reduce((n, b) => n + b.needs.filter((x) => x.personId === personId).length, 0);

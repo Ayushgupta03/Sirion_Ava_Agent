@@ -2,6 +2,7 @@
 // Same output shape as the AI (section 6), with lower confidence.
 import type { Email, ExtractedFact, Extraction, Supplier } from "./types";
 import { domainOf, nextWeekday, parseAmount } from "./format";
+import { stripQuoted } from "./quoted";
 
 const DOW: Record<string, number> = { sunday: 0, monday: 1, tuesday: 2, wednesday: 3, thursday: 4, friday: 5, saturday: 6 };
 const MON = ["Jan", "Feb", "Mar", "Apr", "May", "Jun", "Jul", "Aug", "Sep", "Oct", "Nov", "Dec"];
@@ -16,14 +17,15 @@ export function basicExtract(email: Email, suppliers: Pick<Supplier, "name" | "d
   const sup = suppliers.find((s) => addrs.some((a) => domainOf(a) === s.domain));
   const ext = addrs.find((a) => domainOf(a) && !domainOf(a).endsWith("prayaan.example"));
   const fromEmployee = domainOf(email.from).endsWith("prayaan.example");
-  const all = `${email.subject} ${email.body} ${email.attachments.map((a) => a.pages.flat().join(" ")).join(" ")}`;
+  const body = stripQuoted(email.body); // quoted earlier messages are not this email
+  const all = `${email.subject} ${body} ${email.attachments.map((a) => a.pages.flat().join(" ")).join(" ")}`;
   const low = all.toLowerCase();
 
   const isInvoice = /\binvoice\b/i.test(email.subject + " " + email.attachments.map((a) => a.name).join(" ")) || email.attachments.some((a) => /tax invoice/i.test(a.pages.flat().join(" ")));
-  const requestType = isInvoice ? "invoice" : /renew/i.test(email.subject + email.body) ? "renewal" : /\bextend|extension\b/i.test(email.subject + email.body) ? "amendment" : "new_sow";
+  const requestType = isInvoice ? "invoice" : /renew/i.test(email.subject + body) ? "renewal" : /\bextend|extension\b/i.test(email.subject + body) ? "amendment" : "new_sow";
 
   // Email body
-  const sents = sentences(email.body);
+  const sents = sentences(body);
   sents.forEach((raw, i) => {
     const s = raw.replace(/^(hi|hello|dear)\s+[a-z]+,\s*/i, "");
     if (/₹|\brs\.?\s?\d|\binr\b|\d+\s?(l|lakh|crore)\b/i.test(s) && parseAmount(s) != null)
