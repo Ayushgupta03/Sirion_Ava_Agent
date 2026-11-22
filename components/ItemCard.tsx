@@ -31,7 +31,7 @@ export function recKeyFor(state: State, it: Item): string | undefined {
   return undefined;
 }
 
-export function ItemCard({ it, compact }: { it: Item; compact?: boolean }) {
+export function ItemCard({ it, compact, grouped, first }: { it: Item; compact?: boolean; grouped?: boolean; first?: boolean }) {
   const { state, act, viewAs } = useAva();
   const [open, setOpen] = useState(false);
   const [text, setText] = useState(""); const [note, setNote] = useState("");
@@ -46,8 +46,8 @@ export function ItemCard({ it, compact }: { it: Item; compact?: boolean }) {
     <Card className={cx(tone === "red" && "border-red-300")}>
       <div className="px-4 py-3">
         <div className="flex flex-wrap items-center justify-between gap-2 text-[12px] text-slate-500">
-          <span>{it.requestId ? <Link className="font-medium text-accent hover:underline" href={`/requests/${it.requestId}`}>{it.requestId} · {it.title}</Link> : it.title}</span>
-          <span className="flex items-center gap-2">{rec && <>Opened {fmtShort(rec.openedAt)} · waiting {span(hoursBetween(rec.openedAt, state.now))} · due {fmtShort(due(rec.openedAt))}{hoursBetween(due(rec.openedAt), state.now) >= 1 && <b className="ml-1 font-semibold text-red-700">· {span(hoursBetween(due(rec.openedAt), state.now))} overdue</b>}</>}<Chip tone={tone as any}>{KIND[it.kind] ?? it.kind}</Chip></span>
+          <span>{grouped ? null : it.requestId ? <Link className="font-medium text-accent hover:underline" href={`/requests/${it.requestId}`}>{it.requestId} · {it.title}</Link> : it.title}</span>
+          <span className="flex items-center gap-2">{rec && <>Opened {fmtShort(rec.openedAt)} · waiting {span(hoursBetween(rec.openedAt, state.now))} · due {fmtShort(due(rec.openedAt))}{hoursBetween(due(rec.openedAt), state.now) >= 1 && <b className="ml-1 font-semibold text-red-700">· {span(hoursBetween(due(rec.openedAt), state.now))} overdue</b>}</>}{first && <Chip tone="blue">Do this first</Chip>}<Chip tone={tone as any}>{KIND[it.kind] ?? it.kind}</Chip></span>
         </div>
         <p className="mt-1.5 text-[14.5px] font-medium text-slate-900">{it.question}</p>
         {it.detail && <p className="text-[12.5px] text-slate-600">{it.detail}</p>}
