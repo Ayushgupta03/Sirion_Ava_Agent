@@ -1,35 +1,46 @@
 # Ava: contract intake from supplier email (prototype)
 
-Nobody fills in an intake form. Ava builds the contract request from the emails people already send to suppliers, and the request cannot leave intake until every approval matches the latest facts.
+Nobody fills in an intake form. Ava reads every supplier email, plans the work, does the legwork, and tells each person the one decision that needs them. A request cannot leave intake until every approval matches the latest facts.
 
-All companies, people and numbers are fictional.
+The AI understands, plans, acts and advises. Code enforces policy. People decide.
 
-## Run locally
+- **Live app:** https://sirion-ava-agent.vercel.app
+- **Case:** ISB assignment on Sirion (contract lifecycle management). Ava covers intake, the stage before a contract exists.
+- **Data:** every company, person, contract and number is fictional.
+
+## Quick start
 
 ```bash
 npm install
-npm run dev        # generates sample PDFs/XLSX, then starts Next.js on :3000
-npm test           # engine unit + scenario tests (17)
+npm run dev     # generates sample PDFs/XLSX and contract PDFs, then starts Next.js on :3000
+npm test        # 25 engine and scenario tests (Vitest)
+npm run build   # samples + production build
 ```
 
-Optional: `ANTHROPIC_API_KEY=...` turns on live AI extraction for composed email (`AVA_MODEL`, default `claude-sonnet-5-5`). Without a key, composed email uses the basic extractor and is labelled "Basic extraction (AI unavailable)".
+Optional environment variables:
 
-## Deploy on Vercel
+| Variable | Effect |
+|---|---|
+| `ANTHROPIC_API_KEY` | Turns on live AI for extraction, Ava's read, Ava's plan and recommendations. Without it, everything still works with labelled fallbacks. |
+| `AVA_MODEL` | Model id for all AI calls. Default `claude-sonnet-5-5`. |
 
-Import the folder (or push it to GitHub and import). Framework: Next.js. The build command `npm run build` regenerates `public/samples/*` and `data/sample-texts.json` from `scripts/make-samples.ts` before `next build`. Add `ANTHROPIC_API_KEY` in Project Settings > Environment Variables for live AI.
+## Documentation
 
-## How it is built
+| Doc | What it covers |
+|---|---|
+| [01 Overview](docs/01-overview.md) | What Ava is, the principles, the fictional world, who uses it |
+| [02 Architecture](docs/02-architecture.md) | Stack, event sourcing, the single pipeline, state, file map |
+| [03 Policy rules](docs/03-policy-rules.md) | The 11 rules, routing, checklist, conflicts, handoff, reopen and decrease rules |
+| [04 Contracts and checks](docs/04-contracts-and-checks.md) | Contract PDFs, clauses, supplier history, `checkCommitments` and every computed consequence |
+| [05 AI layers](docs/05-ai-layers.md) | Extraction, Ava's read, plan, recommendations, Ava did; API routes, prompts, validation, fallbacks, labels |
+| [06 Scenarios](docs/06-scenarios.md) | Scenario A (9 steps), Scenario B (5 steps), the repeat request, the orphan invoice, background requests |
+| [07 Screens](docs/07-screens.md) | Every page and component, what it shows and why |
+| [08 Data](docs/08-data.md) | Seed, contracts, background, sample files, extraction cache, cached AI outputs |
+| [09 Testing](docs/09-testing.md) | Unit and scenario tests, browser walk-throughs, acceptance checks and their status |
+| [10 Deployment](docs/10-deployment.md) | GitHub, Vercel, build, environment variables, adding the API key |
+| [11 Build history](docs/11-build-history.md) | Every revision in order, design decisions, bugs fixed, known limits |
 
-- `lib/engine/pipeline.ts`: the single pipeline (ingest, classify, file, diff, rules, notify, log). Every scripted email, composed email and user action goes through `applyEvent`. State is a replay of the event log (persisted in localStorage).
-- `lib/engine/rules.ts`: policy as plain code: `computeCumulativeSpend`, `computeRouting`, checklist, `approvalStatus` (reopen), conflict detection, `computeHandoffState`.
-- `lib/engine/facts.ts`: folds extractions into facts with versions; `applySupersession` (rule 7).
-- `lib/story.ts`: the story player is only a list of timed events fed to the same engine.
-- `app/api/ava`: AI extraction (zod-validated, one retry). `app/api/extract`: server-side PDF/XLSX text extraction.
-- `tests/engine.test.ts`: ₹38L, ₹39.5L, ₹21.3L, ₹41L, two approvals reopened, handoff blocked, timing panel, and both scenarios with the basic extractor and no cache.
+## Honest notes
 
-## Notes
-
-- `data/extraction-cache/*.json` was written in the exact `/api/ava` output shape without an API key available. Run `ANTHROPIC_API_KEY=... npm run build-cache` to regenerate it from the real model before submission. The tests show the scenarios reach the same outcomes with no cache at all.
-- PDF text extraction uses `unpdf` (a serverless build of pdf.js) for reliability on Vercel.
-- Neha's budget owner is not named in the brief; the prototype adds Ritu Bansal, Head of Marketing Ops.
-- Request numbers advance with simulated time to reflect other teams' requests, so the Kosha renewal is REQ-1063.
+- No API key was available while building. The extraction cache (`data/extraction-cache/*.json`) and the cached AI outputs for scripted steps (`lib/aiScript.ts`, `data/background.json`) were written by hand in the exact response shapes. They are labelled **Cached** in the app. See [05 AI layers](docs/05-ai-layers.md) for how to regenerate them with the model.
+- The live AI routes for read, plan and recommend are built and validated, but have not run against the model yet. The rules fallback path is tested.
