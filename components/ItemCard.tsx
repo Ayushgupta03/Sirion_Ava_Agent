@@ -10,6 +10,7 @@ import { fmtShort, hoursBetween, span } from "@/lib/format";
 import { DraftBox, ReceiptModal } from "./request";
 import { Button, Card, Chip, cx, Quote } from "./ui";
 import { AvaRecommends } from "./ai";
+import { conflictAnchor } from "./ConflictCard";
 import type { State } from "@/lib/types";
 
 export const KIND: Record<string, string> = { reconfirm: "Needs reconfirmation", question: "Question", info: "For information", draft: "Draft to send", approval: "Approval", conflict: "Conflict", competing: "Quote or exception", retro: "Early start", legal: "Legal review", packet: "Handoff packet", supplier: "New supplier", orphan: "Invoice", unsorted: "Unsorted", finance: "Tax details", mention: "Mention" };
@@ -52,7 +53,9 @@ export function ItemCard({ it, compact }: { it: Item; compact?: boolean }) {
         {it.detail && <p className="text-[12.5px] text-slate-600">{it.detail}</p>}
         {it.evidence && <div className="mt-2"><Quote src={it.evidence} /></div>}
         {draft && <div className="mt-2"><DraftBox d={draft} /></div>}
-        {rk && it.requestId && <div className="mt-2"><AvaRecommends recKey={rk} requestId={it.requestId} readOnly={compact || it.kind !== "conflict"} /></div>}
+        {rk && it.requestId && (compact && it.kind === "conflict"
+          ? <a href={`#${conflictAnchor(it.conflictId!)}`} className="mt-2 inline-block py-1 text-[13px] font-medium text-accent hover:underline">See Ava’s recommendation and the actions on the conflict card →</a>
+          : <div className="mt-2"><AvaRecommends recKey={rk} requestId={it.requestId} readOnly={compact || it.kind !== "conflict"} /></div>)}
         <div className="mt-3 flex flex-wrap gap-1.5">
           {it.kind === "question" && it.flagId && !it.flagId.endsWith(":keep_line") && <><Button variant="primary" small onClick={() => act({ type: "answer_flag", requestId: it.requestId!, flagId: it.flagId!, answer: "yes" })}>Yes</Button><Button small onClick={() => act({ type: "answer_flag", requestId: it.requestId!, flagId: it.flagId!, answer: "no" })}>No</Button></>}
           {it.kind === "question" && it.flagId?.endsWith(":keep_line") && <><input aria-label="Note" value={note} onChange={(e) => setNote(e.target.value)} placeholder="Why? (optional)" className="rounded border border-slate-300 px-2 py-1 text-[12.5px]" /><Button variant="primary" small onClick={() => act({ type: "answer_flag", requestId: it.requestId!, flagId: it.flagId!, answer: "yes", note })}>Keep it</Button><Button small onClick={() => act({ type: "answer_flag", requestId: it.requestId!, flagId: it.flagId!, answer: "no", note })}>Remove it</Button></>}

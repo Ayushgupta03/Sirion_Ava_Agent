@@ -6,17 +6,17 @@ Writing rules for all UI copy: plain words, short sentences, names, numbers and 
 
 - **Sidebar**: Captured mail · Today · Requests · Dashboard, then "About the case" with the six numbered case pages and reading time, then Settings. Live counts on Today. Collapses to an icon rail at tablet width and a drawer on mobile.
 - **Top bar**: "Prayaan Software (fictional) · supplier email is simulated", the simulated clock (click for details), a bell with the viewer's item count (links to Today), and **View as** (person switcher with roles).
-- **Guided demo dock** (bottom): scenario tabs A and B, step number, time, progress dots, caption, "Show me where this happened →", Back, Next/Start. Secondary buttons: **Test lab: simulate an incoming email**, **Show a repeat request**, Reset (with confirm), minimise. After each step the app navigates to the step's focus URL, scrolls to the changed element and pulses it for 2 seconds; some steps open the source viewer (A6: v1 beside v2; B1: the three order-form lines). When a step acts as another person, a toast says "Now acting as …" with a "Switch view to …" button.
+- **Guided demo dock** (bottom; hidden on the landing page until a demo starts, so the landing has one primary action): scenario tabs A and B, step number, time, progress dots, caption, "Show me where this happened →", Back, Next/Start. Secondary buttons: **Test lab: simulate an incoming email**, **Show a repeat request**, Reset (with confirm), minimise. After each step the app navigates to the step's focus URL, scrolls to the changed element and pulses it for 2 seconds; some steps open the source viewer (A6: v1 beside v2; B1: the three order-form lines). When a step acts as another person, a toast says "Now acting as …" with a "Switch view to …" button.
 - **Source viewer** (`SourceViewer.tsx`): modal showing the email text, or an attachment's text by page with highlighted quotes, or v1 beside v2 with new lines marked, or a **contract PDF at a clause** with the clause highlighted. "Original file" tab shows the real PDF or the XLSX sheets.
 
 ## Landing (`/`)
 
 - Headline: "Supplier email in. Routed request out."
 - Subhead: "Ava reads every supplier email, plans the work, does the legwork, and tells each person the one decision that needs them."
+- Buttons, directly under the subhead: Watch Scenario A (3 min, primary), Watch Scenario B (2 min), "Or test it with your own email".
 - Trust line: every fact links to the sentence it came from; Ava only receives supplier email, through a mail rule IT controls.
-- Four tabs, each a real screenshot (`public/screens/`) and one sentence: **Reads** (Ava's read of REQ-1047), **Plans** (the plan with predicted date and critical path), **Acts** (the "Ava did N / people decided M" banner), **Advises** (the ₹1.5L UAT recommendation).
-- Buttons: Watch Scenario A (3 min), Watch Scenario B (2 min), or test with your own email.
-- Counters row: emails recorded, requests, open items, ready, Ava actions : people decisions, contract terms checked, 0 forms filled.
+- Four tabs (arrow keys, Home and End move between them), each one sentence, a link to the live screen ("See it on request REQ-1047", "See it on Karan's Today page") and a full-width screenshot (`public/screens/`, capped at 520 px tall): **Reads** (Ava's read of REQ-1047), **Plans** (the plan with predicted date and critical path), **Acts** (the "Ava did N / people decided M" banner), **Advises** (the ₹1.5L UAT recommendation).
+- Counters row: "This session:" emails recorded, requests, open items, ready, 0 forms filled; then "Including sample requests from other teams:" Ava actions, people decisions, contract terms checked (these include the background requests).
 
 ## Captured mail (`/mail`, was Inbox)
 
@@ -51,10 +51,10 @@ All live and background requests. Filters: All, Has open conflict. Group: List o
 
 Order, top to bottom:
 
-1. **Header** (sticky): breadcrumb, id and title, status chip, "Started before approval" chip, one generated summary sentence, and the intake stepper (Captured, Facts, Checks, Approvals, Legal Review or Issue PO). Then supplier, value, 90-day total (red over the limit), requester, owner, first email.
+1. **Header** (sticky from tablet width up; scrolls away on phones): breadcrumb, id and title, status chip, "Started before approval" chip, the intake stepper (Captured, Facts, Checks, Approvals, Legal Review or Issue PO), and an **On this page** jump list (Ava's read · Needs you · Plan · Problems (n open) · Contract · Ava did · Facts and documents). Below it: one generated summary sentence, then supplier, value, 90-day total (red over the limit), requester, owner, first email.
 2. **Status banner**: red "Handoff blocked: …" with reasons, or green "Ready for Legal Review. The handoff packet went to Farah Khan. Ava did N actions; people made M decisions." with timing and the prediction line.
 3. **Ava's read**: cited sentences, label, "Updated … · see previous".
-4. **Needs you**: the viewer's items for this request (recommendations read-only here), and chips for what waits on others.
+4. **Needs you**: the viewer's items for this request, and chips for what waits on others. A conflict item here links to its conflict card instead of repeating Ava's recommendation; other items show it read-only.
 5. **Ava's plan**: steps, badges, critical path, predicted date and reason, What changed.
 6. **Problems Ava found**: open conflict cards with Ava recommends; resolved ones collapsed; drafts for the requester collapsed.
 7. **What the contract says about this deal**: 3 to 5 clauses with status.

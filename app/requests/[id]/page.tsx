@@ -23,6 +23,10 @@ type Tab = "facts" | "documents" | "approvals" | "timeline" | "packet";
 const HASH_TAB: Record<string, Tab> = { routing: "approvals", approvals: "approvals", checklist: "approvals", documents: "documents", timeline: "timeline", packet: "packet", facts: "facts" };
 const PULSE_TAB: Record<string, Tab> = { routing: "approvals", approvals: "approvals", documents: "documents", handoff: "packet" };
 
+// The sticky header (md and up) ends about 13rem from the top; anchors land below it.
+const ANCHOR = "scroll-mt-20 md:scroll-mt-56";
+const JUMP: [string, string][] = [["#read", "Ava’s read"], ["#needs-you", "Needs you"], ["#plan", "Plan"], ["#conflicts", "Problems"], ["#contract", "Contract"], ["#log", "Ava did"], ["#details", "Facts and documents"]];
+
 type StageState = "done" | "current" | "blocked" | "todo";
 function stages(a: Analysis) {
   const req = a.requiredFacts.map((k) => a.facts[k]);
@@ -80,10 +84,9 @@ export default function RequestPage() {
   const summary = summarize(state, a);
   return (
     <div className="space-y-5">
-      <header className="sticky top-14 z-10 -mx-4 border-b border-slate-200 bg-canvas/95 px-4 pb-3 pt-1 backdrop-blur sm:-mx-6 sm:px-6">
+      <header className="z-10 -mx-4 md:sticky md:top-14 border-b border-slate-200 bg-canvas/95 px-4 pb-3 pt-1 backdrop-blur sm:-mx-6 sm:px-6">
         <nav aria-label="Breadcrumb" className="text-[12.5px] text-slate-500"><Link href="/requests" className="hover:underline">Requests</Link> › {sup ? <Link className="hover:underline" href={`/suppliers/${sup.id}`}>{supplierShort(sup.name)}</Link> : `Possible new supplier: ${req.supplierGuess?.name}`} › {req.project}</nav>
         <div className="mt-1 flex flex-wrap items-center gap-2"><h1 className="text-[20px] font-semibold tracking-[-0.01em]"><span className="font-mono text-slate-500">{req.id}</span> {req.title}</h1><StateChip state={a.handoff.state} />{req.startedBeforeApproval && <Chip tone="red">Started before approval</Chip>}</div>
-        <p className={cx("mt-1 text-[14px] font-medium", a.handoff.state === "blocked" ? "text-red-800" : ready ? "text-emerald-800" : "text-slate-800")}>{summary}</p>
         <ol aria-label="Intake progress" className="mt-2 flex flex-wrap gap-1.5">
           {st.map((s, i) => (
             <li key={s.label}><button onClick={() => setTab(s.tab)} aria-label={`${s.label}: ${s.detail}${s.state === "blocked" ? ", blocked" : s.state === "done" ? ", done" : ""}`} className={cx("flex h-7 items-center gap-1.5 rounded-full border px-2.5 text-[12px]", s.state === "blocked" ? "border-red-300 bg-red-50 text-red-800" : s.state === "done" ? "border-emerald-200 bg-emerald-50 text-emerald-800" : s.state === "current" ? "border-accent bg-accent-50 text-accent-700" : "border-slate-200 bg-white text-slate-600")}>
@@ -91,7 +94,12 @@ export default function RequestPage() {
             </button></li>
           ))}
         </ol>
+        <nav aria-label="On this page" className="-mx-1 mt-2 flex gap-x-1 overflow-x-auto whitespace-nowrap text-[12.5px]">
+          {JUMP.map(([href, label]) => <a key={href} href={href} className="rounded px-1.5 py-1 font-medium text-slate-600 hover:bg-slate-100 hover:text-slate-900">{label === "Problems" ? `Problems (${openConf.length} open)` : label}</a>)}
+        </nav>
       </header>
+
+      <p className={cx("-mt-2 text-[14px] font-medium", a.handoff.state === "blocked" ? "text-red-800" : ready ? "text-emerald-800" : "text-slate-800")}>{summary}</p>
 
       <dl className="grid grid-cols-2 gap-x-6 gap-y-2 text-[13px] sm:grid-cols-3 lg:grid-cols-6">
         {[["Supplier", supplierShort(sup?.name ?? req.supplierGuess?.name)], ["Value (before GST)", lakh(a.requestAmount)], ["90-day total", lakh(a.spend.total)], ["Requester", personName(req.requesterId)], ["Owner", `${personName("karan")}, Procurement`], ["First email", fmtDT(t.firstAt)]].map(([k, v]) => (
@@ -113,17 +121,17 @@ export default function RequestPage() {
         ) : null}
       </div>
 
-      <AvaRead reqId={id} />
+      <div id="read" className={ANCHOR}><AvaRead reqId={id} /></div>
 
-      <section aria-label="Needs you" className="space-y-2">
+      <section id="needs-you" aria-label="Needs you" className={cx("space-y-2", ANCHOR)}>
         <h2 className="text-[15px] font-semibold">Needs you <span className="font-normal text-slate-500">· {personName(viewAs)}</span></h2>
         {mine.length ? mine.map((it) => <ItemCard key={it.key} it={it} compact />) : <p className="rounded-lg border border-dashed border-slate-300 bg-white px-4 py-3 text-[13px] text-slate-600">Nothing here needs {personName(viewAs).split(" ")[0]}.{others.length > 0 && " Waiting on others:"}</p>}
         {others.length > 0 && <ul className="flex flex-wrap gap-1.5 text-[12.5px]">{others.map((o) => <li key={o.key} className="rounded-full border border-slate-200 bg-white px-2.5 py-1"><b>{personName(o.personId)}</b>: {o.question.length > 70 ? o.question.slice(0, 68) + "…" : o.question}</li>)}</ul>}
       </section>
 
-      <AvaPlan reqId={id} />
+      <div id="plan" className={ANCHOR}><AvaPlan reqId={id} /></div>
 
-      <section data-pulse="problems" id="conflicts" aria-label="Problems Ava found" className="space-y-3">
+      <section data-pulse="problems" id="conflicts" aria-label="Problems Ava found" className={cx("space-y-3", ANCHOR)}>
         <h2 className="text-[15px] font-semibold">Problems Ava found <span className="font-normal text-slate-500">· {openConf.length} open{resolved.length ? `, ${resolved.length} resolved` : ""}. Ava never picks a side.</span></h2>
         {openConf.length === 0 && <p className="rounded-lg border border-dashed border-slate-300 bg-white px-4 py-3 text-[13px] text-slate-600">No open problems.</p>}
         {openConf.map((c) => <ConflictCard key={c.id} c={c} />)}
@@ -131,11 +139,11 @@ export default function RequestPage() {
         {drafts.length > 0 && <details className="rounded-xl border border-slate-200 bg-white"><summary className="cursor-pointer px-4 py-3 text-[14px] font-semibold">Drafts for the requester ({drafts.length}) <span className="font-normal text-slate-500">· Ava never emails suppliers</span></summary><div className="space-y-2 border-t border-slate-100 p-3">{drafts.map((d) => <DraftBox key={d.id} d={d} />)}</div></details>}
       </section>
 
-      <ContractCard a={a} />
+      <div id="contract" className={ANCHOR}><ContractCard a={a} /></div>
 
-      <AvaDid req={req} />
+      <div id="log" className={ANCHOR}><AvaDid req={req} /></div>
 
-      <div role="tablist" aria-label="Request sections" className="flex gap-1 overflow-x-auto border-b border-slate-200">
+      <div id="details" role="tablist" aria-label="Request sections" className={cx("flex gap-1 overflow-x-auto border-b border-slate-200", ANCHOR)}>
         {TABS.map((x) => (
           <button key={x.k} role="tab" aria-selected={tab === x.k} onClick={() => setTab(x.k)} className={cx("-mb-px flex items-center gap-1.5 whitespace-nowrap border-b-2 px-3 py-2.5 text-[13.5px]", tab === x.k ? "border-accent font-semibold text-slate-900" : "border-transparent text-slate-600 hover:text-slate-900")}>
             {x.label}{x.badge ? <span className="rounded-full bg-red-600 px-1.5 text-[11px] font-semibold text-white">{x.badge}</span> : null}

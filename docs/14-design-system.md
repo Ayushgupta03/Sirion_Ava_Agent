@@ -78,10 +78,10 @@ Focus ring on every interactive element; buttons are `<button>`; tabs use `role=
 
 | Debt | Suggested fix |
 |---|---|
-| The request page is long once a request has many conflicts | Sticky in-page nav (Read · Plan · Problems · Contract · Log), collapse resolved by default (done) and paginate the log |
+| The request page is long once a request has many conflicts | Done: "On this page" jump list in the sticky header; resolved collapsed. Still open: paginate the log |
 | The plan's "What changed" line can wrap to three lines at A3 | Render as chips; show the 3 most important and "more" |
-| Two places show the same recommendation (Needs you and the conflict card) | Needs you shows a one-line summary linking to the card |
+| Two places show the same recommendation (Needs you and the conflict card) | Done: on the request page a conflict item links to its card (`conflictAnchor`). Today still shows the full recommendation, by design |
 | Background cards look similar to live ones on Today | A distinct, quieter card style |
-| Mobile: the demo dock covers content on small screens | Collapse the dock to a pill by default under 640 px |
+| Mobile: the demo dock covers content on small screens | Partly done: under 640 px the caption sits above the buttons (about 170 px, was about 280), and the request header no longer sticks on phones. Still open: collapse to a pill by default |
 | No dark mode | Tokens are OKLCH; add a dark `@theme` layer |
 | Copy is inline in components | Move to a copy file per screen (see roadmap L5) |
