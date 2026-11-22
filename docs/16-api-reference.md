@@ -110,7 +110,8 @@ Dispatched with `useAva().act(action, actor?)`. All are logged.
 | `require_cr` | conflictId, note | Resolves a contract conflict; records the note for Legal |
 | `ask_legal` | conflictId, text | Mentions Legal |
 | `ask_supplier` | requestId, conflictId? | Creates a draft |
-| `mark_sent` | draftId | Records the draft as sent in the thread |
+| `mark_sent` | draftId | Records the draft as sent in the thread (`sendDraft`) |
+| `set_autonomy` | setting `autoSendQuoteRequests`/`autoSendDocChasers`, value | Switches what Ava may send without a click; logged and replayed |
 | `rec_use`, `rec_dismiss` | recKey, requestId, draft? / reason | Uses or dismisses a recommendation (human decision) |
 | `comment` | requestId, conflictId?, text | Comment with @mentions |
 | `rerun` | requestId, emailId?, extraction?, source? | Re-extraction |
@@ -130,3 +131,22 @@ Dispatched with `useAva().act(action, actor?)`. All are logged.
 { id, at, kind: "action", actor, action, tag? }
 { id, at, kind: "ai", requestId, layer: "read" | "plan" | "rec", key, output, source: "live" | "cached" | "rules", tag? }
 ```
+
+## Ask Ava and metrics (library functions)
+
+| Function | File | What |
+|---|---|---|
+| `parseIntake(text, suppliers)` | `lib/intake.ts` | Reads a plain-language need into `IntakeFields` (supplier, contact, project, budget, start, duration, data access, request type). Rules only |
+| `buildIntake(fields, requesterId, state)` | `lib/intake.ts` | Returns `{ email, extraction }`: an `Email` with `origin: "intake"` to `ava@prayaan.example`, and an `Extraction` whose facts quote the text |
+| `previewIntake(state, fields, requesterId)` | `lib/intake.ts` | Runs the event on a copy of the state; returns approvers, rules, end state, 90-day total, the first message and whether it auto-sends, and any duplicate. Saves nothing |
+| `waitSplit(state, reqId)` | `lib/engine/timing.ts` | `{ total, supplier, own, ownMet }` in hours: the supplier's wait against Prayaan's own time |
+| `northStar(state)` | `lib/insights.ts` | Per-request rows and totals: good (ready, never withdrawn, own time under 1 day), touches per request, approvals reopened, auto-sent messages, started in Ask Ava, clean first passes |
+| `timeLine(state, reqId)` | `lib/summary.ts` | The sentence "N business days on the calendar. Prayaan's own time: … The rest, …, was waiting on the supplier." |
+| `rippleBetween(prev, next, actor, label, n)` | `lib/store.ts` | Who a change reached: per person, the items opened and closed |
+
+## Types added
+
+- `EmailOrigin` adds `"intake"`. `Email.autoSent?: boolean` marks a routine message Ava sent.
+- `Extraction.supplierContact?: string`: the supplier contact named in Ask Ava.
+- `State.autonomy: Autonomy` where `Autonomy = { autoSendQuoteRequests: boolean; autoSendDocChasers: boolean }`.
+

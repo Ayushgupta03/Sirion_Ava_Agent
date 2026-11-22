@@ -34,3 +34,13 @@
 | Eval | An automatic check of an AI output against the prompt's rules |
 | Background request | Another team's request: static sample data, outside the guided demo |
 | Test lab | The composer for simulating any incoming email |
+| Ask Ava | The front door (`/new`): an employee describes a need in their own words before any supplier email; Ava previews what it needs and opens the request |
+| Autonomy | What Ava may do without a click, set per kind of message: inform, draft, send routine messages; never decide |
+| Routine message | A message that commits no money and changes no terms (a quote request, a document chaser). The only kind Ava may send herself, when switched on |
+| Auto-sent | An email Ava sent under the autonomy settings; shown as "Sent by Ava, routine" |
+| Prayaan's own time | Time from the first message to Ready minus every stretch spent waiting on the supplier; the north star's 1-day target applies to it |
+| Supplier wait | From a message to the supplier until their reply |
+| North star | Requests that reach Ready complete, correctly routed, never withdrawn, with Prayaan's own time under 1 day |
+| Touches per request | People decisions per request; lower means Ava does more of the legwork |
+| What this reached (ripple) | The panel that shows whose open items a change added or closed, with a button to switch to their view |
+| Supplier view | `/supplier/[id]`: what a supplier sees for one request, and where they reply |

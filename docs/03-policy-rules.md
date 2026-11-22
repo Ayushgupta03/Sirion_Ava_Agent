@@ -101,7 +101,11 @@ Every conflict card also has an **Ava recommends** box (see [05](05-ai-layers.md
 
 Flags: data access question (to the requester), start date within 7 days (info), certificate expiring within 60 days (InfoSec), and AI-raised flags the code does not already cover. The revision 3 one-click question (`keep_line`, e.g. "Keep UAT in scope?") is a stored flag that only closes when answered.
 
-Drafts: when checklist items wait on the supplier (insurance, renewed ISO certificate), Ava drafts one email for the requester. "Ask the supplier" and recommendations create drafts too. Ava never sends; a person marks a draft as sent, which records it in the thread and starts the "waiting on supplier" clock.
+Drafts: when checklist items wait on the supplier (insurance, renewed ISO certificate), Ava drafts one email for the requester. "Ask the supplier" and recommendations create drafts too. A person marks a draft as sent, which records it in the thread and starts the "waiting on supplier" clock.
+
+Autonomy (`state.autonomy`, set in Settings with `set_autonomy`): Ava may send two kinds of routine message herself, in the requester's name, logged as Ava actions and marked `autoSent`. Quote requests from Ask Ava (`autoSendQuoteRequests`, on by default) and document chasers (`autoSendDocChasers`, off by default). Nothing that commits money or changes a term is ever sent without a person. See [ADR 0011](adr/0011-routine-messages-may-be-sent.md).
+
+Ask Ava duplicates: a request started in Ask Ava for a supplier, cost centre and project that already has an open request adds a note to that request instead of opening a second one.
 
 ## Handoff (`computeHandoffState`)
 
@@ -111,4 +115,4 @@ The plan never overrides this. The rules engine stays the source of truth for wh
 
 ## Timing (`lib/engine/timing.ts`)
 
-Business days from the first email to Ready, against a 1-business-day target, and the longest wait with whom it was waiting on. Supplier waits count only replies on the same thread. Scenario A: 3 business days, longest wait InfoSec waiting on the renewed certificate (Thu 12 Nov 12:05 to Tue 17 Nov 11:05). Scenario B: longest wait Kosha's corrected order form (Mon 23 Nov 10:20 to Tue 1 Dec 14:30).
+Business days from the first email to Ready, and the longest wait with whom it was waiting on. `waitSplit` splits that time into the supplier's wait (from each message to the supplier until their reply, plus an unanswered message at the end) and Prayaan's own time (the rest); the 1-day target applies to Prayaan's own time ([ADR 0012](adr/0012-north-star-on-own-time.md)). Supplier waits count only replies on the same thread. Scenario A: 3 business days, longest wait InfoSec waiting on the renewed certificate (Thu 12 Nov 12:05 to Tue 17 Nov 11:05). Scenario B: longest wait Kosha's corrected order form (Mon 23 Nov 10:20 to Tue 1 Dec 14:30).

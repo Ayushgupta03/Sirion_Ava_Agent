@@ -68,7 +68,7 @@ Code validates every plan (`validatePlan` in `lib/engine/ai.ts`):
 
 Prediction: the plan's `predictedReady` and its one-sentence reason. When the request becomes ready, `predictionHit` finds the first plan that predicted the actual day: "Predicted on Thu 11:40: Tue 17 Nov. Actual: Tue 17 Nov 11:05."
 
-Rules fallback (`rulesPlan`): the policy-required steps only, with "Not predicted: AI unavailable."
+Rules fallback (`rulesPlan`): the policy-required steps, plus the two steps every request has: "Get <supplier>'s written quote" (until a quote, order form or SOW is on file; approvers sign nothing without it) and the handoff. "Not predicted: AI unavailable."
 
 Shown as a vertical list: status icon, title, "Required by policy" (blue) or "Added by Ava" (violet) badge, "Critical path" marker and left border, owner, "by" date, reason. Header: steps done, predicted ready and reason (or the actual ready time and the prediction line).
 

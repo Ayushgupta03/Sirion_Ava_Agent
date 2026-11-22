@@ -13,7 +13,7 @@ The AI understands, plans, acts and advises. Code enforces policy. People decide
 ```bash
 npm install
 npm run dev     # generates sample PDFs/XLSX and contract PDFs, then starts Next.js on :3000
-npm test        # 28 engine, scenario and eval tests (Vitest)
+npm test        # 42 engine, scenario, intake, metrics and eval tests (Vitest)
 npm run eval    # checks every cached AI output against the prompt's rules
 npm run build   # samples + production build
 ```
@@ -46,7 +46,8 @@ Optional environment variables:
 | [15 Developer guide](docs/15-developer-guide.md) | Setup, conventions, recipes (rules, conflicts, contract checks, AI layers, prompts, story steps, screens), debugging |
 | [16 API reference](docs/16-api-reference.md) | Routes with request and response JSON, actions, events |
 | [17 AI evals](docs/17-ai-evals.md) | Offline and live output checks, how to add checks and compare models |
-| [ADRs](docs/adr/README.md) | Ten architecture decision records |
+| [18 Ask Ava](docs/18-ask-ava.md) | The front door before any supplier email, autonomy for routine messages, the supplier view, Prayaan's own time, and "What this reached" |
+| [ADRs](docs/adr/README.md) | Thirteen architecture decision records |
 | [Glossary](docs/glossary.md) | Every term used in the app and docs |
 
 Contributing: [CONTRIBUTING.md](CONTRIBUTING.md). CI (`.github/workflows/ci.yml`) runs types, tests, evals and the build on every push and pull request. Copy `.env.example` to `.env.local` for a key.

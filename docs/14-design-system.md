@@ -82,6 +82,6 @@ Focus ring on every interactive element; buttons are `<button>`; tabs use `role=
 | The plan's "What changed" line can wrap to three lines at A3 | Render as chips; show the 3 most important and "more" |
 | Two places show the same recommendation (Needs you and the conflict card) | Done: on the request page a conflict item links to its card (`conflictAnchor`). Today still shows the full recommendation, by design |
 | Background cards look similar to live ones on Today | A distinct, quieter card style |
-| Mobile: the demo dock covers content on small screens | Partly done: under 640 px the caption sits above the buttons (about 170 px, was about 280), and the request header no longer sticks on phones. Still open: collapse to a pill by default |
+| Mobile: the demo dock covers content on small screens | Done: the dock starts as a pill under 640 px; opened, its caption sits above the buttons (about 170 px, was about 280); the request header no longer sticks on phones |
 | No dark mode | Tokens are OKLCH; add a dark `@theme` layer |
 | Copy is inline in components | Move to a copy file per screen (see roadmap L5) |
