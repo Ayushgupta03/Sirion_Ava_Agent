@@ -49,7 +49,7 @@ Everything done in this build, in order. Dates are 21 and 22 Nov 2026 (IST).
 - **Decrease rule.** Only increases in amount, 90-day total or early-start amount reopen approvals.
 - **Background data is static but complete.** It fills the dashboard and Today from the first load and is clearly labelled, but never changes the scenario numbers.
 
-## Ask Ava, autonomy and own time (uncommitted at the time of writing)
+## Ask Ava, autonomy and own time (PR #3)
 
 | Area | Done |
 |---|---|
@@ -68,7 +68,7 @@ Everything done in this build, in order. Dates are 21 and 22 Nov 2026 (IST).
 
 - The working copy was cloned next to an older, un-versioned copy of the project in the parent folder (roughly the first commit). Next.js warns about that copy's `package-lock.json`; it is harmless.
 - The Mac had no Node.js and no Homebrew. Node 22.23.5 was installed from the official nodejs.org tarball into `~/.local/node`, checked against `SHASUMS256.txt`. The dev server is started through a shell that puts it on `PATH`, because Next.js starts a separate `node` process for PostCSS.
-- On a fresh clone `npm test` fails until `npm run samples` has run once.
+- On a fresh clone `npm test` used to fail until `npm run samples` had run once, because the committed `sample-texts.json` was stale. PR #4 fixed that: a clean clone now passes all 42 tests with `npm ci` and `npm test`.
 - Pushing uses the GitHub CLI 2.105.0 (`~/.local/gh`, checked against its published checksums), signed in with `gh auth login --web` through Google.
 
 ## Bugs found and fixed along the way
