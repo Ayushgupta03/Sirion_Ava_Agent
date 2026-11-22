@@ -38,13 +38,13 @@ export const SCENARIO_A: Step[] = [
   { id: "A5", pulse: "approvals", at: t("2026-11-12", "16:30"), label: "Thu 16:30", focus: "/requests/{sfm}", caption: "The budget owner and the VP approve, each on a receipt that records exactly what they approved.",
     events: [act("a5", t("2026-11-12", "16:30"), "ananya", (s) => ({ type: "approve", requestId: sfm(s), key: "budget_owner" })), act("a5b", t("2026-11-12", "16:30"), "vikram", (s) => ({ type: "approve", requestId: sfm(s), key: "vp" }))] },
   { id: "A6", pulse: "change-banner", reveal: revealA6, at: t("2026-11-13", "09:48"), label: "Fri 09:48", focus: "/inbox?email=e-a3", caption: "The email says nothing about price. The PDF says ₹1.5L more. Ava catches it.", events: [email("e-a3")] },
-  { id: "A7", pulse: "status", at: t("2026-11-13", "09:49"), label: "Fri 09:49", focus: "/requests/{sfm}", caption: "An approval belongs to the facts it was given for. When the facts change, it reopens.", events: [tick("a7", t("2026-11-13", "09:49"))] },
+  { id: "A7", pulse: "status", at: t("2026-11-13", "09:49"), label: "Fri 09:49", focus: "/requests/{sfm}", caption: "Budget and VP approved ₹20L. The quote is now ₹21.5L, so both must reconfirm before Legal can take over.", events: [tick("a7", t("2026-11-13", "09:49"))] },
   { id: "A8", pulse: "approvals", at: t("2026-11-16", "10:20"), label: "Mon 10:20", focus: "/requests/{sfm}", caption: "Approvals are reconfirmed on the new amount. One item still waits on the supplier.",
     events: [email("e-a4"),
       act("a8a", t("2026-11-16", "11:00"), "ananya", (s) => ({ type: "approve", requestId: sfm(s), key: "budget_owner" })),
       act("a8b", t("2026-11-16", "11:30"), "karan", (s) => ({ type: "record_exception", requestId: sfm(s), kind: "sole_supplier", reason: "Sole supplier: Trivenika already runs our Salesforce support (SOW-0412)." })),
       act("a8c", t("2026-11-16", "12:15"), "vikram", (s) => ({ type: "approve", requestId: sfm(s), key: "vp" }))] },
-  { id: "A9", pulse: "timing", at: t("2026-11-17", "11:05"), label: "Tue 11:05", focus: "/dashboard", caption: "Intake is complete and correct. It missed the 1-day target, and the dashboard shows exactly why.",
+  { id: "A9", pulse: "timing", at: t("2026-11-17", "11:05"), label: "Tue 11:05", focus: "/dashboard", caption: "Ready for Legal Review in 3 business days. The dashboard shows why intake missed the 1-day target.",
     events: [email("e-a5"), act("a9", t("2026-11-17", "11:05"), "meera", (s) => ({ type: "approve", requestId: sfm(s), key: "infosec" }))] },
 ];
 
