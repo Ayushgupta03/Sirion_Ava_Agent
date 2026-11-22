@@ -9,7 +9,8 @@
     "dev": "npm run samples && next dev",
     "build": "npm run samples && next build",
     "start": "next start",
-    "test": "vitest run"
+    "test": "vitest run",
+    "eval": "tsx scripts/eval-ai.ts"
   },
   "dependencies": {
     "@anthropic-ai/sdk": "^0.60.0",

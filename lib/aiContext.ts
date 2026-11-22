@@ -3,7 +3,8 @@ import type { State } from "./types";
 import { analyze } from "./engine/rules";
 import { requiredSteps } from "./engine/ai";
 import { SUPPLIER_HISTORY } from "./engine/contracts";
-import { PEOPLE, personName } from "./engine/world";
+import { PEOPLE, personName, POLICY } from "./engine/world";
+import { renewalSaving } from "./insights";
 import { inr } from "./format";
 
 export function requestContext(state: State, reqId: string) {
@@ -13,7 +14,11 @@ export function requestContext(state: State, reqId: string) {
   return {
     today: state.now,
     request: { id: r.id, title: r.title, type: r.type, supplier: sup?.name ?? r.supplierGuess?.name, supplierId: r.supplierId, project: r.project, requester: personName(r.requesterId), requesterId: r.requesterId, costCentre: r.costCentre },
-    numbersFromCode: { amount: a.requestAmount != null ? inr(a.requestAmount) : null, total90: inr(a.spend.total), spendText: a.spend.text, overLimit: a.spend.overLimit, handoff: a.handoff.state, handoffReasons: a.handoff.reasons },
+    numbersFromCode: {
+      amount: a.requestAmount != null ? inr(a.requestAmount) : null, total90: inr(a.spend.total), spendText: a.spend.text, overLimit: a.spend.overLimit, vpLimit: inr(POLICY.vpLimit),
+      handoff: a.handoff.state, handoffReasons: a.handoff.reasons,
+      renewalSaving: (() => { const sv = renewalSaving(state, reqId); return sv ? { firstForm: inr(sv.first), now: inr(sv.now), savedPerYear: inr(sv.saved), firstPct: sv.firstPct, nowPct: sv.nowPct } : null; })(),
+    },
     facts: Object.values(a.facts).map((f) => ({ field: f.label, value: f.value, state: f.displayState, source: f.sources[0] ? { emailId: f.sources[0].emailId, file: f.sources[0].file, attachmentId: f.sources[0].attachmentId, quote: f.sources[0].quote } : null })),
     approvals: a.approvals.map((x) => ({ key: x.key, approver: personName(x.approverId), approverId: x.approverId, status: x.status })),
     checklist: a.checklist.map((c) => ({ key: c.key, label: c.label, ownerId: c.ownerId, status: c.status, how: c.how })),

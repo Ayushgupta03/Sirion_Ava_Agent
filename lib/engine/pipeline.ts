@@ -7,6 +7,7 @@ import { analyze } from "./rules";
 import { deriveItems } from "./items";
 import { emptyAi, fingerprint, planDiff, validatePlan } from "./ai";
 import type { AiPlan, AiRec, AiRead } from "../aiTypes";
+import { evalPlan, evalRead, evalRec } from "../evals";
 import { COMPANY_DOMAIN, CONTRACTS, firstName, isInternal, PEOPLE, person, personByEmail, personName, POLICY, SEED_SUPPLIERS, START_CLOCK } from "./world";
 
 export function initialState(): State {
@@ -51,9 +52,12 @@ function applyAi(state: State, ev: Extract<AvaEvent, { kind: "ai" }>) {
   const req = state.requests[ev.requestId]; if (!req) return;
   state.ai ??= emptyAi();
   const fp = fingerprint(state, req.id);
+  // Live answers are checked against the prompt's promises before they are shown (lib/evals.ts).
+  const evalIssues = ev.source === "live" ? (ev.layer === "read" ? evalRead(ev.output as AiRead, state, req.id) : ev.layer === "plan" ? evalPlan(ev.output as AiPlan, state, req.id) : evalRec(ev.output as AiRec, state, req.id)) : undefined;
+  if (evalIssues?.some((i) => i.severity === "fail")) log(req, ev.at, `Ava's ${ev.layer === "rec" ? "recommendation" : ev.layer} failed ${evalIssues.filter((i) => i.severity === "fail").length} output check(s): ${evalIssues.filter((i) => i.severity === "fail").map((i) => i.check).join(", ")}.`, "flag");
   if (ev.layer === "read") {
     const list = (state.ai.reads[req.id] ??= []);
-    list.push({ at: ev.at, source: ev.source, fingerprint: fp, output: ev.output as AiRead });
+    list.push({ at: ev.at, source: ev.source, fingerprint: fp, output: ev.output as AiRead, evalIssues });
     log(req, ev.at, `Ava ${list.length > 1 ? "updated its read of" : "read"} the request (${SRC_WORD[ev.source]}).`, "action");
   } else if (ev.layer === "plan") {
     const a = analyze(state, req.id);
@@ -61,11 +65,11 @@ function applyAi(state: State, ev: Extract<AvaEvent, { kind: "ai" }>) {
     const { plan, fixes } = validatePlan(ev.output as AiPlan, a, state);
     fixes.forEach((f) => log(req, ev.at, f + ".", "rule"));
     const changes = planDiff(list[list.length - 1], plan, a);
-    list.push({ at: ev.at, source: ev.source, fingerprint: fp, output: plan, changes });
+    list.push({ at: ev.at, source: ev.source, fingerprint: fp, output: plan, changes, evalIssues });
     log(req, ev.at, `Ava ${list.length > 1 ? "re-planned" : "planned"} the work: ${plan.steps.length} steps${plan.predictedReady ? `, predicted ready ${plan.predictedReady}` : ""} (${SRC_WORD[ev.source]}).`, "action");
   } else {
     const rec = ev.output as AiRec;
-    state.ai.recs[ev.key] = { at: ev.at, source: ev.source, fingerprint: fp, output: rec };
+    state.ai.recs[ev.key] = { at: ev.at, source: ev.source, fingerprint: fp, output: rec, evalIssues };
     if (ev.key.startsWith("receipt:")) log(req, ev.at, `Ava prepared a receipt summary for ${personName(analyze(state, req.id).approvals.find((x) => ev.key.endsWith(x.key))?.approverId)}.`, "action");
     else log(req, ev.at, `Ava recommends: ${rec.recommendation}`, "action");
   }
