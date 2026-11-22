@@ -28,3 +28,7 @@ button:not(:disabled):active { transform: scale(0.97); transition: transform 150
 [data-pulse] { scroll-margin-top: 196px; }
 .pulse-ring { outline: 3px solid var(--color-accent); outline-offset: 4px; border-radius: 12px; animation: ava-pulse 2s ease-out; }
 @keyframes ava-pulse { 0% { box-shadow: 0 0 0 0 oklch(0.49 0.17 262 / 0.45); } 60% { box-shadow: 0 0 0 12px oklch(0.49 0.17 262 / 0); } 100% { box-shadow: none; } }
+/* Guide layer: the element the coach card is talking about keeps a steady ring; cards slide up a few pixels when they arrive. */
+.coach-target { outline: 2px solid var(--color-accent); outline-offset: 4px; border-radius: 12px; box-shadow: 0 0 0 7px oklch(0.49 0.17 262 / 0.12); }
+.coach-in { animation: coach-in 180ms ease-out both; }
+@keyframes coach-in { from { opacity: 0; transform: translateY(8px); } to { opacity: 1; transform: none; } }

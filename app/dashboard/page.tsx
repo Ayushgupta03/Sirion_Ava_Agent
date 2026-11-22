@@ -14,6 +14,7 @@ import { AdviceCard, PredictionCard } from "@/components/insights";
 import Board from "@/components/Board";
 import { atRisk, catches, counters, northStar } from "@/lib/insights";
 import { BG_CONFLICTS } from "@/lib/background";
+import { Term } from "@/components/guide/Term";
 
 
 export default function Dashboard() {
@@ -50,7 +51,7 @@ export default function Dashboard() {
         <Stat label="₹ at stake caught" value={lakh(k.atStake)} sub="Over-charges, credits and savings found" tone="green" />
         <Stat label="Touches per request" value={ns.total ? ns.touches.toFixed(1) : "–"} sub="People decisions per request. Lower is better." />
         <Stat label="Started in Ask Ava" value={`${ns.fromAsk} / ${ns.total}`} sub="Before any supplier email" />
-        <Stat label="Clean and fast" value={`${ns.good} / ${ns.total}`} sub="North star: complete, never withdrawn, Prayaan time under 1 day" tone="green" />
+        <Stat label="Clean and fast" value={`${ns.good} / ${ns.total}`} sub={<>North star: complete, never withdrawn, <Term id="own-time">Prayaan time</Term> under 1 day</>} tone="green" />
       </div>
       <div className="grid grid-cols-2 gap-3 md:grid-cols-4">
         <Stat label="Requests captured from email" value={ids.length + BACKGROUND.length} sub={`${ids.length} in this session, ${BACKGROUND.length} background`} />

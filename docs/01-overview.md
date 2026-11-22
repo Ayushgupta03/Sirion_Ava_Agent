@@ -98,4 +98,4 @@ Background suppliers (sample data only): TalentBridge Staffing, Nimbus Cloud Ser
 | Farah (Legal) | Today | Handoff packets, DPAs, questions from conflict cards, withdrawn packets |
 | Suresh (Finance) | Today | PO issue, tax details, the Kosha renewal |
 
-"View as" in the top bar switches person. The demo dock says "Now acting as …" when a guided step acts as someone else.
+"View as" in the top bar switches person. The coach card says "Done as …" when a guided step acts as someone else.

@@ -24,7 +24,7 @@ Node 20+. The first `dev` or `build` runs `npm run samples`, which writes `publi
 
 ```bash
 npx tsc --noEmit      # types
-npm test              # 42 engine, scenario, intake, metrics and eval tests
+npm test              # 55 engine, scenario, intake, metrics, guide and eval tests
 npm run eval          # AI output checks for every cached output
 npm run build         # what Vercel runs
 ```
@@ -97,7 +97,7 @@ Edit `data/background.json` (fields in [08](08-data.md)). Keep reads consistent 
 ## Debugging
 
 - **See the event log:** in the browser console, `JSON.parse(localStorage.getItem(Object.keys(localStorage).find(k => k.includes("ava"))))`.
-- **Reset:** the reset button in the dock, or clear localStorage.
+- **Reset:** Reset demo in the demo bar's tools menu, or clear localStorage.
 - **A step looks wrong:** reproduce it in a test with `run(SCENARIO_A, n)` and inspect `analyze(s, id)`.
 - **A conflict closes and reopens:** its id is not stable; key it by something that survives new documents.
 - **An AI output shows "Simulated":** no stored or live output fits the current facts (its fingerprint no longer matches, or none was ever stored), so code wrote it. That is the normal state for anything outside the scripted scenarios.
