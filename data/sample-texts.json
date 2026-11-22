@@ -279,7 +279,7 @@
    ]
   ]
  },
- "Trivenika_Quote_23L.pdf": {
+ "Trivenika_Proposal_v3.pdf": {
   "kind": "pdf",
   "pages": [
    [
@@ -287,6 +287,38 @@
     "IT services, Pune  |  trivenika.example  |  GSTIN 27AAACT1234K1Z5",
     "Proposal TSPL-Q-2611-01 (v3)",
     "Date: 16 Nov 2026",
+    "To: Rahul Mehta, Sales Ops, Prayaan Software Pvt Ltd",
+    "Subject: Salesforce migration (legacy CRM to Salesforce)",
+    "Scope: Migrate the sales pipeline, accounts, contacts and opportunity history from the legacy",
+    "CRM to Salesforce, including data mapping, migration runs and reconciliation.",
+    "Access required: Salesforce admin access to sync and validate customer records during",
+    "migration.",
+    "Duration: 2 months (8 weeks), starting 16 Nov 2026.",
+    "Role  Qty  Months  Rate/month  Amount",
+    "Salesforce Solution Architect  1  2  ₹3,00,000  ₹6,00,000",
+    "Senior Salesforce Developer  2  2  ₹1,94,400  ₹7,77,600",
+    "Data Migration Specialist  1  2  ₹1,94,400  ₹3,88,800",
+    "Project Manager (50%)  0.5  2  ₹1,94,400  ₹1,94,400",
+    "Data validation and UAT support  1  lump sum  ₹1,50,000",
+    "Subtotal (before GST)  ₹21,10,800",
+    "GST 18%  ₹3,79,944",
+    "Total  ₹24,90,744",
+    "Validity: 30 days from the date of this proposal.",
+    "Payment terms: 30 days from invoice.",
+    "Prices are subject to the Master Services Agreement dated 2 April 2024.",
+    "Arjun Deshpande, Engagement Manager",
+    "Fictional document for the Ava prototype. All companies, people and numbers are invented."
+   ]
+  ]
+ },
+ "Trivenika_Quote_23L.pdf": {
+  "kind": "pdf",
+  "pages": [
+   [
+    "Trivenika Systems Pvt Ltd",
+    "IT services, Pune  |  trivenika.example  |  GSTIN 27AAACT1234K1Z5",
+    "Proposal TSPL-Q-2611-01 (v4)",
+    "Date: 18 Nov 2026",
     "To: Rahul Mehta, Sales Ops, Prayaan Software Pvt Ltd",
     "Subject: Salesforce migration (legacy CRM to Salesforce)",
     "Scope: Migrate the sales pipeline, accounts, contacts and opportunity history from the legacy",
@@ -324,12 +356,12 @@
     "Project Manager | 200000"
    ],
    [
-    "Sheet: Rate card 2025",
-    "Role | Rate per month (INR, before GST)",
-    "Salesforce Solution Architect | 300000",
+    "Sheet: Schedule A 2024",
+    "Role | Schedule A rate (MSA 2024)",
+    "Salesforce Solution Architect | 280000",
     "Senior Salesforce Developer | 180000",
-    "Data Migration Specialist | 200000",
-    "Project Manager | 200000"
+    "Data Migration Specialist | 180000",
+    "Project Manager | 180000"
    ]
   ],
   "sheets": [
@@ -359,7 +391,55 @@
     ]
    },
    {
-    "name": "Rate card 2025",
+    "name": "Schedule A 2024",
+    "rows": [
+     [
+      "Role",
+      "Schedule A rate (MSA 2024)"
+     ],
+     [
+      "Salesforce Solution Architect",
+      "280000"
+     ],
+     [
+      "Senior Salesforce Developer",
+      "180000"
+     ],
+     [
+      "Data Migration Specialist",
+      "180000"
+     ],
+     [
+      "Project Manager",
+      "180000"
+     ]
+    ]
+   }
+  ]
+ },
+ "Trivenika_RateCard_2026_v2.xlsx": {
+  "kind": "xlsx",
+  "pages": [
+   [
+    "Sheet: Rate card 2026 v2",
+    "Role | Rate per month (INR, before GST)",
+    "Salesforce Solution Architect | 300000",
+    "Senior Salesforce Developer | 194400",
+    "Data Migration Specialist | 194400",
+    "Project Manager | 194400"
+   ],
+   [
+    "Sheet: Schedule A 2024",
+    "Role | Schedule A rate (MSA 2024)",
+    "Salesforce Solution Architect | 280000",
+    "Senior Salesforce Developer | 180000",
+    "Data Migration Specialist | 180000",
+    "Project Manager | 180000"
+   ]
+  ],
+  "sheets": [
+   {
+    "name": "Rate card 2026 v2",
     "rows": [
      [
       "Role",
@@ -371,15 +451,40 @@
      ],
      [
       "Senior Salesforce Developer",
+      "194400"
+     ],
+     [
+      "Data Migration Specialist",
+      "194400"
+     ],
+     [
+      "Project Manager",
+      "194400"
+     ]
+    ]
+   },
+   {
+    "name": "Schedule A 2024",
+    "rows": [
+     [
+      "Role",
+      "Schedule A rate (MSA 2024)"
+     ],
+     [
+      "Salesforce Solution Architect",
+      "280000"
+     ],
+     [
+      "Senior Salesforce Developer",
       "180000"
      ],
      [
       "Data Migration Specialist",
-      "200000"
+      "180000"
      ],
      [
       "Project Manager",
-      "200000"
+      "180000"
      ]
     ]
    }
@@ -402,6 +507,155 @@
     "GST 18%  ₹1,08,000",
     "Total  ₹7,08,000",
     "All other terms as per the Master Services Agreement.",
+    "Fictional document for the Ava prototype. All companies, people and numbers are invented."
+   ]
+  ]
+ },
+ "contracts/CH-MSA-2026.pdf": {
+  "kind": "pdf",
+  "pages": [
+   [
+    "Master Services Agreement",
+    "Prayaan Software Pvt Ltd and Codehive Consulting. Signed 10 Feb 2026. Document CH-MSA-2026.",
+    "9.1 Scope changes. Scope changes need a signed change request.",
+    "Fictional document for the Ava prototype. All companies, people and numbers are invented."
+   ]
+  ]
+ },
+ "contracts/KA-MSA-2025.pdf": {
+  "kind": "pdf",
+  "pages": [
+   [
+    "Master Subscription Agreement",
+    "Prayaan Software Pvt Ltd and Kosha Analytics Pvt Ltd. Signed 20 Dec 2025. Document KA-MSA-2025.",
+    "2 Term. 1 Jan to 31 Dec 2026.",
+    "4.1 Renewal. Renewal needs a signed order form.",
+    "4.2 Renewal price. Any renewal price increase is capped at 7%, notified at least 60 days before",
+    "term end (by 1 Nov 2026).",
+    "4.3 No automatic renewal. No automatic renewal unless both parties agree in writing.",
+    "Fictional document for the Ava prototype. All companies, people and numbers are invented."
+   ]
+  ]
+ },
+ "contracts/PW-ORD-2025.pdf": {
+  "kind": "pdf",
+  "pages": [
+   [
+    "Order form, Pixelwise Analytics subscription",
+    "Prayaan Software Pvt Ltd and Pixelwise Analytics Pvt Ltd. Signed 28 Mar 2025. Document PW-ORD-2025.",
+    "1 Service. Product analytics subscription for up to 40 users.",
+    "2 Term. 1 Apr 2025 to 31 Mar 2026, renewable for 12 months by signed order form.",
+    "3 Price. Price fixed at ₹20,00,000 a year until 31 Mar 2027.",
+    "Fictional document for the Ava prototype. All companies, people and numbers are invented."
+   ]
+  ]
+ },
+ "contracts/SOW-0391.pdf": {
+  "kind": "pdf",
+  "pages": [
+   [
+    "SOW-0391: Marketing dashboard build",
+    "Under TV-MSA-2024. Signed 15 Jul 2026. Document SOW-0391.",
+    "1 Scope. Build the marketing dashboard for Marketing Ops.",
+    "2 Fees. ₹8,00,000 fixed.",
+    "3 Status. Delivered and accepted 28 Aug 2026.",
+    "Fictional document for the Ava prototype. All companies, people and numbers are invented."
+   ]
+  ]
+ },
+ "contracts/SOW-0412.pdf": {
+  "kind": "pdf",
+  "pages": [
+   [
+    "SOW-0412: Salesforce support retainer Q3",
+    "Under TV-MSA-2024. Signed 1 Sept 2026. Document SOW-0412.",
+    "1 Fees. ₹9,00,000 for the term.",
+    "2 Term. 1 Sep to 30 Nov 2026.",
+    "4 Hours. Weekday support, 9:00 to 19:00 IST.",
+    "5 Response time. Priority-1 response within 2 hours.",
+    "6 Exclusions. Weekend and on-call support are out of scope.",
+    "Fictional document for the Ava prototype. All companies, people and numbers are invented."
+   ]
+  ]
+ },
+ "contracts/SOW-0438.pdf": {
+  "kind": "pdf",
+  "pages": [
+   [
+    "SOW-0438: CRM data clean-up sprint",
+    "Under TV-MSA-2024. Signed 6 Oct 2026. Document SOW-0438.",
+    "1 Fees. ₹9,00,000 fixed.",
+    "2 Term. 6 Oct to 15 Nov 2026.",
+    "4.1 First deliverable. Cleaned dataset by 30 Oct 2026 (delivered 29 Oct).",
+    "4.2 Final deliverable. Final data-quality report and sign-off pack by 15 Nov 2026.",
+    "6.1 Lead. Lead: Vivek Kulkarni, Data Architect.",
+    "Fictional document for the Ava prototype. All companies, people and numbers are invented."
+   ]
+  ]
+ },
+ "contracts/TB-MSA-2025.pdf": {
+  "kind": "pdf",
+  "pages": [
+   [
+    "Staffing Agreement",
+    "Prayaan Software Pvt Ltd and TalentBridge Staffing. Signed 1 Jun 2025. Document TB-MSA-2025.",
+    "5.1 Named contractors. Named contractors may be replaced only with written consent.",
+    "5.2 Seniority. Replacements must have equal or higher seniority.",
+    "Fictional document for the Ava prototype. All companies, people and numbers are invented."
+   ]
+  ]
+ },
+ "contracts/TV-MSA-2024.pdf": {
+  "kind": "pdf",
+  "pages": [
+   [
+    "Master Services Agreement",
+    "Prayaan Software Pvt Ltd and Trivenika Systems Pvt Ltd. Signed 2 Apr 2024. Document TV-MSA-2024.",
+    "2.1 Term. 2 Apr 2024 to 1 Apr 2027.",
+    "2.2 Renewal. Renews automatically for 12 months unless either party gives 60 days' written",
+    "notice.",
+    "3 Order of precedence. Work is described in signed SOWs. If an SOW and the MSA conflict, the",
+    "SOW prevails on scope and dates; the MSA prevails on everything else.",
+    "4.1 Delivery dates. Deliverables are due on the dates in their SOW.",
+    "4.2 Notice of delay. The supplier gives written notice of any expected delay at least 10 Business",
+    "Days before the due date.",
+    "4.3 New dates. A new date applies only once agreed in a signed change request.",
+    "5.1 Fees. Fees are as stated in each SOW.",
+    "5.2 Rates. Rates are in Schedule A.",
+    "5.3 Rate increases. Schedule A rates are fixed until 1 Apr 2026. After that, the supplier may",
+    "increase them once a year, by no more than 8%, with 60 days' written notice.",
+    "6 Payment. Payment within 30 days of a valid invoice quoting the SOW and PO numbers.",
+    "7.1 Key personnel. Named key personnel in an SOW may be replaced only with Prayaan's prior",
+    "written consent.",
+    "8.1 Data processing. A data processing agreement must be signed before the supplier processes",
+    "Prayaan customer personal data.",
+    "9.1 Delay credits. For each full week a Deliverable is late, the supplier credits 2% of that SOW's",
+    "fees, up to 10%.",
+    "10 Liability. Liability is capped at the fees paid in the previous 12 months.",
+    "11 Insurance. Professional indemnity insurance of at least ₹2 crore.",
+    "12.1 Changes. Any change to an SOW's scope, fees or dates needs a change request signed by",
+    "both parties.",
+    "13 Termination. Either party may terminate for convenience with 30 days' notice.",
+    "14 Governing law. India. Courts at Pune.",
+    "Schedule A: rates per person-month",
+    "Role  Rate",
+    "Salesforce Solution Architect  ₹2,80,000",
+    "Senior Salesforce Developer  ₹1,80,000",
+    "Data Migration Specialist  ₹1,80,000",
+    "Project Manager  ₹1,80,000",
+    "Fictional document for the Ava prototype. All companies, people and numbers are invented."
+   ]
+  ]
+ },
+ "contracts/TV-NDA-2024.pdf": {
+  "kind": "pdf",
+  "pages": [
+   [
+    "Mutual Non-Disclosure Agreement",
+    "Prayaan Software Pvt Ltd and Trivenika Systems Pvt Ltd. Signed 14 Mar 2024. Document TV-NDA-2024.",
+    "1 Confidential information. Each party keeps the other's confidential information secret and uses",
+    "it only for the discussions between them.",
+    "2 Term. Obligations last 3 years from the last disclosure.",
     "Fictional document for the Ava prototype. All companies, people and numbers are invented."
    ]
   ]
