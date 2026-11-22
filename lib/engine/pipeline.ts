@@ -5,7 +5,7 @@ import { addMinutes, domainOf, fmtDT, hoursBetween, inr, lakh, norm, parseAmount
 import { classifyDoc, FIELD_LABEL, foldFacts, MATERIAL } from "./facts";
 import { analyze } from "./rules";
 import { deriveItems } from "./items";
-import { emptyAi, fingerprint, planDiff, validatePlan } from "./ai";
+import { emptyAi, fingerprint, planContext, planDiff, validatePlan } from "./ai";
 import type { AiPlan, AiRec, AiRead } from "../aiTypes";
 import { evalPlan, evalRead, evalRec } from "../evals";
 import { COMPANY_DOMAIN, CONTRACTS, firstName, isInternal, PEOPLE, person, personByEmail, personName, POLICY, SEED_SUPPLIERS, START_CLOCK } from "./world";
@@ -58,7 +58,7 @@ function applyAi(state: State, ev: Extract<AvaEvent, { kind: "ai" }>) {
   if (evalIssues?.some((i) => i.severity === "fail")) log(req, ev.at, `Ava's ${ev.layer === "rec" ? "recommendation" : ev.layer} failed ${evalIssues.filter((i) => i.severity === "fail").length} output check(s): ${evalIssues.filter((i) => i.severity === "fail").map((i) => i.check).join(", ")}.`, "flag");
   if (ev.layer === "read") {
     const list = (state.ai.reads[req.id] ??= []);
-    list.push({ at: ev.at, source: ev.source, fingerprint: fp, output: ev.output as AiRead, evalIssues });
+    list.push({ at: ev.at, source: ev.source, fingerprint: fp, promptVersion: ev.promptVersion, model: ev.model, output: ev.output as AiRead, evalIssues });
     log(req, ev.at, `Ava ${list.length > 1 ? "updated its read of" : "read"} the request (${SRC_WORD[ev.source]}).`, "action");
   } else if (ev.layer === "plan") {
     const a = analyze(state, req.id);
@@ -66,11 +66,11 @@ function applyAi(state: State, ev: Extract<AvaEvent, { kind: "ai" }>) {
     const { plan, fixes } = validatePlan(ev.output as AiPlan, a, state);
     fixes.forEach((f) => log(req, ev.at, f + ".", "rule"));
     const changes = planDiff(list[list.length - 1], plan, a);
-    list.push({ at: ev.at, source: ev.source, fingerprint: fp, output: plan, changes, evalIssues });
+    list.push({ at: ev.at, source: ev.source, fingerprint: fp, promptVersion: ev.promptVersion, model: ev.model, context: planContext(state, req.id), output: plan, changes, evalIssues });
     log(req, ev.at, `Ava ${list.length > 1 ? "re-planned" : "planned"} the work: ${plan.steps.length} steps${plan.predictedReady ? `, predicted ready ${plan.predictedReady}` : ""} (${SRC_WORD[ev.source]}).`, "action");
   } else {
     const rec = ev.output as AiRec;
-    state.ai.recs[ev.key] = { at: ev.at, source: ev.source, fingerprint: fp, output: rec, evalIssues };
+    state.ai.recs[ev.key] = { at: ev.at, source: ev.source, fingerprint: fp, promptVersion: ev.promptVersion, model: ev.model, output: rec, evalIssues };
     if (ev.key.startsWith("receipt:")) log(req, ev.at, `Ava prepared a receipt summary for ${personName(analyze(state, req.id).approvals.find((x) => ev.key.endsWith(x.key))?.approverId)}.`, "action");
     else log(req, ev.at, `Ava recommends: ${rec.recommendation}`, "action");
   }
@@ -359,7 +359,7 @@ function applyAction(state: State, actor: string, a: Action, at: string, evId: s
     }
     case "rec_use": {
       const req = reqOf(a.requestId); const v = (state.ai.recs[a.recKey] ??= { at, source: "rules", fingerprint: "", output: { recommendation: "Review the conflict.", reasoning: "", citations: [], confidence: "low", action: "review" } });
-      v.used = { by: actor, at };
+      v.used = { by: actor, at, edited: !!a.draft && a.draft !== v.output.draft };
       const rec = a.draft ? { ...v.output, draft: a.draft } : v.output; const c = state.conflicts[a.recKey];
       if (rec.action === "draft_supplier" && rec.draft) {
         const sup = state.suppliers.find((s) => s.id === req.supplierId); const first = state.emails.find((e) => e.id === req.emailIds[0]);

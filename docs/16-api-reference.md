@@ -56,7 +56,7 @@ Request: `requestContext(state, reqId)` (`lib/aiContext.ts`):
 }
 ```
 
-Response `{ "source": "live", "result": AiRead }`:
+Response `{ "source": "live", "promptVersion": "9f3a1c20", "model": "claude-sonnet-5-5", "result": AiRead }`. `promptVersion` is a hash of the prompt text (`PROMPT_VERSION` in `lib/aiLayers.ts`), so it changes whenever a prompt does. The plan and recommend routes return the same two fields. They are stored on the output and shown in the AI label's tooltip:
 
 ```json
 { "sentences": [{ "text": "Proposal v1 prices the Salesforce migration at ₹20,00,000 for 8 weeks from Mon 16 Nov.", "citations": [{ "type": "doc", "id": "e-a2-att1", "quote": "Subtotal (before GST) ₹20,00,000" }] }], "risks": ["Rates over the MSA cap by ₹39,200"] }

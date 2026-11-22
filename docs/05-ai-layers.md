@@ -106,6 +106,14 @@ Shown as:
 - Today: "Since yesterday, Ava handled X things for you", from the last 36 hours of Ava actions on requests the person is involved in, plus background actions tagged for them.
 - Dashboard and landing: Ava actions vs people decisions across all requests, including background.
 
+## Prompt versions and re-planning
+
+Every live output records the **prompt version** (a short hash of the system and task prompts, `PROMPT_VERSION` in `lib/aiLayers.ts`) and the model that produced it. Hover a "Live AI" label to see both. Scripted outputs carry neither: they were written by hand and say so.
+
+A plan depends on more than the facts: it also depends on who has signed and how many emails the request holds (`planContext` in `lib/engine/ai.ts`). When a **live** plan's facts still hold but its context has moved, `currentPlan` returns `refresh: true`, the plan header says "Re-planning after the latest approval or reply…", and `useLiveAi` asks for a new plan, whose "What changed" lists what the approval or reply did. Reads and recommendations ignore the context: an approval does not change what an email said. Cached plans never refresh, because nothing can regenerate them.
+
+Extraction ignores quoted earlier messages in a reply (`lib/quoted.ts`): a price that only appears in the quoted thread never becomes a fact. The captured-mail view folds that part away and says Ava ignores it.
+
 ## Live calls from the client
 
 `useLiveAi(reqId)` in `components/ai.tsx` runs on the request page and the "Ava recorded" panel. If AI is available and the read or plan shown is the rules fallback (missing or stale fingerprint), it posts the request context to `/api/ava/read` and `/api/ava/plan`, and for each open conflict without a recommendation to `/api/ava/recommend`. Results are added as `ai` events with source `live` (store `addAi`), so they are versioned, validated, logged and replayable. Each `(request, layer, fingerprint)` is requested once per page load; failures leave the fallback in place.

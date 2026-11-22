@@ -10,6 +10,7 @@ import { scenarioTag, timeLine } from "@/lib/summary";
 import { fmtDT, hoursBetween, lakh, opened, parseAmount, span } from "@/lib/format";
 import { Button, Card, CardHead, Chip, cx, Empty, PageTitle, SourceLink, Stat, StateChip, supplierShort } from "@/components/ui";
 import { ConflictsTable } from "@/components/ConflictsTable";
+import { AdviceCard, PredictionCard } from "@/components/insights";
 import { atRisk, catches, counters, northStar } from "@/lib/insights";
 import { BG_CONFLICTS } from "@/lib/background";
 
@@ -84,6 +85,7 @@ export default function Dashboard() {
       )}
       <p className="text-[12px] text-slate-500">Activity, for context and not a measure of success: Ava took {k.avaActions} actions (each contract check counts as one), people made {k.decisions} decisions, and {k.checks} contract terms were checked. Ava sent {ns.autoSent} routine message{ns.autoSent === 1 ? "" : "s"} on her own.</p>
       <p className="text-[12px] text-slate-500">Background requests are other teams&apos; work in the same week. They are not part of the guided demo and never change its numbers.</p>
+      <div className="grid gap-5 lg:grid-cols-2"><AdviceCard /><PredictionCard /></div>
       <div className="grid gap-5 lg:grid-cols-3">
         <Card className="min-w-0"><div data-pulse="timing"><CardHead title="Timing" sub="First message to Ready, split into the supplier’s wait and Prayaan’s own time (target: under 1 day)." />
           <div className="space-y-3 break-words px-4 py-3 text-[13px]">

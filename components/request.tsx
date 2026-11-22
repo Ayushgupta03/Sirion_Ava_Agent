@@ -146,7 +146,7 @@ export function ReceiptModal({ a, ap, onClose }: { a: Analysis; ap: ApprovalView
         </div>
         <div className="min-h-0 flex-1 space-y-4 overflow-auto px-5 py-4 text-[13px]">
           {(() => { const v = useAva.getState().state.ai.recs[`receipt:${a.req.id}:${ap.key}`]; return v?.output.bullets ? (
-            <section className="rounded-lg border border-violet-200 bg-violet-50/60 px-3.5 py-2.5"><h3 className="mb-1 flex items-center gap-2 text-[12px] font-semibold uppercase tracking-wide text-violet-900">Ava’s summary for you <AiLabel source={v.source} /></h3><ul className="list-disc space-y-0.5 pl-5">{v.output.bullets.map((b) => <li key={b}>{b}</li>)}</ul><p className="mt-1 text-[11.5px] text-slate-500">Prepared {fmtDT(v.at)}. The decision is yours; Ava never approves.</p></section>) : null; })()}
+            <section className="rounded-lg border border-violet-200 bg-violet-50/60 px-3.5 py-2.5"><h3 className="mb-1 flex items-center gap-2 text-[12px] font-semibold uppercase tracking-wide text-violet-900">Ava’s summary for you <AiLabel source={v.source} meta={v} /></h3><ul className="list-disc space-y-0.5 pl-5">{v.output.bullets.map((b) => <li key={b}>{b}</li>)}</ul><p className="mt-1 text-[11.5px] text-slate-500">Prepared {fmtDT(v.at)}. The decision is yours; Ava never approves.</p></section>) : null; })()}
           {ap.status === "needs_reconfirmation" && <div className="rounded-md bg-red-50 px-3 py-2 text-red-800 ring-1 ring-red-200"><b>Needs reconfirmation.</b> {ap.diffs.map((d) => `Given for ${d.old}. Current: ${d.new}.`).join(" ")}{ap.reopenSource && ` Source: ${ap.reopenSource}.`}</div>}
           <section><h3 className="mb-1.5 font-semibold">You are approving</h3>
             <table className="w-full tabular"><tbody>

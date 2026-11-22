@@ -34,6 +34,7 @@ The front door: an employee describes a need before any supplier email exists. F
 
 Intro: "Supplier email Ava received through the mail rule. Simulated here." Header button: "Test lab: simulate an incoming email".
 
+- The email body shows what the sender wrote this time. Quoted earlier messages fold under "Earlier messages in this thread · Ava ignores quoted text".
 - Left: mailbox list with person filters (All, Rahul, Neha, Suresh), attachment chips, "Sent from Ava's draft" and "Composed" tags.
 - Middle: the email with attachment buttons, or "See it as Rahul does in Outlook" (a mail client view with a narrow Ava add-in showing the request, status and what waits on that person, with Yes/No, Noted and Send draft).
 - Right, **Ava recorded** panel, top to bottom:
@@ -99,7 +100,8 @@ Read, plan, conflict with recommendation, Ava did, all labelled Cached and "outs
 2. **Ava caught this**: catches with ₹ or risk impact from open and resolved conflicts, live and background, largest first (₹5.6L Codehive, ₹3.1L Rangmanch, ₹2.8L Pixelwise, TalentBridge risk on a fresh session; ₹1,50,000 UAT line, ₹90,000 credit, ₹39,200 rates, ₹1,26,000 a year saved on Kosha as the scenarios run).
 3. **Counters**: ₹ at stake caught, Touches per request (people decisions per request; lower is better), Started in Ask Ava, Clean and fast (the north star: complete, never withdrawn, Prayaan's time under 1 day). Second row: requests captured from email, questions answered from documents, approvals reopened by changed facts, started before approval. Below: one line of activity for context, not success (Ava actions, people decisions, contract terms checked).
 4. **Pipeline / Conflicts** tabs: 5 columns (New, Waiting on someone, Approvals, Blocked, Ready) with live and background cards; conflicts table including background.
-5. Timing (first message to Ready, split into the supplier's wait and Prayaan's own time; open requests show Prayaan's hours so far), Changes feed, Invoices with no request.
+5. **Ava's advice** and **Predicted dates** cards. Advice: used, edited, dismissed and still open, by confidence, with the reasons people gave for dismissing. Dates: for each request that reached Ready, what its first plan predicted, what its final plan predicted, and the real date, in business days; "within a day" is one business day or less, and misses are shown on purpose.
+6. Timing (first message to Ready, split into the supplier's wait and Prayaan's own time; open requests show Prayaan's hours so far), Changes feed, Invoices with no request.
 
 ## Conflicts (`/conflicts`)
 

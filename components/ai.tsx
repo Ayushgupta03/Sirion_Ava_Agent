@@ -1,10 +1,11 @@
 "use client";
 // The four AI layers on screen: Ava's read, Ava's plan, Ava recommends, Ava did.
+import type { AiMeta } from "@/lib/promptVersion";
 import { useEffect, useState } from "react";
 import type { Cite, AiRec, Versioned } from "@/lib/aiTypes";
 import type { Request, State } from "@/lib/types";
 import { useAva } from "@/lib/store";
-import { actionsOf, currentPlan, currentRead, currentRec, fingerprint, ownerName, predictionHit } from "@/lib/engine/ai";
+import { actionsOf, currentPlan, currentRead, currentRec, fingerprint, ownerName, planContext, predictionHit } from "@/lib/engine/ai";
 import { analyze, type Analysis } from "@/lib/engine/rules";
 import { clauseOf, contractDoc } from "@/lib/engine/contracts";
 import { requestContext, conflictContext } from "@/lib/aiContext";
@@ -18,9 +19,10 @@ export function EvalBadge({ issues }: { issues?: { severity: string; check: stri
   if (!f.length) return null;
   return <span title={f.map((i) => `${i.check}: ${i.detail}`).join("\n")} className="inline-flex h-5 items-center rounded bg-red-100 px-1.5 text-[10.5px] font-semibold text-red-800">{f.length} check{f.length > 1 ? "s" : ""} failed</span>;
 }
-export function AiLabel({ source }: { source: "live" | "cached" | "rules" }) {
+export function AiLabel({ source, meta }: { source: "live" | "cached" | "rules"; meta?: AiMeta }) {
   const t = source === "live" ? "Live AI" : source === "cached" ? "Cached" : "Summary from rules (AI unavailable)";
-  return <span title={source === "cached" ? "Written for this scripted step and stored. Same shape as a live answer." : undefined} className={cx("inline-flex h-5 items-center rounded px-1.5 text-[10.5px] font-semibold uppercase tracking-wide", source === "live" ? "bg-emerald-100 text-emerald-800" : source === "cached" ? "bg-violet-100 text-violet-800" : "bg-slate-200 text-slate-700")}>{t}</span>;
+  const tip = source === "cached" ? "Written for this scripted step and stored. Same shape as a live answer." : source === "live" && meta?.promptVersion ? `Live answer. Prompt version ${meta.promptVersion}${meta.model ? `, model ${meta.model}` : ""}.` : undefined;
+  return <span title={tip} className={cx("inline-flex h-5 items-center rounded px-1.5 text-[10.5px] font-semibold uppercase tracking-wide", source === "live" ? "bg-emerald-100 text-emerald-800" : source === "cached" ? "bg-violet-100 text-violet-800" : "bg-slate-200 text-slate-700")}>{t}</span>;
 }
 
 const shortDoc = (docId: string) => docId === "TV-MSA-2024" ? "MSA" : docId;
@@ -48,24 +50,26 @@ const inflight = new Set<string>();
 async function post(path: string, body: unknown) {
   const r = await fetch(path, { method: "POST", headers: { "content-type": "application/json" }, body: JSON.stringify(body) });
   if (!r.ok) throw new Error(String(r.status));
-  return (await r.json()).result;
+  const j = await r.json();
+  return { output: j.result, meta: { promptVersion: j.promptVersion, model: j.model } as AiMeta };
 }
 export function useLiveAi(reqId: string) {
   const state = useAva((s) => s.state); const ai = useAva((s) => s.aiAvailable); const addAi = useAva((s) => s.addAi);
   const fp = state.requests[reqId] ? fingerprint(state, reqId) : "";
+  const ctx = state.requests[reqId] ? planContext(state, reqId) : "";
   useEffect(() => {
     if (!ai || !fp) return;
     const s = useAva.getState().state;
     const ctx = requestContext(s, reqId);
     const r = currentRead(s, reqId), p = currentPlan(s, reqId);
-    const k1 = `${reqId}:read:${fp}`, k2 = `${reqId}:plan:${fp}`;
-    if (r.v.source === "rules" && !inflight.has(k1)) { inflight.add(k1); post("/api/ava/read", ctx).then((o) => addAi(reqId, "read", "read", o, "live")).catch(() => {}); }
-    if (p.v.source === "rules" && !inflight.has(k2)) { inflight.add(k2); post("/api/ava/plan", ctx).then((o) => addAi(reqId, "plan", "plan", o, "live")).catch(() => {}); }
+    const k1 = `${reqId}:read:${fp}`, k2 = `${reqId}:plan:${fp}:${ctx}`;
+    if (r.v.source === "rules" && !inflight.has(k1)) { inflight.add(k1); post("/api/ava/read", ctx).then((o) => addAi(reqId, "read", "read", o.output, "live", o.meta)).catch(() => {}); }
+    if ((p.v.source === "rules" || p.refresh) && !inflight.has(k2)) { inflight.add(k2); post("/api/ava/plan", ctx).then((o) => addAi(reqId, "plan", "plan", o.output, "live", o.meta)).catch(() => {}); }
     for (const c of Object.values(s.conflicts).filter((c) => c.requestId === reqId && c.status === "open" && !s.ai.recs[c.id])) {
       const k = `${c.id}:rec`; if (inflight.has(k)) continue; inflight.add(k);
-      post("/api/ava/recommend", conflictContext(s, c.id)).then((o) => addAi(reqId, "rec", c.id, o, "live")).catch(() => {});
+      post("/api/ava/recommend", conflictContext(s, c.id)).then((o) => addAi(reqId, "rec", c.id, o.output, "live", o.meta)).catch(() => {});
     }
-  }, [ai, fp, reqId, addAi]);
+  }, [ai, fp, ctx, reqId, addAi]);
 }
 
 // ── 3.1 Ava's read ──
@@ -75,12 +79,12 @@ export function AvaRead({ reqId, compact }: { reqId: string; compact?: boolean }
   const { v, prev: p, stale } = currentRead(state, reqId);
   const list = state.ai.reads[reqId] ?? [];
   if (compact) return (
-    <p className="text-[13.5px] leading-relaxed text-slate-800"><span className="mr-1.5 font-semibold text-accent-700">Ava’s read:</span>{v.output.sentences[0]?.text}{v.output.sentences[0]?.citations.slice(0, 2).map((c, i) => <CiteChip key={i} c={c} />)} <AiLabel source={v.source} /></p>
+    <p className="text-[13.5px] leading-relaxed text-slate-800"><span className="mr-1.5 font-semibold text-accent-700">Ava’s read:</span>{v.output.sentences[0]?.text}{v.output.sentences[0]?.citations.slice(0, 2).map((c, i) => <CiteChip key={i} c={c} />)} <AiLabel source={v.source} meta={v} /></p>
   );
   return (
     <section data-pulse="ava-read" aria-label="Ava's read" className="rounded-xl border border-accent/25 bg-gradient-to-b from-accent-50/70 to-white px-4 py-3.5">
       <div className="mb-1.5 flex flex-wrap items-center gap-2">
-        <h2 className="text-[14px] font-semibold text-slate-900">Ava’s read</h2><AiLabel source={v.source} /><EvalBadge issues={v.evalIssues} />
+        <h2 className="text-[14px] font-semibold text-slate-900">Ava’s read</h2><AiLabel source={v.source} meta={v} /><EvalBadge issues={v.evalIssues} />
         {list.length > 1 && !stale && <span className="text-[12px] text-slate-500">Updated {fmtDT(v.at)} · <button className="text-accent underline" onClick={() => setPrev(!prev)}>{prev ? "hide previous" : "see previous"}</button></span>}
         {stale && <span className="text-[12px] text-amber-700">Facts changed since Ava’s last read ({fmtDT(list.at(-1)!.at)}). Showing a summary from rules.</span>}
       </div>
@@ -94,7 +98,7 @@ export function AvaRead({ reqId, compact }: { reqId: string; compact?: boolean }
 const ST_ICON: Record<string, [string, string]> = { done: ["✓", "bg-emerald-600 text-white"], in_progress: ["•", "bg-accent text-white"], blocked: ["!", "bg-red-600 text-white"], todo: ["", "border-2 border-slate-300 bg-white"] };
 export function AvaPlan({ reqId }: { reqId: string }) {
   const state = useAva((s) => s.state);
-  const { v } = currentPlan(state, reqId);
+  const { v, refresh } = currentPlan(state, reqId);
   const a = analyze(state, reqId);
   const plan = v.output; const crit = new Set(plan.criticalPath);
   const hit = predictionHit(state, reqId);
@@ -106,7 +110,7 @@ export function AvaPlan({ reqId }: { reqId: string }) {
   return (
     <section data-pulse="plan" aria-label="Ava's plan" className="rounded-xl border border-slate-200 bg-white">
       <header className="flex flex-wrap items-start justify-between gap-3 border-b border-slate-100 px-4 py-3">
-        <div><div className="flex items-center gap-2"><h2 className="text-[14px] font-semibold">Ava’s plan</h2><AiLabel source={v.source} /><EvalBadge issues={v.evalIssues} /><span className="text-[12px] text-slate-500">{done} of {plan.steps.length} steps done</span></div>
+        <div><div className="flex items-center gap-2"><h2 className="text-[14px] font-semibold">Ava’s plan</h2><AiLabel source={v.source} meta={v} /><EvalBadge issues={v.evalIssues} /><span className="text-[12px] text-slate-500">{done} of {plan.steps.length} steps done</span>{refresh && <span role="status" className="text-[12px] text-amber-700">Re-planning after the latest approval or reply…</span>}</div>
           <p className="mt-0.5 text-[12px] text-slate-500">Policy steps come from the rules engine. Ava adds the rest. The rules engine still decides handoff.</p></div>
         <div className="max-w-sm text-right">
           {a.req.readyAt ? <><div className="text-[12px] text-slate-500">Ready</div><div className="text-[15px] font-semibold text-emerald-700">{fmtDT(a.req.readyAt)}</div>{hit && <div className="text-[12px] text-slate-600">{hit}</div>}</> :
@@ -158,7 +162,7 @@ export function AvaRecommends({ recKey, requestId, readOnly }: { recKey: string;
   const conf = r.confidence === "high" ? "bg-emerald-100 text-emerald-800" : r.confidence === "medium" ? "bg-amber-100 text-amber-900" : "bg-slate-200 text-slate-700";
   return (
     <div className="rounded-lg border border-violet-200 bg-violet-50/50 px-3.5 py-3" aria-label="Ava recommends">
-      <div className="mb-1 flex flex-wrap items-center gap-2"><span className="text-[12px] font-semibold uppercase tracking-wide text-violet-900">Ava recommends</span><span className={cx("rounded px-1.5 text-[10.5px] font-semibold", conf)}>{r.confidence} confidence</span><AiLabel source={v.source} /><EvalBadge issues={v.evalIssues} /></div>
+      <div className="mb-1 flex flex-wrap items-center gap-2"><span className="text-[12px] font-semibold uppercase tracking-wide text-violet-900">Ava recommends</span><span className={cx("rounded px-1.5 text-[10.5px] font-semibold", conf)}>{r.confidence} confidence</span><AiLabel source={v.source} meta={v} /><EvalBadge issues={v.evalIssues} /></div>
       {r.bullets ? <ul className="list-disc space-y-0.5 pl-5 text-[13px] text-slate-900">{r.bullets.map((b) => <li key={b}>{b}</li>)}</ul> : <p className="text-[13.5px] font-medium text-slate-900">{r.recommendation}</p>}
       {!r.bullets && <p className="mt-0.5 text-[12.5px] text-slate-700">{r.reasoning}{r.citations.map((c, i) => <CiteChip key={i} c={c} />)}</p>}
       {r.draft && !v.used && mode !== "edit" && <details className="mt-1.5 text-[12.5px]"><summary className="cursor-pointer text-violet-900">{r.action === "ask_requester" ? "See the question" : "See the ready draft"}</summary><pre className="mt-1 whitespace-pre-wrap rounded border border-violet-100 bg-white px-2.5 py-2 font-sans text-[12.5px] text-slate-800">{r.draft}</pre></details>}
