@@ -330,6 +330,14 @@ function applyAction(state: State, actor: string, a: Action, at: string, evId: s
       const what = a.key === "budget_owner" ? `${lakh(an.requestAmount)}${an.retro ? ` (incl. ${lakh(an.retro)} already invoiced)` : ""}` : a.key === "vp" ? `the ${lakh(an.spend.total)} 90-day total${(ap.current.exceptionIds ?? []).length ? " and the exception" : ""}` : "data access and the security certificate";
       log(req, at, `${personName(actor)} ${kind === "approved" ? "approved" : "reconfirmed"} ${what} on a Decision Receipt.`, "approval", actor); return;
     }
+    case "send_back": {
+      // An approver cannot sign yet. This approves and rejects nothing and leaves the approval open; it tells the requester and Procurement what to fix.
+      const req = reqOf(a.requestId); if (!analyze(state, req.id).approvals.some((x) => x.key === a.key)) return;
+      const to = [...new Set([req.requesterId, "karan"])].filter((id) => id !== actor);
+      req.comments.push({ id: `cm-${evId}`, by: actor, at, text: `Sent the approval back: ${a.note}`, mentions: to });
+      to.forEach((m) => req.flags.push({ id: `flag:${req.id}:sent_back:${evId}:${m}`, type: "mention", message: `${personName(actor)} sent the approval back: "${a.note}"`, sendTo: "procurement", personId: m, status: "open", createdAt: at }));
+      log(req, at, `${personName(actor)} sent the approval back: "${a.note}"`, "approval", actor); return;
+    }
     case "record_exception": {
       const req = reqOf(a.requestId);
       req.exceptions.push({ id: `ex-${evId}`, kind: a.kind, reason: a.reason, by: actor, at });
