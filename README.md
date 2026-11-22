@@ -47,6 +47,7 @@ Optional environment variables:
 | [16 API reference](docs/16-api-reference.md) | Routes with request and response JSON, actions, events |
 | [17 AI evals](docs/17-ai-evals.md) | Offline and live output checks, how to add checks and compare models |
 | [18 Ask Ava](docs/18-ask-ava.md) | The front door before any supplier email, autonomy for routine messages, the supplier view, Prayaan's own time, and "What this reached" |
+| [19 Review and handover](docs/19-review-and-handover.md) | The product review behind revision 4, decisions, what was verified, known gaps, the runbook for turning on live AI, and the submission checklist |
 | [ADRs](docs/adr/README.md) | Thirteen architecture decision records |
 | [Glossary](docs/glossary.md) | Every term used in the app and docs |
 
