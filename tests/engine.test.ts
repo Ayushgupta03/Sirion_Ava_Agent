@@ -10,6 +10,7 @@ import { EXTRACTION_CACHE } from "@/lib/cache";
 import { sampleAttachment } from "@/lib/samples";
 import { basicExtract } from "@/lib/basicExtractor";
 import type { State } from "@/lib/types";
+import { summarize } from "@/lib/summary";
 import type { Step as StoryStep } from "@/lib/story";
 
 function run(steps: StoryStep[], upTo: number, s0?: State): State {
@@ -225,5 +226,15 @@ describe("revision 3: contracts, plans and counts", () => {
   it("Scenario B: 5% within the 7% cap and ₹1,26,000 saved", () => {
     let s = run(SCENARIO_A, 9); s = run(SCENARIO_B, 4, s); const a = analyze(s, REQ(s, "t-kosha"));
     expect(a.checks.find((c) => c.clause === "4.2" && c.status === "consistent")!.text).toMatch(/5% increase: within the 7% cap/);
+  });
+});
+
+describe("status summary", () => {
+  it("step 3 names each open conflict, not data access three times", () => {
+    const s = run(SCENARIO_A, 3); const text = summarize(s, analyze(s, REQ(s, "t-sfm")));
+    expect(text).toContain("data access not confirmed");
+    expect(text).toContain("rates break the MSA cap by ₹39,200");
+    expect(text).toContain("final clean-up report 35 days late");
+    expect(text.match(/data access not confirmed/g)).toHaveLength(1);
   });
 });
