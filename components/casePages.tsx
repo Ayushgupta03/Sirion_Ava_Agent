@@ -19,7 +19,7 @@ const label = "text-[11.5px] font-semibold uppercase tracking-[0.05em] text-slat
 // ───────────────────────── 01 Why intake ─────────────────────────
 const STAGES = ["Request", "Intake", "Negotiation", "Signature", "Repository", "Obligations and invoices"];
 const TRACE: { symptom: string; where: string; cause: string; demo: [("A" | "B"), number, string] }[] = [
-  { symptom: "Requests get lost", where: "Intake", cause: "The request lives in one person's inbox. Nobody else knows it exists.", demo: ["A", 1, "A normal email opens REQ-1047"] },
+  { symptom: "Requests get lost", where: "Intake", cause: "The request lives in one person's inbox. Nobody else knows it exists. Ask Ava gives it a front door before the supplier is contacted.", demo: ["A", 1, "A normal email opens REQ-1047"] },
   { symptom: "Approvals stall", where: "Intake", cause: "Approvers are asked before the facts are complete, so they wait or ask again.", demo: ["A", 4, "Each person gets one question"] },
   { symptom: "Invoices don't match agreed prices", where: "Invoices", cause: "The price changed in an attachment after someone approved the old one.", demo: ["A", 6, "The PDF says ₹1.5L more"] },
   { symptom: "Unreviewed auto-renewals", where: "Obligations", cause: "Renewal terms in the order form were never compared with what was agreed.", demo: ["B", 1, "Email says nothing changes; the form says 3 years"] },
@@ -48,7 +48,7 @@ export function WhyIntake() {
             <div key={t.symptom} className="grid gap-2 px-4 py-3.5 md:grid-cols-[1fr_1.4fr_auto] md:items-center md:gap-4">
               <div><span className="block text-[14.5px] font-semibold text-slate-900">{t.symptom}</span><span className="text-[12.5px] text-slate-500">Shows up in: {t.where}</span></div>
               <p className="flex gap-2 text-[14px] text-slate-700"><Icon name="arrowRight" className="mt-1 hidden shrink-0 rotate-180 text-slate-400 md:block" />{t.cause}</p>
-              <DemoLink sc={t.demo[0]} step={t.demo[1]}>{t.demo[2]}</DemoLink>
+              <div className="flex flex-wrap items-center gap-2"><DemoLink sc={t.demo[0]} step={t.demo[1]}>{t.demo[2]}</DemoLink>{t.symptom === "Requests get lost" && <Link href="/new" className="text-[12.5px] font-medium text-accent hover:underline">Or start one in Ask Ava →</Link>}</div>
             </div>
           ))}
         </div>

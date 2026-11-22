@@ -44,7 +44,8 @@ Out of scope (non-goals): sending email to suppliers; approving, rejecting or ap
 | Touches per request | People decisions per request; lower means Ava does more of the legwork | Dashboard, Metrics case page |
 | Started in Ask Ava | Requests that began before any supplier email | Dashboard, Metrics case page |
 | Routine messages Ava sent | Quote requests and chasers sent under the autonomy settings | Metrics case page |
-| Forms filled | Intake forms people had to fill | Dashboard (target 0) |
+| Started in Ask Ava | Requests that began in Ask Ava, before any supplier email | Dashboard, metrics page |
+| Touches per request | People decisions per request; lower means Ava does more of the legwork | Dashboard, metrics page |
 | ₹ at stake caught | Over-charges, credits and savings found at intake | Dashboard counter |
 | Ava actions : people decisions | How much legwork Ava does per human decision | Dashboard, handoff banner |
 | Contract terms checked | Commitments checked per email | Dashboard |
