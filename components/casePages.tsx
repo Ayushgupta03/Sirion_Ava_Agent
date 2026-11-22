@@ -391,7 +391,7 @@ const MATRIX: { cap: string; sirion: Cell; ava: Cell }[] = [
   { cap: "Where a request starts", sirion: { v: "yes", t: "Email, collaboration tools and structured forms feed a governed intake workflow." }, ava: { v: "yes", t: "An IT-managed mail rule captures in-scope supplier conversations. The requester emails the supplier as usual." } },
   { cap: "Documents and revisions", sirion: { v: "yes", t: "Outlook syncs draft versions. Negotiation AI tracks issues across versions and related documents." }, ava: { v: "yes", t: "A revised quote updates the existing intake request and links the changed value to the source page." } },
   { cap: "Routing and approval", sirion: { v: "yes", t: "Configurable workflows route reviews and approvals. Sirion also publishes guidance on pre-draft approval checks." }, ava: { v: "yes", t: "The company’s 90-day supplier spend rule adds a VP approver. Material changes reopen the affected decisions." } },
-  { cap: "Selective reapproval on a revised supplier quote", sirion: { v: "na", t: "This specific pre-draft workflow is unverified in the public material reviewed." }, ava: { v: "yes", t: "Decision receipts record the facts reviewed. The earlier decision stays in the audit trail and the affected owner reconfirms the updated facts." } },
+  { cap: "Selective reapproval on a revised supplier quote", sirion: { v: "na", t: "Sirion discusses reapproval rules for material changes. The exact flow from a revised email attachment to selective reapproval before drafting is unverified." }, ava: { v: "yes", t: "Decision receipts record the facts reviewed. The earlier decision stays in the audit trail and the affected owner reconfirms the updated facts." } },
   { cap: "Legal handoff and downstream work", sirion: { v: "yes", t: "Supports drafting, redlining, counterparty collaboration, signatures and post-signature contract performance." }, ava: { v: "yes", t: "Hands Legal an intake packet with confirmed facts, source documents, approval history and open issues." } },
 ];
 function CellView({ c }: { c: Cell }) {
@@ -424,7 +424,7 @@ export function Sirion() {
           </table>
         </div>
         <p className="mt-2 text-[12.5px] text-slate-500">
-          Sirion sources · <Ext href="https://www.sirion.ai/platform/create/contract-collaboration/">Collaboration</Ext> · <Ext href="https://www.sirion.ai/library/contract-insights/centralize-contract-requests-tools/">Email intake</Ext> · <Ext href="https://www.sirion.ai/library/contract-insights/pre-draft-approval-gate-systems/">Pre-draft approvals</Ext> · <Ext href="https://www.sirion.ai/platform/create/contract-negotiation/">Negotiation</Ext>
+          Sirion sources · <Ext href="https://www.sirion.ai/platform/create/contract-collaboration/">Collaboration</Ext> · <Ext href="https://www.sirion.ai/library/contract-insights/centralize-contract-requests-tools/">Email intake</Ext> · <Ext href="https://www.sirion.ai/library/contract-insights/pre-draft-approval-gate-systems/">Pre-draft approvals</Ext> · <Ext href="https://www.sirion.ai/library/contract-insights/clm-granular-user-permissions/">Reapproval guidance</Ext> · <Ext href="https://www.sirion.ai/platform/create/contract-negotiation/">Negotiation</Ext>
         </p>
       </Section>
       <Section title="See what happens when the price changes">
