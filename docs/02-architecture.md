@@ -104,7 +104,8 @@ app/
   api/ava/extract|read|plan|recommend   AI routes (Part 7)
   api/extract/route.ts     PDF/XLSX upload to text
 components/
-  Shell.tsx                Sidebar, top bar (clock, bell, View as), guided-demo dock, toasts, pulse
+  Shell.tsx                Sidebar, top bar (clock, Help, bell, View as), toasts, pulse
+  guide/                   Demo bar, coach card, orientation, debrief, Help menu, page tips, Term (see docs/19)
   ai.tsx                   AiLabel, CiteChip, useLiveAi, AvaRead, AvaPlan, AvaRecommends, AvaDid, ActsBanner, ContractCard, EmailChecks
   ConflictCard.tsx         The shared conflict card with actions and Ava recommends
   ItemCard.tsx             A decision card for Today and "Needs you"

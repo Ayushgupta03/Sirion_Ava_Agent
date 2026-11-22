@@ -1,6 +1,7 @@
 "use client";
 import { Suspense, useEffect, useMemo, useState } from "react";
 import { useRouter, useSearchParams } from "next/navigation";
+import { Term } from "@/components/guide/Term";
 import Link from "next/link";
 import type { Attachment, Email, Source, State } from "@/lib/types";
 import { useAva } from "@/lib/store";
@@ -32,7 +33,7 @@ function Mail() {
   const email = state.emails.find((e) => e.id === selected) ?? (composing ? undefined : emails[0]);
   return (
     <div>
-      <PageTitle title="Captured mail" sub="Supplier email Ava received through the mail rule. Simulated here." right={<Button onClick={() => setComposing(true)}>Test lab: simulate an incoming email</Button>} />
+      <PageTitle title="Captured mail" sub={<>Supplier email Ava received through the <Term id="mail-rule">mail rule</Term>. Simulated here.</>} right={<Button onClick={() => setComposing(true)}>Test lab: simulate an incoming email</Button>} />
       <div className="grid grid-cols-1 gap-4 break-words lg:grid-cols-[300px_minmax(0,1fr)_360px]">
         <Card>
           <div role="tablist" aria-label="Mailbox filter" className="flex gap-1 border-b border-slate-100 p-2">

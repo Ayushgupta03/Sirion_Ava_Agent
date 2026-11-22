@@ -6,6 +6,15 @@ A prioritized list a developer can pick up. Each item says why it matters, where
 
 Ask Ava (the front door), autonomy for routine messages, the supplier view, "What this reached", live sync across windows, the own-time north star, deterministic sample files. See [18 Ask Ava](18-ask-ava.md) and ADRs 0011 to 0013.
 
+## Guided demo follow-ups
+
+| # | Item | Why | Where | Done when | Effort |
+|---|---|---|---|---|---|
+| D1 | Use `Term` on the request page, Today and the AI labels | Jargon (Decision Receipt, Critical path, Cached, Reconfirm) is still unexplained where people meet it | `request.tsx`, `ai.tsx`, `app/today` | Each term on those pages defines itself | S |
+| D2 | Count how far reviewers get | Know whether the orientation, the steps and the debrief land | Send `tour_done`, `step_n`, `debrief_open`, `task_done` to the analytics tool chosen in X2 | Funnel from landing to debrief | S |
+| D3 | Role-based first run | A budget owner should learn Approvals first, Legal the packet | `lib/guide.ts` page help and tasks keyed by `viewAs` | Switching to Vikram offers "Approve a receipt" | M |
+| D4 | Coach marks for the request page itself, outside the demo | Someone who lands on a request from a link gets no tour | New stops in `UiTour` keyed to page | "Replay tips for this page" in Help | M |
+
 ## Now: make the AI real and measurable
 
 | # | Item | Why | Where | Done when | Effort |

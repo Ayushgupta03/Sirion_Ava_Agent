@@ -13,7 +13,7 @@ The AI understands, plans, acts and advises. Code enforces policy. People decide
 ```bash
 npm install
 npm run dev     # generates sample PDFs/XLSX and contract PDFs, then starts Next.js on :3000
-npm test        # 42 engine, scenario, intake, metrics and eval tests (Vitest)
+npm test        # 55 engine, scenario, intake, metrics, guide and eval tests (Vitest)
 npm run eval    # checks every cached AI output against the prompt's rules
 npm run build   # samples + production build
 ```
@@ -47,6 +47,7 @@ Optional environment variables:
 | [16 API reference](docs/16-api-reference.md) | Routes with request and response JSON, actions, events |
 | [17 AI evals](docs/17-ai-evals.md) | Offline and live output checks, how to add checks and compare models |
 | [18 Ask Ava](docs/18-ask-ava.md) | The front door before any supplier email, autonomy for routine messages, the supplier view, Prayaan's own time, and "What this reached" |
+| [19 Guided demo](docs/19-guided-demo.md) | The demo bar, coach cards, orientation, debrief, Help menu, page tips and glossary terms |
 | [ADRs](docs/adr/README.md) | Thirteen architecture decision records |
 | [Glossary](docs/glossary.md) | Every term used in the app and docs |
 
