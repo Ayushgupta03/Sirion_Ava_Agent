@@ -2,7 +2,7 @@
 
 ## Engine tests (`npm test`)
 
-Vitest: `tests/engine.test.ts` (26 tests, including the status summary naming each open conflict) and `tests/evals.test.ts` (3 tests), all passing. See [17 AI evals](17-ai-evals.md) for `npm run eval`. They run the real story events through `applyEvent` without a browser.
+Vitest, 42 tests, all passing: `tests/engine.test.ts` (26, including the status summary naming each open conflict), `tests/evals.test.ts` (3), `tests/intake.test.ts` (10, Ask Ava and autonomy; see [18](18-ask-ava.md#tests)) and `tests/metrics.test.ts` (3, the north star on Prayaan's own time). See [17 AI evals](17-ai-evals.md) for `npm run eval`. They run the real story events through `applyEvent` without a browser.
 
 | Group | Test | Asserts |
 |---|---|---|

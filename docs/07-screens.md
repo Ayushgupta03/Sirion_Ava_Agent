@@ -4,19 +4,31 @@ Writing rules for all UI copy: plain words, short sentences, names, numbers and 
 
 ## App shell (`components/Shell.tsx`)
 
-- **Sidebar**: Captured mail · Today · Requests · Dashboard, then "About the case" with the six numbered case pages and reading time, then Settings. Live counts on Today. Collapses to an icon rail at tablet width and a drawer on mobile.
+- **Sidebar**: Ask Ava · Captured mail · Today · Requests · Dashboard, then "About the case" with the six numbered case pages and reading time, then Settings. Live counts on Today. Collapses to an icon rail at tablet width and a drawer on mobile.
 - **Top bar**: "Prayaan Software (fictional) · supplier email is simulated", the simulated clock (click for details), a bell with the viewer's item count (links to Today), and **View as** (person switcher with roles).
-- **Guided demo dock** (bottom; hidden on the landing page until a demo starts, so the landing has one primary action): scenario tabs A and B, step number, time, progress dots, caption, "Show me where this happened →", Back, Next/Start. Secondary buttons: **Test lab: simulate an incoming email**, **Show a repeat request**, Reset (with confirm), minimise. After each step the app navigates to the step's focus URL, scrolls to the changed element and pulses it for 2 seconds; some steps open the source viewer (A6: v1 beside v2; B1: the three order-form lines). When a step acts as another person, a toast says "Now acting as …" with a "Switch view to …" button.
+- **Guided demo dock** (bottom; hidden on the landing page until a demo starts, so the landing has one primary action, and on the supplier view; starts minimised to a pill on phones under 640 px): scenario tabs A and B, step number, time, progress dots, caption, "Show me where this happened →", Back, Next/Start. Secondary buttons: **Test lab: simulate an incoming email**, **Show a repeat request**, Reset (with confirm), minimise. After each step the app navigates to the step's focus URL, scrolls to the changed element and pulses it for 2 seconds; some steps open the source viewer (A6: v1 beside v2; B1: the three order-form lines). When a step acts as another person, a toast says "Now acting as …" with a "Switch view to …" button.
+- **What this reached** (top right, below the actor toast): after any action, email, guided step or change in another window, one row per person whose open items changed ("Meera now has 1 approval", "closed 1 question") with a button to switch to their view. Closes after 14 seconds. See [18](18-ask-ava.md#what-this-reached-ripple).
+- **Windows**: every window of the browser shares the event log and follows changes made in another; "View as" is per window, so two windows can show two people side by side.
 - **Source viewer** (`SourceViewer.tsx`): modal showing the email text, or an attachment's text by page with highlighted quotes, or v1 beside v2 with new lines marked, or a **contract PDF at a clause** with the clause highlighted. "Original file" tab shows the real PDF or the XLSX sheets.
 
 ## Landing (`/`)
 
 - Headline: "Supplier email in. Routed request out."
-- Subhead: "Ava reads every supplier email, plans the work, does the legwork, and tells each person the one decision that needs them."
-- Buttons, directly under the subhead: Watch Scenario A (3 min, primary), Watch Scenario B (2 min), "Or test it with your own email".
-- Trust line: every fact links to the sentence it came from; Ava only receives supplier email, through a mail rule IT controls.
+- Subhead: "Ava reads every supplier email, plans the work, does the legwork, and tells each person the one decision that needs them. Or start earlier: tell Ava what you need in a sentence, before the supplier hears from anyone."
+- Returning visitor: when the saved session is mid-demo on the first landing visit of a browser session, an amber note says "You left Scenario A at step N. Your session was saved." with buttons to resume or start clean.
+- Buttons, directly under the subhead: Watch Scenario A (3 min, primary), Watch Scenario B (2 min), "Start a request in Ask Ava", "Or test it with your own email".
+- Trust line: every fact links to the sentence it came from; Ava reads only supplier email, through a mail rule IT controls, sends only the routine messages you switch on, and never approves.
 - Four tabs (arrow keys, Home and End move between them), each one sentence, a link to the live screen ("See it on request REQ-1047", "See it on Karan's Today page") and a full-width screenshot (`public/screens/`, capped at 520 px tall): **Reads** (Ava's read of REQ-1047), **Plans** (the plan with predicted date and critical path), **Acts** (the "Ava did N / people decided M" banner), **Advises** (the ₹1.5L UAT recommendation).
 - Counters row: "This session:" emails recorded, requests, open items, ready, 0 forms filled; then "Including sample requests from other teams:" Ava actions, people decisions, contract terms checked (these include the background requests).
+
+## Ask Ava (`/new`)
+
+The front door: an employee describes a need before any supplier email exists. Full behaviour in [18](18-ask-ava.md).
+
+- **Who is asking** (person with a cost centre) and a text box, with three example chips (small job under an existing agreement; crosses the VP limit with customer data; new supplier).
+- **What Ava understood**: editable fields (supplier, contact for a new supplier, project, rough budget, start, duration, data access yes/no/not sure, request type), and a plain list of what is still missing.
+- **What this request will need**, computed by the real engine and not saved: approvers and why, 90-day total against ₹25L, rules that fired, end state, the first message to the supplier and whether Ava sends it, a duplicate warning, and the line "Approvers are asked once the supplier's written quote confirms the amount."
+- **Start the request** (disabled until supplier, project, budget, data access and, for a new supplier, a contact are filled), then a link to the new request.
 
 ## Captured mail (`/mail`, was Inbox)
 
@@ -55,7 +67,7 @@ Order, top to bottom:
 2. **Status banner**: red "Handoff blocked: …" with reasons, or green "Ready for Legal Review. The handoff packet went to Farah Khan. Ava did N actions; people made M decisions." with timing and the prediction line.
 3. **Ava's read**: cited sentences, label, "Updated … · see previous".
 4. **Needs you**: the viewer's items for this request, and chips for what waits on others. A conflict item here links to its conflict card instead of repeating Ava's recommendation; other items show it read-only.
-5. **Ava's plan**: steps, badges, critical path, predicted date and reason, What changed.
+5. **Ava's plan**: steps, badges, critical path, predicted date and reason, What changed. Once more than two steps are done, finished steps fold away behind a "Show … done" toggle.
 6. **Problems Ava found**: open conflict cards with Ava recommends; resolved ones collapsed; drafts for the requester collapsed.
 7. **What the contract says about this deal**: 3 to 5 clauses with status.
 8. **Ava did**: collapsed log with count.
@@ -69,6 +81,10 @@ Type chip (Said vs written, Hidden scope or data access, Renewal terms changed, 
 
 Opens with **Ava's summary for you** (3 bullets) when present. Then Needs reconfirmation (given for vs current, and the source line), You are approving (amount, scope, term, 90-day total, data access, document versions), what Ava checked, what nobody checked (clause wording, supplier MSA comments, DPA terms, value for money), exceptions, Approve/Reconfirm (only the named approver can act; others get "View as …").
 
+### Drafts
+
+Each draft box says who it is for. A draft Ava sent herself under the autonomy settings reads "Ava sent this for <person>: a routine message, switched on in Settings."
+
 ### Handoff packet
 
 Ava's final read and the action/decision counts; contract issues raised at intake; contract issues resolved during intake; confirmed facts with sources; proposed terms (marked Proposed); existing agreement; signed receipts; exceptions; items assigned to Legal review; open notes; documents with superseded versions. Download as JSON.
@@ -81,9 +97,9 @@ Read, plan, conflict with recommendation, Ava did, all labelled Cached and "outs
 
 1. **At risk**: live requests whose plan date is after the 1-business-day target or whose handoff is blocked, and background requests with a risk; each with the predicted date and reason. Fresh session: REQ-1029 and REQ-1032.
 2. **Ava caught this**: catches with ₹ or risk impact from open and resolved conflicts, live and background, largest first (₹5.6L Codehive, ₹3.1L Rangmanch, ₹2.8L Pixelwise, TalentBridge risk on a fresh session; ₹1,50,000 UAT line, ₹90,000 credit, ₹39,200 rates, ₹1,26,000 a year saved on Kosha as the scenarios run).
-3. **Counters**: ₹ at stake caught, Ava actions vs people decisions, contract terms checked, Forms filled 0. Second row: requests captured, questions answered from documents, approvals reopened, started before approval.
+3. **Counters**: ₹ at stake caught, Touches per request (people decisions per request; lower is better), Started in Ask Ava, Clean and fast (the north star: complete, never withdrawn, Prayaan's time under 1 day). Second row: requests captured from email, questions answered from documents, approvals reopened by changed facts, started before approval. Below: one line of activity for context, not success (Ava actions, people decisions, contract terms checked).
 4. **Pipeline / Conflicts** tabs: 5 columns (New, Waiting on someone, Approvals, Blocked, Ready) with live and background cards; conflicts table including background.
-5. Timing, Changes feed, Invoices with no request.
+5. Timing (first message to Ready, split into the supplier's wait and Prayaan's own time; open requests show Prayaan's hours so far), Changes feed, Invoices with no request.
 
 ## Conflicts (`/conflicts`)
 
@@ -92,6 +108,10 @@ Table of every conflict (live and background), then the full cards: open or all,
 ## Suppliers (`/suppliers`, `/suppliers/[id]`)
 
 Supplier page: **Commitments** (commitment · value · clause link · next date, supplier history), 90-day spend by cost centre, contacts, projects, requests, documents and expiry dates (contract ids open the PDF).
+
+## Supplier view (`/supplier/[id]`)
+
+What the supplier sees for one request: what Prayaan has asked for (auto-sent messages marked "Sent by Ava, routine"), what is still needed, whether Prayaan is waiting on them, and "Send us a reply" (note, PDF or XLSX upload, or a sample document) that arrives as an email on the same thread. Banner: nothing internal is shown. No demo dock.
 
 ## Case pages (`/story/[slug]`)
 
@@ -102,10 +122,10 @@ Six short pages, each opening with the question it answers and a one-line answer
 | why | Why intake | Lifecycle strip; five downstream failures traced back to what intake missed; the two end states |
 | problem | The problem | Sourced stat cards; who it hurts and what it costs; three testable hypotheses |
 | stakeholders | Stakeholders | Speed-versus-control spectrum; wants, worries, gets per stakeholder; conflict pairs; how one action ripples across screens |
-| metrics | Metrics | North star: share of supplier requests complete and correctly routed within one business day of the first email (live value); supporting metrics; tripwires |
+| metrics | Metrics | North star: requests that reach Ready complete, correctly routed, never withdrawn, with Prayaan's own time under 1 day (live value); where the time goes (supplier wait vs Prayaan's time, as a bar); drivers (touches per request, rework avoided, clean first pass, started in Ask Ava, routine messages sent, filing accuracy); week-1 baseline plan; tripwires |
 | assumptions | Assumptions | Policy table; each assumption with "if this is wrong"; how Ava connects |
 | sirion | Ava and Sirion | Ava as the front door before a contract exists; fit diagram; sourced comparison |
 
 ## Settings (`/settings`)
 
-Illustrative, not enforced: how Ava connects (mail rule diagram), scope, exclusions (HR, Board, Outside counsel), attachment types, retention (7 years with the request; unfiled mail 30 days), transparency toggle.
+**What Ava may do without a click** (enforced by the engine): the autonomy ladder (Level 0 Inform, Level 1 Draft, Level 2 Send routine messages, Never: Decide) and two switches, Quote requests from Ask Ava (on) and Document chasers (off). Each switch is a logged action. The rest is illustrative, not enforced: how Ava connects (mail rule diagram), scope, exclusions (HR, Board, Outside counsel), attachment types, retention (7 years with the request; unfiled mail 30 days), transparency toggle.

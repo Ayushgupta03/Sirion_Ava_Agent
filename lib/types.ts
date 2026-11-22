@@ -55,7 +55,7 @@ export interface Attachment {
   sheets?: Sheet[];
 }
 
-export type EmailOrigin = "seed" | "scripted" | "composed" | "ava_draft";
+export type EmailOrigin = "seed" | "scripted" | "composed" | "ava_draft" | "intake";
 
 export interface Email {
   id: string;
@@ -68,6 +68,8 @@ export interface Email {
   sentAt: string;
   attachments: Attachment[];
   origin: EmailOrigin;
+  /** True when Ava sent this under the autonomy settings (a routine message a person did not click Send on). */
+  autoSent?: boolean;
 }
 
 // ---- AI contract (section 6) ----
@@ -85,6 +87,8 @@ export interface ExtractedFact {
 export interface Extraction {
   isSupplierCommunication: boolean;
   supplier: { name: string; domain: string; known: boolean } | null;
+  /** Ask Ava only: the supplier contact the requester named. */
+  supplierContact?: string;
   filing: {
     project: string;
     request: string; // "REQ-1047" or "NEW"
@@ -342,7 +346,11 @@ export interface State {
   threadRequest: Record<string, string>;
   addedSuppliers: string[];
   ai: import("./aiTypes").AiState;
+  autonomy: Autonomy;
 }
+
+/** What Ava may do without a click. Everything else stays a draft or a decision. */
+export interface Autonomy { autoSendQuoteRequests: boolean; autoSendDocChasers: boolean }
 
 // ---- Events ----
 export type Action =
@@ -368,6 +376,7 @@ export type Action =
   | { type: "orphan_confirm"; orphanId: string }
   | { type: "orphan_not_mine"; orphanId: string }
   | { type: "add_supplier"; requestId: string }
+  | { type: "set_autonomy"; setting: keyof Autonomy; value: boolean }
   | { type: "tick" };
 
 export type AvaEvent =

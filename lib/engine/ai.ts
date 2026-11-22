@@ -113,6 +113,11 @@ export function rulesRead(state: State, a: Analysis): AiRead {
 export function rulesPlan(a: Analysis, state: State): AiPlan {
   const { plan } = validatePlan({ steps: [], criticalPath: [], predictedReady: "", predictionReason: "Not predicted: AI unavailable.", changesSinceLast: [] }, a, state);
   plan.steps.forEach((s) => { s.reason = undefined; });
+  // The fallback plan also shows the two steps every request has: the supplier's written quote (approvers sign nothing without it) and the handoff.
+  const hasQuote = a.folded.documents.some((d) => ["quote", "order_form", "sow"].includes(d.docType));
+  const sup = (state.suppliers.find((x) => x.id === a.req.supplierId)?.name ?? a.req.supplierGuess?.name ?? "the supplier").split(" ")[0];
+  if (a.req.type !== "invoice" && !plan.steps.some((x) => x.id === "get-quote")) plan.steps.unshift({ id: "get-quote", title: `Get ${sup}'s written quote`, ownerId: a.req.requesterId, source: "ava", dependsOn: [], status: hasQuote ? "done" : "in_progress", reason: "A rough budget is not enough to approve." });
+  if (!plan.steps.some((x) => x.id === "handoff")) plan.steps.push({ id: "handoff", title: a.routing.endState === "legal" ? "Hand off to Legal review" : "Ready to issue PO", ownerId: "ava", source: "ava", dependsOn: plan.steps.map((x) => x.id), status: "todo", reason: `Rule 9: ${a.routing.endReason || "work under an existing agreement, no data access, within limits"}.` });
   return plan;
 }
 export const rulesRec = (): AiRec => ({ recommendation: "Review the conflict.", reasoning: "AI is unavailable right now, so Ava has no recommendation. The card shows both sources.", citations: [], confidence: "low", action: "review" });

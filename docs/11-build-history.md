@@ -21,6 +21,9 @@ Everything done in this build, in order. Dates are 21 and 22 Nov 2026 (IST).
 | `9150636` | Documentation (`README.md`, `docs/01`–`11`). |
 | `3033a7a` | AI output evals (`lib/evals.ts`, `npm run eval`), live-output guardrail and badge, AI context carries the VP limit and renewal saving, product spec. |
 | `7793322`–later | Roadmap, design system, developer guide, API reference, evals guide, ADRs, CI, issue and PR templates, `.env.example`, CONTRIBUTING, glossary. |
+| `42a9137` | **Status line fix** (branch `design-floor-pass`, PR #2). `conflictShort` named only three of the five conflict types, so the summary called rate-cap and late-delivery conflicts "data access not confirmed". Contract conflicts now use their own title. Test added. |
+| `6b97d2e` | **Design floor pass** (branch `design-floor-pass`, PR #2). Landing: Watch buttons in the hero, dock hidden until a demo starts, full-width screenshots, arrow-key tabs, honest stats labels. Request page: header sticks only from tablet width, "On this page" jump list, Needs you links to the conflict card instead of repeating the recommendation, long log lines wrap. Phone dock: caption above buttons. Checked at 320, 375, 768 and 1280 px. |
+| uncommitted | **Ask Ava, autonomy, own time, ripple, supplier view.** See below and [18](18-ask-ava.md). |
 
 ## Revision 3 in detail
 
@@ -46,6 +49,28 @@ Everything done in this build, in order. Dates are 21 and 22 Nov 2026 (IST).
 - **Decrease rule.** Only increases in amount, 90-day total or early-start amount reopen approvals.
 - **Background data is static but complete.** It fills the dashboard and Today from the first load and is clearly labelled, but never changes the scenario numbers.
 
+## Ask Ava, autonomy and own time (uncommitted at the time of writing)
+
+| Area | Done |
+|---|---|
+| Ask Ava | `/new` and `lib/intake.ts`: plain-language need → editable fields → preview with the real engine on a copy of the state → request opened before any supplier email (`origin: "intake"`, `ingestIntake`, shared `openRequest`). Duplicate requests become a note on the open one. Three examples. |
+| Autonomy | `state.autonomy` and `set_autonomy`; Settings shows the ladder and two switches. Quote requests from Ask Ava are sent by Ava by default (`sendDraft`, `autoSent`); document chasers stay drafts by default. ADR 0011 supersedes the "Ava never sends" part of ADR 0005. |
+| North star | Redefined on Prayaan's own time (`waitSplit`, `northStar`, `timeLine`); dashboard counters, timing card, handoff banner and the Metrics case page (where the time goes, drivers, week-1 baseline, new tripwires) use it. ADR 0012. |
+| Ripple and windows | "What this reached" after every change (`rippleBetween`); the event log is shared across the browser's windows and followed live; "View as" is per window. ADR 0013. |
+| Supplier view | `/supplier/[id]`: what the supplier sees, and replies (note, upload or sample) that arrive as email on the same thread. |
+| Small UI | Dock starts as a pill on phones; finished plan steps fold away after two. |
+| Landing | Subhead and an Ask Ava link; trust line says Ava sends only the routine messages you switch on; a returning visitor mid-demo is told where they left off and can resume or start clean. |
+| Fallback plan | The rules-only plan always shows "Get <supplier>'s written quote" (until a quote, order form or SOW is on file) and the handoff step. |
+| Samples | `make-samples.ts` writes PDFs with fixed dates and no update metadata, so regenerating gives identical files. |
+| Tests | `tests/intake.test.ts` (10) and `tests/metrics.test.ts` (3); 42 in all. |
+
+## Local setup notes (22 Nov 2026)
+
+- The working copy was cloned next to an older, un-versioned copy of the project in the parent folder (roughly the first commit). Next.js warns about that copy's `package-lock.json`; it is harmless.
+- The Mac had no Node.js and no Homebrew. Node 22.23.5 was installed from the official nodejs.org tarball into `~/.local/node`, checked against `SHASUMS256.txt`. The dev server is started through a shell that puts it on `PATH`, because Next.js starts a separate `node` process for PostCSS.
+- On a fresh clone `npm test` fails until `npm run samples` has run once.
+- Pushing uses the GitHub CLI 2.105.0 (`~/.local/gh`, checked against its published checksums), signed in with `gh auth login --web` through Google.
+
 ## Bugs found and fixed along the way
 
 - Next.js page files may only default-export: shared helpers moved to `lib/summary.ts`.
@@ -60,6 +85,8 @@ Everything done in this build, in order. Dates are 21 and 22 Nov 2026 (IST).
 - The contract card showed a green tick for clauses that had been broken but were later handled: now "Raised, handled".
 - Background summaries did not match the project names on the pipeline: rewritten.
 - `git commit -c` is not a commit option: identity is passed as `git -c user.name=… commit`.
+- The request status line named every non-data conflict "data access not confirmed" (fixed in `42a9137`).
+- "Ava did" log lines with long file names were clipped at 320 px: they now wrap.
 
 ## Known limits
 
@@ -68,6 +95,6 @@ Everything done in this build, in order. Dates are 21 and 22 Nov 2026 (IST).
 - No script yet regenerates `lib/aiScript.ts` from the model (`npm run build-cache` covers extraction only).
 - Background requests are not interactive; their decisions are shown, not actionable.
 - Ava logs every contract check as its own action, so Ava's action counts run higher than the brief's examples (about 35 at step 4, 77 at the end of Scenario A).
-- Settings are illustrative and not enforced.
+- Settings are illustrative and not enforced, except the autonomy switches, which the engine enforces.
 - Session state lives in the browser; there is no server database or authentication.
 - A Vercel preview exists for a branch `ava-sirion-positioning` that was not created in this build.

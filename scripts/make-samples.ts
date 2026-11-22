@@ -22,7 +22,8 @@ const FICTIONAL = "Fictional document for the Ava prototype. All companies, peop
 
 async function pdf(name: string, blocks: Block[]) {
   fs.mkdirSync(path.dirname(path.join(OUT, name)), { recursive: true });
-  const doc = await PDFDocument.create();
+  const doc = await PDFDocument.create({ updateMetadata: false }); // no timestamps, so regenerating gives identical files
+  doc.setCreationDate(new Date("2026-11-01T00:00:00Z")); doc.setModificationDate(new Date("2026-11-01T00:00:00Z"));
   doc.registerFontkit(fontkit);
   const reg = await doc.embedFont(fs.readFileSync(path.join(FONT_DIR, "DejaVuSans.ttf")), { subset: true });
   const bold = await doc.embedFont(fs.readFileSync(path.join(FONT_DIR, "DejaVuSans-Bold.ttf")), { subset: true });

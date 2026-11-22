@@ -12,13 +12,19 @@ cp .env.example .env.local     # optional: add ANTHROPIC_API_KEY
 npm run dev                    # http://localhost:3000
 ```
 
-Node 20+. The first `dev` or `build` runs `npm run samples`, which writes `public/samples/*` and `data/sample-texts.json` (both git-ignored output).
+Node 20+. The first `dev` or `build` runs `npm run samples`, which writes `public/samples/*` and `data/sample-texts.json`. These files are tracked in git. Generation is deterministic (PDFs carry a fixed date and no update metadata), so regenerating gives identical files; copies committed before that change still differ once, until they are regenerated and committed.
+
+**Run `npm run samples` once before `npm test` on a fresh clone.** The tests read `data/sample-texts.json`; without it they fail to load ("no tests").
+
+**macOS without Homebrew:** install Node from the official tarball (`node-v22.x-darwin-arm64.tar.gz` from nodejs.org, checked against `SHASUMS256.txt`) into `~/.local`, and put `~/.local/node/bin` on your `PATH`. Next.js starts a separate `node` process for PostCSS, so `node` must be on the `PATH` of whatever starts the dev server, not only called by full path.
+
+**Pushing without a password:** install the GitHub CLI and run `gh auth login --web`; it signs in through the browser (Continue with Google works) and sets up git.
 
 ## Daily loop
 
 ```bash
 npx tsc --noEmit      # types
-npm test              # 28 engine, scenario and eval tests
+npm test              # 42 engine, scenario, intake, metrics and eval tests
 npm run eval          # AI output checks for every cached output
 npm run build         # what Vercel runs
 ```

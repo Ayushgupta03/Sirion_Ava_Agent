@@ -100,6 +100,9 @@ export function AvaPlan({ reqId }: { reqId: string }) {
   const hit = predictionHit(state, reqId);
   const order = [...plan.steps].sort((x, y) => (x.status === "done" ? 1 : 0) - (y.status === "done" ? 1 : 0));
   const done = plan.steps.filter((s) => s.status === "done").length;
+  // Finished steps fold away by default so the page shows what is still open.
+  const [showDone, setShowDone] = useState(false);
+  const shown = order.filter((s) => showDone || s.status !== "done" || done <= 2);
   return (
     <section data-pulse="plan" aria-label="Ava's plan" className="rounded-xl border border-slate-200 bg-white">
       <header className="flex flex-wrap items-start justify-between gap-3 border-b border-slate-100 px-4 py-3">
@@ -114,7 +117,7 @@ export function AvaPlan({ reqId }: { reqId: string }) {
         <div className="border-b border-amber-100 bg-amber-50/60 px-4 py-2 text-[12.5px] text-amber-950"><span className="font-semibold">What changed in the plan ({fmtDT(v.at)}):</span> {v.changes.join(" · ")}</div>
       )}
       <ol className="px-4 py-2">
-        {order.map((s) => {
+        {shown.map((s) => {
           const [ic, cls] = ST_ICON[s.status];
           return (
             <li key={s.id} className={cx("relative flex gap-3 border-l-2 py-2 pl-3", crit.has(s.id) && s.status !== "done" ? "border-accent" : "border-transparent")}>
@@ -132,6 +135,7 @@ export function AvaPlan({ reqId }: { reqId: string }) {
           );
         })}
       </ol>
+      {done > 2 && <button onClick={() => setShowDone(!showDone)} aria-expanded={showDone} className="w-full border-t border-slate-100 px-4 py-2 text-left text-[12.5px] font-medium text-accent hover:bg-slate-50">{showDone ? "Hide finished steps" : `Show ${done} finished steps`}</button>}
     </section>
   );
 }

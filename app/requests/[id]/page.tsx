@@ -11,7 +11,7 @@ import { ApprovalsView, ChecklistView, DocumentsPanel, DraftBox, FactsTable, Han
 import ConflictCard from "@/components/ConflictCard";
 import { Card, CardHead, Chip, cx, Empty, StateChip, supplierShort } from "@/components/ui";
 import { Icon } from "@/components/icons";
-import { summarize } from "@/lib/summary";
+import { summarize, timeLine } from "@/lib/summary";
 import { ActsBanner, AvaDid, AvaPlan, AvaRead, ContractCard, useLiveAi } from "@/components/ai";
 import { ItemCard } from "@/components/ItemCard";
 import { deriveItems } from "@/lib/engine/items";
@@ -85,7 +85,7 @@ export default function RequestPage() {
   return (
     <div className="space-y-5">
       <header className="z-10 -mx-4 md:sticky md:top-14 border-b border-slate-200 bg-canvas/95 px-4 pb-3 pt-1 backdrop-blur sm:-mx-6 sm:px-6">
-        <nav aria-label="Breadcrumb" className="text-[12.5px] text-slate-500"><Link href="/requests" className="hover:underline">Requests</Link> › {sup ? <Link className="hover:underline" href={`/suppliers/${sup.id}`}>{supplierShort(sup.name)}</Link> : `Possible new supplier: ${req.supplierGuess?.name}`} › {req.project}</nav>
+        <nav aria-label="Breadcrumb" className="flex flex-wrap items-center gap-x-1 text-[12.5px] text-slate-500"><Link href="/requests" className="hover:underline">Requests</Link> › {sup ? <Link className="hover:underline" href={`/suppliers/${sup.id}`}>{supplierShort(sup.name)}</Link> : `Possible new supplier: ${req.supplierGuess?.name}`} › {req.project}{sup && <Link href={`/supplier/${id}`} className="ml-auto rounded border border-slate-300 px-2 py-0.5 text-[12px] font-medium text-slate-700 hover:bg-slate-50">See it as {supplierShort(sup.name).split(" ")[0]} does</Link>}</nav>
         <div className="mt-1 flex flex-wrap items-center gap-2"><h1 className="text-[20px] font-semibold tracking-[-0.01em]"><span className="font-mono text-slate-500">{req.id}</span> {req.title}</h1><StateChip state={a.handoff.state} />{req.startedBeforeApproval && <Chip tone="red">Started before approval</Chip>}</div>
         <ol aria-label="Intake progress" className="mt-2 flex flex-wrap gap-1.5">
           {st.map((s, i) => (
@@ -116,7 +116,7 @@ export default function RequestPage() {
         ) : ready ? (
           <div data-pulse="handoff" className="rounded-lg border border-emerald-300 bg-emerald-50 px-4 py-3 text-emerald-900">
             <p className="text-[15px] font-semibold">{a.handoff.state === "ready_legal" ? "Ready for Legal Review. The handoff packet went to Farah Khan." : "Ready to issue PO."} <ActsBanner req={req} /></p>
-            <p className="text-[13px]">Took {t.days} business day{t.days === 1 ? "" : "s"} against a 1-day target.{t.longest && ` Longest wait: ${t.longest}.`}{hit && ` ${hit}`}</p>
+            <p className="text-[13px]">Took {timeLine(state, id)}{t.longest && ` Longest wait: ${t.longest}.`}{hit && ` ${hit}`}</p>
           </div>
         ) : null}
       </div>

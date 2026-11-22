@@ -247,11 +247,12 @@ export function TimelineView({ a }: { a: Analysis }) {
 
 export function DraftBox({ d }: { d: Draft }) {
   const act = useAva((s) => s.act); const viewAs = useAva((s) => s.viewAs);
+  const byAva = useAva((s) => s.state.emails.some((e) => e.id === `out-auto-${d.id}`));
   const [copied, setCopied] = useState(false);
   const text = `To: ${d.to}\nSubject: ${d.subject}\n\n${d.body}`;
   return (
     <div className="rounded-md border border-slate-200 bg-white">
-      <div className="flex items-center justify-between border-b border-slate-100 px-3 py-1.5 text-[12px]"><span className="font-medium">Ava's draft for {personName(d.forPersonId)}. Ava does not send it.</span>{d.status === "sent" ? <Chip tone="green">Sent {d.sentAt ? fmtShort(d.sentAt) : ""}</Chip> : <Chip tone="amber">Draft</Chip>}</div>
+      <div className="flex items-center justify-between border-b border-slate-100 px-3 py-1.5 text-[12px]"><span className="font-medium">{byAva ? `Ava sent this for ${personName(d.forPersonId)}: a routine message, switched on in Settings.` : `Ava's draft for ${personName(d.forPersonId)}. Ava does not send it.`}</span>{d.status === "sent" ? <Chip tone="green">Sent {d.sentAt ? fmtShort(d.sentAt) : ""}</Chip> : <Chip tone="amber">Draft</Chip>}</div>
       <div className="px-3 py-2 text-[12.5px]"><div className="text-slate-500">To: {d.to}</div><div className="text-slate-500">Subject: {d.subject}</div><p className="mt-2 whitespace-pre-wrap text-slate-800">{d.body}</p></div>
       {d.status === "draft" && <div className="flex gap-2 border-t border-slate-100 px-3 py-2">
         <Button small onClick={() => { navigator.clipboard?.writeText(text); setCopied(true); }}>{copied ? "Copied" : "Copy"}</Button>

@@ -11,7 +11,9 @@ Ava then:
 3. **Acts**: files, extracts facts, checks every email against the signed contracts, drafts questions, prepares receipt summaries, re-plans. Every action is logged.
 4. **Advises**: on every problem and decision, it recommends one next step with reasons, a confidence level and, where useful, a ready draft.
 
-People make every decision. Ava never sends email to suppliers, never approves, never rejects, and never applies a credit.
+People make every decision. Ava never approves, never rejects, never resolves a conflict, never accepts a price and never applies a credit. Ava drafts every message; the only ones she may send herself are routine messages switched on in Settings (by default, the first request to a supplier for a written proposal from Ask Ava). See [18 Ask Ava](18-ask-ava.md).
+
+Requests start in one of two ways: from supplier email Ava receives through the mail rule, or from **Ask Ava** (`/new`), where an employee describes a need before any supplier is contacted.
 
 The request leaves intake in one of two end states:
 

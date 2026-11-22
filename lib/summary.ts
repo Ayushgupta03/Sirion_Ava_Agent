@@ -2,7 +2,7 @@
 import type { Conflict, State } from "./types";
 import type { Analysis } from "./engine/rules";
 import { personName } from "./engine/world";
-import { timingFor } from "./engine/timing";
+import { timingFor, waitSplit } from "./engine/timing";
 import { fmtDT, lakh } from "./format";
 
 const supplierShort = (name?: string) => (name ?? "").replace(/\s+(Pvt\.? Ltd\.?|Private Limited|LLP|Ltd\.?)$/i, "");
@@ -18,12 +18,19 @@ export function conflictShort(c: Conflict) {
   return t.charAt(0).toLowerCase() + t.slice(1);
 }
 
+/** "3 business days on the calendar; Prayaan's own time 40 min, the rest waiting on the supplier." Computed from the event log. */
+export function timeLine(state: State, reqId: string): string {
+  const t = timingFor(state, reqId); const w = waitSplit(state, reqId);
+  const h = (x: number) => (x < 1 ? `${Math.max(1, Math.round(x * 60))} min` : x < 48 ? `${Math.round(x * 10) / 10} h` : `${Math.round((x / 24) * 10) / 10} days`);
+  return `${t.days} business day${t.days === 1 ? "" : "s"} on the calendar. Prayaan's own time: ${h(w.own)}${w.ownMet ? " (under the 1-day target)" : " (over the 1-day target)"}. The rest, ${h(w.supplier)}, was waiting on the supplier.`;
+}
+
 /** One plain sentence about where the request stands, generated from the engine. */
 export function summarize(state: State, a: Analysis): string {
   const req = a.req;
   if (a.handoff.state === "ready_legal" || a.handoff.state === "ready_po") {
     const t = timingFor(state, req.id);
-    return `${a.handoff.state === "ready_legal" ? "Ready for Legal Review" : "Ready to issue PO"} since ${fmtDT(req.readyAt!)}. Took ${t.days} business day${t.days === 1 ? "" : "s"} against a 1-day target.`;
+    return `${a.handoff.state === "ready_legal" ? "Ready for Legal Review" : "Ready to issue PO"} since ${fmtDT(req.readyAt!)}. Took ${timeLine(state, req.id)}`;
   }
   const who: string[] = [];
   const amt = (k: string) => k === "budget_owner" ? lakh(a.requestAmount) : k === "vp" ? lakh(a.spend.total) : "data access";

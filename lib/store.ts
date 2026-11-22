@@ -3,12 +3,31 @@
 import { create } from "zustand";
 import type { Action, AvaEvent, Email, Extraction, ExtractionSource, Source, State, ViewerTarget } from "./types";
 import { applyEvent, initialState, replay } from "./engine/pipeline";
+import { deriveItems, type ItemKind } from "./engine/items";
 import { SCENARIO_A, SCENARIO_B, SEED_EVENTS, type Step } from "./story";
 import { contrastEmails } from "./scripted";
 import { EXTRACTION_CACHE } from "./cache";
 import { addMinutes, uid } from "./format";
 
 const KEY = "ava-prototype-v1";
+// Who you are is per window (sessionStorage); the event log is shared by every window of this browser (localStorage).
+const VIEW_KEY = "ava-view-as";
+const readView = () => { try { return sessionStorage.getItem(VIEW_KEY) ?? undefined; } catch { return undefined; } };
+const writeView = (id: string) => { try { sessionStorage.setItem(VIEW_KEY, id); } catch { /* blocked */ } };
+
+export interface RippleRow { personId: string; opened: { kind: ItemKind; text: string }[]; closed: { kind: ItemKind; text: string }[] }
+export interface Ripple { n: number; actor: string; label: string; rows: RippleRow[] }
+
+/** Who a change reached: the difference in each person's open items before and after. This is the stakeholder connection, made visible. */
+export function rippleBetween(prev: State, next: State, actor: string, label: string, n: number): Ripple | null {
+  const a = new Map(deriveItems(prev).map((i) => [i.key, i])); const b = new Map(deriveItems(next).map((i) => [i.key, i]));
+  const rows = new Map<string, RippleRow>();
+  const row = (id: string) => { let r = rows.get(id); if (!r) rows.set(id, (r = { personId: id, opened: [], closed: [] })); return r; };
+  for (const [k, it] of b) if (!a.has(k)) row(it.personId).opened.push({ kind: it.kind, text: it.question });
+  for (const [k, it] of a) if (!b.has(k)) row(it.personId).closed.push({ kind: it.kind, text: it.question });
+  const list = [...rows.values()].filter((r) => r.personId !== actor);
+  return list.length ? { n, actor, label, rows: list } : null;
+}
 type Scn = "A" | "B";
 
 export type { ViewerTarget };
@@ -27,6 +46,8 @@ interface Store {
   aiAvailable?: boolean;
   pulse: { target?: string; n: number };
   toast: { actors: string[]; n: number } | null;
+  ripple: Ripple | null;
+  dismissRipple: () => void;
   firePulse: (target?: string) => void;
   dismissToast: () => void;
   hydrate: () => void;
@@ -48,10 +69,31 @@ interface Store {
 
 export const STEPS: Record<Scn, Step[]> = { A: SCENARIO_A, B: SCENARIO_B };
 
+const LABEL: Partial<Record<Action["type"], string>> = {
+  approve: "approved", answer_flag: "answered a question", resolve_conflict: "resolved a conflict", mark_sent: "sent a draft", rec_use: "used Ava's recommendation",
+  require_cr: "required a change request", ask_legal: "asked Legal", ask_supplier: "asked for a supplier draft", record_exception: "recorded an exception", competing_quote: "attached a competing quote",
+  escalate: "escalated", orphan_confirm: "confirmed an invoice", comment: "commented", reassign: "reassigned an item",
+};
+const labelOf = (a: Action) => LABEL[a.type] ?? a.type.replace(/_/g, " ");
+
+/** Another window of this browser changed the shared event log: follow it, but stay as the person this window is viewing. */
+let listening = false;
+function listen(get: () => Store, set: (p: Partial<Store>) => void) {
+  if (listening || typeof window === "undefined") return; listening = true;
+  window.addEventListener("storage", (e) => {
+    if (e.key !== KEY || !e.newValue) return;
+    try {
+      const d = JSON.parse(e.newValue); const prev = get().state; const next = replay(d.events);
+      const rp = rippleBetween(prev, next, "none", "Changed in another window", get().pulse.n + (get().ripple?.n ?? 0) + 1);
+      set({ events: d.events, state: next, pos: d.pos, checkpoints: d.checkpoints, scenario: d.scenario, caption: d.caption, ...(rp ? { ripple: rp } : {}) });
+    } catch { /* ignore a half-written value */ }
+  });
+}
+
 function seedState() { return SEED_EVENTS.reduce(applyEvent, initialState()); }
 
-function save(s: Pick<Store, "events" | "viewAs" | "scenario" | "pos" | "checkpoints" | "caption">) {
-  try { localStorage.setItem(KEY, JSON.stringify({ events: s.events, viewAs: s.viewAs, scenario: s.scenario, pos: s.pos, checkpoints: s.checkpoints, caption: s.caption })); } catch { /* storage full or blocked */ }
+function save(s: Pick<Store, "events" | "scenario" | "pos" | "checkpoints" | "caption">) {
+  try { localStorage.setItem(KEY, JSON.stringify({ events: s.events, scenario: s.scenario, pos: s.pos, checkpoints: s.checkpoints, caption: s.caption })); } catch { /* storage full or blocked */ }
 }
 
 function runStep(state: State, events: AvaEvent[], step: Step) {
@@ -75,31 +117,39 @@ export const useAva = create<Store>((set, get) => ({
   viewer: null,
   pulse: { n: 0 },
   toast: null,
+  ripple: null,
+  dismissRipple: () => set({ ripple: null }),
   firePulse: (target) => set({ pulse: { target, n: get().pulse.n + 1 } }),
   dismissToast: () => set({ toast: null }),
   hydrate: () => {
     if (get().hydrated) return;
+    const view = readView();
     try {
       const raw = localStorage.getItem(KEY);
       if (raw) {
         const d = JSON.parse(raw);
-        set({ ...d, state: replay(d.events), hydrated: true });
+        set({ ...d, viewAs: view ?? d.viewAs ?? "karan", state: replay(d.events), hydrated: true });
+        listen(get, set);
         return;
       }
     } catch { /* fall through to seed */ }
-    set({ events: [...SEED_EVENTS], state: seedState(), hydrated: true });
+    set({ events: [...SEED_EVENTS], state: seedState(), viewAs: view ?? "karan", hydrated: true });
+    listen(get, set);
   },
   act: (action, actor) => {
     const { state, events, viewAs } = get();
     const at = addMinutes(state.now, 1);
     const ev: AvaEvent = { id: uid("ev"), at, kind: "action", actor: actor ?? viewAs, action };
     const next = applyEvent(state, ev);
-    set({ state: next, events: [...events, ev] }); save(get());
+    const rp = ev.actor !== "system" ? rippleBetween(state, next, ev.actor, labelOf(action), get().pulse.n + (get().ripple?.n ?? 0) + 1) : null;
+    set({ state: next, events: [...events, ev], ...(rp ? { ripple: rp } : {}) }); save(get());
   },
   addEmail: (email, extraction, source) => {
     const { state, events } = get();
     const ev: AvaEvent = { id: uid("ev"), at: email.sentAt, kind: "email", email, extraction, extractionSource: source };
-    set({ state: applyEvent(state, ev), events: [...events, ev] }); save(get());
+    const next = applyEvent(state, ev);
+    const rp = rippleBetween(state, next, email.origin === "intake" ? get().viewAs : "none", email.origin === "intake" ? "started a request in Ask Ava" : `Email arrived: ${email.subject}`, get().pulse.n + (get().ripple?.n ?? 0) + 1);
+    set({ state: next, events: [...events, ev], ...(rp ? { ripple: rp } : {}) }); save(get());
   },
   tick: (minutes) => {
     const { state, events } = get();
@@ -112,8 +162,10 @@ export const useAva = create<Store>((set, get) => ({
     if (i >= steps.length) return;
     let { state, events } = get();
     const cp = { ...checkpoints, [scenario]: [...checkpoints[scenario].slice(0, i), events.length] };
+    const before = state;
     const r = runStep(state, events, steps[i]); state = r.state; events = r.events;
-    set({ state, events, pos: { ...pos, [scenario]: i + 1 }, checkpoints: cp, caption: steps[i].caption, focus: steps[i].focus, ...afterStep(get, steps[i], state, r.actors) });
+    const rp = rippleBetween(before, state, "none", steps[i].caption, get().pulse.n + (get().ripple?.n ?? 0) + 1);
+    set({ ...(rp ? { ripple: rp } : {}), state, events, pos: { ...pos, [scenario]: i + 1 }, checkpoints: cp, caption: steps[i].caption, focus: steps[i].focus, ...afterStep(get, steps[i], state, r.actors) });
     save(get());
     return steps[i].focus;
   },
@@ -160,10 +212,10 @@ export const useAva = create<Store>((set, get) => ({
         state = applyEvent(state, ev); events = [...events, ev];
       }
     }
-    set({ state, events, viewAs: "ritu", caption: "Repeat work under an existing agreement: one approval, done in minutes. Asking first is faster than signing first." });
+    writeView("ritu"); set({ state, events, viewAs: "ritu", caption: "Repeat work under an existing agreement: one approval, done in minutes. Asking first is faster than signing first." });
     save(get());
   },
-  setViewAs: (id) => { set({ viewAs: id }); save(get()); },
+  setViewAs: (id) => { writeView(id); set({ viewAs: id }); },
   openSource: (s) => set({ viewer: { docId: (s as any).docId, clause: (s as any).clause, emailId: s.emailId, attachmentId: (s as any).attachmentId, quote: (s as any).quote, quotes: (s as any).quotes, page: (s as any).page, compareWith: (s as any).compareWith, title: (s as any).title } }),
   closeViewer: () => set({ viewer: null }),
   setAi: (v) => set({ aiAvailable: v }),

@@ -33,13 +33,17 @@ Out of scope (non-goals): sending email to suppliers; approving, rejecting or ap
 | Recommend a next step, draft a message | AI | Advice with confidence; a person uses, edits or dismisses |
 | Routing, limits, spend, checklist, approvals, conflicts, handoff | Code | Policy must be exact, explainable and testable |
 | Money and dates (credits, overages, notice days, savings) | Code | Never computed by the AI; evals fail any AI number that code did not provide |
-| Approve, reject, resolve, send, apply a credit | People | Accountability |
+| Approve, reject, resolve, accept a price, apply a credit | People | Accountability |
+| Send routine messages (quote requests; document chasers when switched on) | Ava, per autonomy setting | Commits no money, changes no terms; logged; can be switched back to draft |
 
 ## Success metrics
 
 | Metric | Definition | Where measured |
 |---|---|---|
-| North star | Share of supplier requests complete and correctly routed within 1 business day of the first email | Case page "Metrics" (live value), dashboard timing |
+| North star | Of the requests that reach Ready for Legal Review or Ready to issue PO: the share complete, correctly routed, never withdrawn, and under 1 day of Prayaan's own time (supplier waits excluded; [ADR 0012](adr/0012-north-star-on-own-time.md)) | Case page "Metrics" (live value), dashboard "Clean and fast" |
+| Touches per request | People decisions per request; lower means Ava does more of the legwork | Dashboard, Metrics case page |
+| Started in Ask Ava | Requests that began before any supplier email | Dashboard, Metrics case page |
+| Routine messages Ava sent | Quote requests and chasers sent under the autonomy settings | Metrics case page |
 | Forms filled | Intake forms people had to fill | Dashboard (target 0) |
 | ₹ at stake caught | Over-charges, credits and savings found at intake | Dashboard counter |
 | Ava actions : people decisions | How much legwork Ava does per human decision | Dashboard, handoff banner |

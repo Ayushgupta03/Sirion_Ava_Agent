@@ -6,7 +6,7 @@
 |---|---|---|
 | Framework | Next.js 16 (App Router), React 19, TypeScript 5 | One deployable app with server routes for AI calls and file text extraction |
 | Styling | Tailwind CSS v4 with `@theme` tokens in `app/globals.css` (OKLCH accent), Inter and IBM Plex Mono | Design tokens in one place; reflows down to 320 px |
-| State | Zustand store, persisted to `localStorage` | Each browser session is its own sandbox; Reset clears it |
+| State | Zustand store; event log in `localStorage` (shared by the browser's windows), "View as" in `sessionStorage` (per window) | Each browser is its own sandbox; Reset clears it ([ADR 0013](adr/0013-shared-log-per-window-viewer.md)) |
 | Engine | Plain TypeScript in `lib/engine/` | Policy is code, testable without the UI |
 | AI | `@anthropic-ai/sdk`, validated with `zod` | Server-only; every response is schema-checked, retried once, then falls back |
 | Files | `pdf-lib` + `@pdf-lib/fontkit` + `dejavu-fonts-ttf` (₹ glyph) to generate PDFs; `xlsx` (SheetJS) for spreadsheets; `unpdf` (serverless pdf.js) to read PDFs | Real PDFs and XLSX, readable on Vercel |
@@ -49,7 +49,8 @@ ai ─► store versioned output (fingerprinted) ─► validate plan ─► log
 
 | Stage | Where | What it does |
 |---|---|---|
-| Ingest | `ingestEmail` | Stores the email and its extraction. Our own sent drafts are recorded in the thread but never extracted. |
+| Ingest | `ingestEmail` | Stores the email and its extraction. Our own sent drafts are recorded in the thread but never extracted. An email with `origin: "intake"` (from Ask Ava) goes to `ingestIntake` instead. |
+| Ask Ava | `ingestIntake` | A request started by an employee before any supplier email: matches the supplier, adds a note to an open duplicate instead of opening a second request, otherwise opens one (`openRequest`, shared with supplier email) and drafts the first message to the supplier, which `sendDraft` sends when `autoSendQuoteRequests` is on. See [18](18-ask-ava.md). |
 | Classify | `ingestEmail` | Finds a known supplier domain, or an unknown external domain with commercial content (₹, quote, invoice, order form, rate card, SOW). Internal or non-commercial mail is recorded and not filed. Invoices are routed to the invoice path. |
 | File | `ingestEmail` | Supplier › Project › Request. Order: same thread; a `REQ-` reference; same supplier and project and cost centre; else a new request. Request ids advance with simulated time (about one every 16.4 h from REQ-1047) to reflect other teams' work, so the Kosha renewal is REQ-1063. Links the baseline agreement for renewals and the NDA/MSA on file. |
 | Read attachments | `ingestEmail` | Logs "Read <file> (n pages) and pulled out the facts." per attachment (an Ava action). |
@@ -68,7 +69,8 @@ ai ─► store versioned output (fingerprinted) ─► validate plan ─► log
 | `suppliers` | Seed suppliers plus any added by a person |
 | `requests`, `requestOrder` | Request records: emails, fact events, documents, approvals (receipts), flags, exceptions, retro items, comments, timeline, checklist closures, approval cache, contract checks seen, contract issues, withdrawals |
 | `conflicts` | Conflict records with sides, owner, status, resolution, impact, clauses, comments |
-| `drafts` | Messages Ava drafted; a person sends them |
+| `drafts` | Messages Ava drafted; a person sends them, or Ava does for routine types switched on in `autonomy` |
+| `autonomy` | `{ autoSendQuoteRequests, autoSendDocChasers }`: what Ava may send without a click ([ADR 0011](adr/0011-routine-messages-may-be-sent.md)) |
 | `orphans` | Invoices with no request |
 | `changes` | Material fact changes and the approvals they reopened |
 | `items` | Open/close history of each person's items (for ages and wait times) |
@@ -79,7 +81,9 @@ ai ─► store versioned output (fingerprinted) ─► validate plan ─► log
 
 ## Store (`lib/store.ts`)
 
-Holds `events`, `state`, `viewAs`, the scenario position and checkpoints, the caption and focus URL of the current step, the source viewer target, `aiAvailable` (from `GET /api/ava`), pulse and toast. Actions: `act`, `addEmail`, `addAi`, `tick`, `next`, `prev`, `reset`, `setScenario`, `jumpTo`, `runContrast`, `openSource`, `setViewAs`. Persisted to `localStorage` under one key; on load the state is replayed from the saved events.
+Holds `events`, `state`, `viewAs`, the scenario position and checkpoints, the caption and focus URL of the current step, the source viewer target, `aiAvailable` (from `GET /api/ava`), pulse, toast and `ripple`. Actions: `act`, `addEmail`, `addAi`, `tick`, `next`, `prev`, `reset`, `setScenario`, `jumpTo`, `runContrast`, `openSource`, `setViewAs`, `dismissRipple`. The event log (with the scenario position) is persisted to `localStorage` under one key; on load the state is replayed from the saved events. `viewAs` is saved per window in `sessionStorage`. A `storage` listener replays the log when another window changes it.
+
+**Ripple**: `act`, `addEmail` and `next` compare every person's open items before and after the change (`rippleBetween`) and store who gained or lost items; the Shell shows it as "What this reached".
 
 ## File map
 

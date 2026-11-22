@@ -1,6 +1,6 @@
 # ADR 0005: Ava never sends, approves, rejects or applies credits
 
-Status: Accepted (Nov 2026)
+Status: Accepted (Nov 2026). Superseded in part by [ADR 0011](0011-routine-messages-may-be-sent.md): Ava may send routine messages; every decision below still stays with people.
 
 ## Context
 
