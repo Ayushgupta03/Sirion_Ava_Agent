@@ -125,6 +125,7 @@ function snapText(a: Analysis, ap: ApprovalView) {
 export function ReceiptModal({ a, ap, onClose }: { a: Analysis; ap: ApprovalView; onClose: () => void }) {
   const viewAs = useAva((s) => s.viewAs); const act = useAva((s) => s.act); const setViewAs = useAva((s) => s.setViewAs);
   const canAct = viewAs === ap.approverId;
+  const [sendingBack, setSendingBack] = useState(false); const [note, setNote] = useState("");
   const quoteDocs = a.folded.documents.filter((d) => ["quote", "order_form", "sow"].includes(d.docType));
   const checked = a.checklist.filter((c) => c.status === "done");
   const docFacts = Object.values(a.facts).filter((f) => f.origin === "document" && f.displayState === "confirmed" && f.required);
@@ -138,19 +139,19 @@ export function ReceiptModal({ a, ap, onClose }: { a: Analysis; ap: ApprovalView
   const exc = a.req.exceptions.filter((e) => ap.key === "vp" ? e.kind !== "retro" : ap.key === "budget_owner" ? e.kind === "retro" : false);
   return (
     <div role="dialog" aria-modal="true" aria-label="Decision Receipt" className="fixed inset-0 z-50 flex items-center justify-center bg-slate-900/40 p-4" onClick={onClose}>
-      <div className="max-h-[90vh] w-full max-w-2xl overflow-auto rounded-lg bg-white shadow-xl" onClick={(e) => e.stopPropagation()}>
-        <div className="flex items-start justify-between border-b border-slate-200 px-5 py-3">
+      <div className="flex max-h-[90vh] w-full max-w-2xl flex-col overflow-hidden rounded-lg bg-white shadow-xl" onClick={(e) => e.stopPropagation()}>
+        <div className="flex shrink-0 items-start justify-between border-b border-slate-200 px-5 py-3">
           <div><div className="text-[12px] font-medium uppercase tracking-wide text-slate-500">Decision Receipt · {a.req.id}</div><div className="text-[16px] font-semibold">{KEY_LABEL[ap.key]}: {personName(ap.approverId)}</div></div>
           <div className="flex items-center gap-2"><StateChip state={ap.status} /><Button small variant="ghost" onClick={onClose}>Close</Button></div>
         </div>
-        <div className="space-y-4 px-5 py-4 text-[13px]">
+        <div className="min-h-0 flex-1 space-y-4 overflow-auto px-5 py-4 text-[13px]">
           {(() => { const v = useAva.getState().state.ai.recs[`receipt:${a.req.id}:${ap.key}`]; return v?.output.bullets ? (
             <section className="rounded-lg border border-violet-200 bg-violet-50/60 px-3.5 py-2.5"><h3 className="mb-1 flex items-center gap-2 text-[12px] font-semibold uppercase tracking-wide text-violet-900">Ava’s summary for you <AiLabel source={v.source} /></h3><ul className="list-disc space-y-0.5 pl-5">{v.output.bullets.map((b) => <li key={b}>{b}</li>)}</ul><p className="mt-1 text-[11.5px] text-slate-500">Prepared {fmtDT(v.at)}. The decision is yours; Ava never approves.</p></section>) : null; })()}
           {ap.status === "needs_reconfirmation" && <div className="rounded-md bg-red-50 px-3 py-2 text-red-800 ring-1 ring-red-200"><b>Needs reconfirmation.</b> {ap.diffs.map((d) => `Given for ${d.old}. Current: ${d.new}.`).join(" ")}{ap.reopenSource && ` Source: ${ap.reopenSource}.`}</div>}
           <section><h3 className="mb-1.5 font-semibold">You are approving</h3>
             <table className="w-full tabular"><tbody>
               {ap.key !== "infosec" && <tr><td className="py-0.5 text-slate-500">Amount (before GST)</td><td className="text-right font-medium">{inr(a.amount)}{a.retro ? ` + ${inr(a.retro)} already invoiced = ${inr(a.requestAmount)}` : ""}</td></tr>}
-              <tr><td className="py-0.5 text-slate-500">Scope</td><td className="text-right">{a.facts.scope?.value ?? a.req.project}</td></tr>
+              <tr><td className="py-0.5 pr-4 align-top text-slate-500">Scope</td><td className="text-right [overflow-wrap:anywhere]">{a.facts.scope?.value ?? a.req.project}</td></tr>
               {a.facts.duration && <tr><td className="py-0.5 text-slate-500">Term</td><td className="text-right">{a.facts.duration.value}</td></tr>}
               <tr><td className="py-0.5 text-slate-500">90-day total ({a.req.costCentre})</td><td className="text-right font-medium">{inr(a.spend.total)} <span className="text-slate-500">({a.spend.text})</span></td></tr>
               {ap.key === "infosec" && <tr><td className="py-0.5 text-slate-500">Data access</td><td className="text-right">{a.facts.data_access?.value}</td></tr>}
@@ -160,8 +161,8 @@ export function ReceiptModal({ a, ap, onClose }: { a: Analysis; ap: ApprovalView
           </section>
           <section><h3 className="mb-1.5 font-semibold">Ava already checked</h3>
             <ul className="space-y-1">
-              {docFacts.map((f) => <li key={f.field} className="flex flex-wrap gap-2"><span className="text-emerald-700">✓</span>{f.label}: {f.field === "amount" ? inr(f.num) : f.value} <SourceLink src={f.sources[0]} /></li>)}
-              {checked.map((c) => <li key={c.key} className="flex gap-2"><span className="text-emerald-700">✓</span><span>{c.label}: {c.how}</span></li>)}
+              {docFacts.map((f) => <li key={f.field} className="flex gap-2"><span aria-hidden className="text-emerald-700">✓</span><span className="min-w-0 [overflow-wrap:anywhere]">{f.label}: {f.field === "amount" ? inr(f.num) : f.value} <SourceLink src={f.sources[0]} /></span></li>)}
+              {checked.map((c) => <li key={c.key} className="flex gap-2"><span aria-hidden className="text-emerald-700">✓</span><span className="min-w-0 [overflow-wrap:anywhere]">{c.label}: {c.how}</span></li>)}
             </ul>
           </section>
           <section><h3 className="mb-1.5 font-semibold">Nobody has checked yet</h3>
@@ -171,9 +172,16 @@ export function ReceiptModal({ a, ap, onClose }: { a: Analysis; ap: ApprovalView
             <ol className="space-y-1 text-[12.5px]">{ap.receipts.map((r) => <li key={r.id}>{fmtDT(r.at)}: {r.kind} by {personName(r.by)} for {r.snapshot.amount != null ? inr(r.snapshot.amount) : r.snapshot.total90 != null ? `${inr(r.snapshot.total90)} (90-day total)` : "data access"}{r.snapshot.retro ? ` + ${inr(r.snapshot.retro)} retrospective` : ""}{r.snapshot.exceptionIds?.length ? " and the exception" : ""}</li>)}</ol>
           </section>}
         </div>
-        <div className="flex flex-wrap items-center justify-end gap-2 border-t border-slate-200 px-5 py-3">
+        {sendingBack && canAct && <form className="shrink-0 space-y-2 border-t border-slate-200 bg-slate-50 px-5 py-3" onSubmit={(e) => { e.preventDefault(); if (!note.trim()) return; act({ type: "send_back", requestId: a.req.id, key: ap.key, note: note.trim() }); onClose(); }}>
+          <label className="block text-[13px] font-semibold" htmlFor="send-back-note">What needs to change before you can approve?</label>
+          <textarea id="send-back-note" autoFocus rows={3} value={note} onChange={(e) => setNote(e.target.value)} placeholder="e.g. Scope says 4 weeks but Neha told me 6. Please confirm with Trivenika." className="w-full rounded border border-slate-300 bg-white px-2 py-1.5 text-[13px]" />
+          <p className="text-[12px] text-slate-600">This goes to {personName(a.req.requesterId)} and {personName("karan")}. Nothing is approved or rejected, and your approval stays open.</p>
+          <div className="flex gap-2"><Button small variant="primary" type="submit" disabled={!note.trim()}>Send back</Button><Button small variant="ghost" onClick={() => { setSendingBack(false); setNote(""); }}>Cancel</Button></div>
+        </form>}
+        <div className="flex shrink-0 flex-wrap items-center justify-end gap-2 border-t border-slate-200 px-5 py-3">
           {!canAct && <span className="mr-auto text-[12.5px] text-slate-500">Only {personName(ap.approverId)} can sign this. <button className="text-accent underline" onClick={() => setViewAs(ap.approverId)}>View as {firstName(ap.approverId)}</button></span>}
           {canAct && ap.status === "pending" && !ap.gateOpen && <span className="mr-auto text-[12.5px] text-amber-700">Ava has not sent this yet: the amount is not confirmed or a question is open. You can still approve.</span>}
+          {canAct && !sendingBack && (ap.status === "pending" || ap.status === "needs_reconfirmation") && <Button onClick={() => setSendingBack(true)}>Send back with a note</Button>}
           {canAct && (ap.status === "pending" || ap.status === "needs_reconfirmation") && <Button variant="primary" onClick={() => { act({ type: "approve", requestId: a.req.id, key: ap.key }); onClose(); }}>{ap.status === "pending" ? "Approve" : "Reconfirm at current facts"}</Button>}
           {(ap.status === "approved" || ap.status === "reconfirmed") && <span className="text-[12.5px] text-emerald-700">Signed against current facts.</span>}
         </div>

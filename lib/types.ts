@@ -369,6 +369,7 @@ export type Action =
   | { type: "comment"; requestId: string; conflictId?: string; text: string }
   | { type: "rerun"; requestId: string; emailId?: string; extraction?: Extraction; source?: ExtractionSource }
   | { type: "approve"; requestId: string; key: ApprovalKey }
+  | { type: "send_back"; requestId: string; key: ApprovalKey; note: string }
   | { type: "record_exception"; requestId: string; kind: "sole_supplier" | "retro" | "other"; reason: string }
   | { type: "competing_quote"; requestId: string; note: string }
   | { type: "reassign"; itemKey: string; to: string }

@@ -116,6 +116,7 @@ Dispatched with `useAva().act(action, actor?)`. All are logged.
 | `comment` | requestId, conflictId?, text | Comment with @mentions |
 | `rerun` | requestId, emailId?, extraction?, source? | Re-extraction |
 | `approve` | requestId, key budget_owner/vp/infosec | Adds a receipt with the current snapshot |
+| `send_back` | requestId, key, note | An approver cannot sign yet. Approves and rejects nothing; the approval stays open. Tells the requester and Procurement (a mention item each) and logs it |
 | `record_exception` | requestId, kind sole_supplier/retro/other, reason | Exception |
 | `competing_quote` | requestId, note | Competing quote |
 | `reassign` | itemKey, to | Reassigns an item |

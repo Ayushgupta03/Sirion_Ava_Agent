@@ -15,7 +15,7 @@ import type { State } from "@/lib/types";
 
 export const KIND: Record<string, string> = { reconfirm: "Needs reconfirmation", question: "Question", info: "For information", draft: "Draft to send", approval: "Approval", conflict: "Conflict", competing: "Quote or exception", retro: "Early start", legal: "Legal review", packet: "Handoff packet", supplier: "New supplier", orphan: "Invoice", unsorted: "Unsorted", finance: "Tax details", mention: "Mention" };
 
-function due(openedAt: string) {
+export function due(openedAt: string) {
   const d = new Date(openedAt); let add = 1;
   while (add > 0) { d.setUTCDate(d.getUTCDate() + 1); const w = new Date(d.getTime() + 330 * 60000).getUTCDay(); if (w !== 0 && w !== 6) add--; }
   return d.toISOString();
@@ -47,7 +47,7 @@ export function ItemCard({ it, compact }: { it: Item; compact?: boolean }) {
       <div className="px-4 py-3">
         <div className="flex flex-wrap items-center justify-between gap-2 text-[12px] text-slate-500">
           <span>{it.requestId ? <Link className="font-medium text-accent hover:underline" href={`/requests/${it.requestId}`}>{it.requestId} · {it.title}</Link> : it.title}</span>
-          <span className="flex items-center gap-2">{rec && <>Opened {fmtShort(rec.openedAt)} · waiting {span(hoursBetween(rec.openedAt, state.now))} · due {fmtShort(due(rec.openedAt))}</>}<Chip tone={tone as any}>{KIND[it.kind] ?? it.kind}</Chip></span>
+          <span className="flex items-center gap-2">{rec && <>Opened {fmtShort(rec.openedAt)} · waiting {span(hoursBetween(rec.openedAt, state.now))} · due {fmtShort(due(rec.openedAt))}{hoursBetween(due(rec.openedAt), state.now) >= 1 && <b className="ml-1 font-semibold text-red-700">· {span(hoursBetween(due(rec.openedAt), state.now))} overdue</b>}</>}<Chip tone={tone as any}>{KIND[it.kind] ?? it.kind}</Chip></span>
         </div>
         <p className="mt-1.5 text-[14.5px] font-medium text-slate-900">{it.question}</p>
         {it.detail && <p className="text-[12.5px] text-slate-600">{it.detail}</p>}

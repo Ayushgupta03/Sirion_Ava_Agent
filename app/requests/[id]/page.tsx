@@ -60,6 +60,12 @@ export default function RequestPage() {
   }, [id]);
   useEffect(() => { if (pulse.target && PULSE_TAB[pulse.target]) setTab(PULSE_TAB[pulse.target]); setRoutingOpen(pulse.target === "routing"); }, [pulse.n, pulse.target]);
   useLiveAi(id);
+  // The tab panel sits far below the header, so a pill that only switched the tab looked like it did nothing.
+  const [jump, setJump] = useState(0);
+  const openTab = (t: Tab) => { setTab(t); setJump((n) => n + 1); };
+  useEffect(() => {
+    if (jump) document.getElementById("details")?.scrollIntoView({ behavior: window.matchMedia("(prefers-reduced-motion: reduce)").matches ? "auto" : "smooth", block: "start" });
+  }, [jump]);
   const viewAs = useAva((s) => s.viewAs);
   const req = state.requests[id];
   const bg = BACKGROUND.find((b) => b.id === id);
@@ -89,7 +95,7 @@ export default function RequestPage() {
         <div className="mt-1 flex flex-wrap items-center gap-2"><h1 className="text-[20px] font-semibold tracking-[-0.01em]"><span className="font-mono text-slate-500">{req.id}</span> {req.title}</h1><StateChip state={a.handoff.state} />{req.startedBeforeApproval && <Chip tone="red">Started before approval</Chip>}</div>
         <ol aria-label="Intake progress" className="mt-2 flex flex-wrap gap-1.5">
           {st.map((s, i) => (
-            <li key={s.label}><button onClick={() => setTab(s.tab)} aria-label={`${s.label}: ${s.detail}${s.state === "blocked" ? ", blocked" : s.state === "done" ? ", done" : ""}`} className={cx("flex h-7 items-center gap-1.5 rounded-full border px-2.5 text-[12px]", s.state === "blocked" ? "border-red-300 bg-red-50 text-red-800" : s.state === "done" ? "border-emerald-200 bg-emerald-50 text-emerald-800" : s.state === "current" ? "border-accent bg-accent-50 text-accent-700" : "border-slate-200 bg-white text-slate-600")}>
+            <li key={s.label}><button onClick={() => openTab(s.tab)} aria-label={`${s.label}: ${s.detail}${s.state === "blocked" ? ", blocked" : s.state === "done" ? ", done" : ""}`} className={cx("flex h-7 items-center gap-1.5 rounded-full border px-2.5 text-[12px]", s.state === "blocked" ? "border-red-300 bg-red-50 text-red-800" : s.state === "done" ? "border-emerald-200 bg-emerald-50 text-emerald-800" : s.state === "current" ? "border-accent bg-accent-50 text-accent-700" : "border-slate-200 bg-white text-slate-600")}>
               <span aria-hidden className="font-semibold">{s.state === "done" ? "✓" : s.state === "blocked" ? "!" : i + 1}</span><span className="font-semibold">{s.label}</span><span className="hidden sm:inline">· {s.detail}</span>
             </button></li>
           ))}
