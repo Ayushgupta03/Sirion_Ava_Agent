@@ -387,13 +387,12 @@ export function Assumptions() {
 
 // ───────────────────────── 06 Ava and Sirion ─────────────────────────
 type Cell = { v: "yes" | "no" | "na" | "partial"; t: string };
-const MATRIX: { cap: string; form: Cell; sirion: Cell; ava: Cell }[] = [
-  { cap: "Where a request starts", form: { v: "partial", t: "Someone fills in a form" }, sirion: { v: "yes", t: "Self-service intake" }, ava: { v: "yes", t: "The supplier email people already send" } },
-  { cap: "Reads quotes, order forms and certificates before a contract exists", form: { v: "no", t: "Uploads are stored, not read" }, sirion: { v: "partial", t: "Extraction Agent reads contracts and related documents" }, ava: { v: "yes", t: "Facts with the exact line, and versions compared" } },
-  { cap: "Files by supplier › project › request automatically", form: { v: "no", t: "The requester picks" }, sirion: { v: "na", t: "Not shown in public material" }, ava: { v: "yes", t: "From thread, references and names" } },
-  { cap: "Approvals reopen when a material fact changes", form: { v: "no", t: "An approval is final" }, sirion: { v: "na", t: "Not shown in public material" }, ava: { v: "yes", t: "Decision Receipts tied to facts" } },
-  { cap: "Drafting, issue detection and redlining", form: { v: "no", t: "" }, sirion: { v: "yes", t: "Draft, Issue Detection and Redline Agents" }, ava: { v: "no", t: "Out of scope: hands off to Legal" } },
-  { cap: "Obligations, SLAs and invoice reconciliation after signature", form: { v: "no", t: "" }, sirion: { v: "yes", t: "Obligation and Invoice Agents" }, ava: { v: "no", t: "Out of scope" } },
+const MATRIX: { cap: string; sirion: Cell; ava: Cell }[] = [
+  { cap: "Where a request starts", sirion: { v: "yes", t: "Email, collaboration tools and structured forms feed a governed intake workflow." }, ava: { v: "yes", t: "An IT-managed mail rule captures in-scope supplier conversations. The requester emails the supplier as usual." } },
+  { cap: "Documents and revisions", sirion: { v: "yes", t: "Outlook syncs draft versions. Negotiation AI tracks issues across versions and related documents." }, ava: { v: "yes", t: "A revised quote updates the existing intake request and links the changed value to the source page." } },
+  { cap: "Routing and approval", sirion: { v: "yes", t: "Configurable workflows route reviews and approvals. Sirion also publishes guidance on pre-draft approval checks." }, ava: { v: "yes", t: "The company’s 90-day supplier spend rule adds a VP approver. Material changes reopen the affected decisions." } },
+  { cap: "Selective reapproval on a revised supplier quote", sirion: { v: "na", t: "Sirion discusses reapproval rules for material changes. The exact flow from a revised email attachment to selective reapproval before drafting is unverified." }, ava: { v: "yes", t: "Decision receipts record the facts reviewed. The earlier decision stays in the audit trail and the affected owner reconfirms the updated facts." } },
+  { cap: "Legal handoff and downstream work", sirion: { v: "yes", t: "Supports drafting, redlining, counterparty collaboration, signatures and post-signature contract performance." }, ava: { v: "yes", t: "Hands Legal an intake packet with confirmed facts, source documents, approval history and open issues." } },
 ];
 function CellView({ c }: { c: Cell }) {
   const m = { yes: ["bg-emerald-600 text-white", "✓"], partial: ["bg-amber-100 text-amber-800", "~"], no: ["bg-slate-200 text-slate-500", "–"], na: ["bg-slate-100 text-slate-400", "?"] }[c.v];
@@ -401,42 +400,44 @@ function CellView({ c }: { c: Cell }) {
 }
 export function Sirion() {
   return (
-    <StoryFrame slug="sirion" answer="Ava is the front door before a contract exists. Her handoff packet feeds any contract system, including Sirion's agents.">
+    <StoryFrame slug="sirion" answer="Ava keeps a supplier request and its approvals current as quotes change. Legal gets a packet it can use to start work in Sirion.">
       <Section title="How they fit together">
         <div className="grid items-stretch gap-2 md:grid-cols-[1fr_auto_1.2fr_auto_1fr]">
           <div className={cx(card, "p-4")}><p className={label}>In</p><p className="mt-1 font-semibold">Supplier email and attachments</p><p className="text-[13px] text-slate-600">Quotes, rate cards, order forms, certificates, invoices.</p></div>
           <Icon name="arrowRight" className="mx-auto hidden self-center text-slate-400 md:block" />
-          <div className="rounded-xl border-2 border-accent bg-accent-50 p-4"><p className={cx(label, "text-accent-700")}>Ava · intake</p><p className="mt-1 font-semibold">Capture, file, check, route, approve</p><p className="text-[13px] text-slate-700">Ends in a handoff packet: confirmed facts with sources, signed receipts, exceptions, open notes.</p></div>
+          <div className="rounded-xl border-2 border-accent bg-accent-50 p-4"><p className={cx(label, "text-accent-700")}>Ava · intake</p><p className="mt-1 font-semibold">Capture, check and route for human approval</p><p className="text-[13px] text-slate-700">Ends in a handoff packet: confirmed facts with sources, signed receipts, exceptions, open notes.</p></div>
           <Icon name="arrowRight" className="mx-auto hidden self-center text-slate-400 md:block" />
-          <div className={cx(card, "p-4")}><p className={label}>Then · any contract system</p><p className="mt-1 font-semibold">Sirion&apos;s agents</p><p className="text-[13px] text-slate-600">Drafting, redlining, obligations, and invoices checked against the agreed terms.</p></div>
+          <div className={cx(card, "p-4")}><p className={label}>Next · contract lifecycle management</p><p className="mt-1 font-semibold">Sirion</p><p className="text-[13px] text-slate-600">Drafting, redlining, obligations, and invoices checked against the agreed terms.</p></div>
         </div>
       </Section>
-      <Section title="Side by side" sub="Sirion's column uses public material only. “Not shown” means we did not find it publicly, not that it is missing.">
+      <Section title="How the workflows compare" sub="Sirion’s column reflects its public product pages and intake guidance. Ava’s column describes the prototype.">
         <div className={cx(card, "overflow-x-auto")}>
           <table className="w-full min-w-[720px]">
             <thead><tr className="border-b border-slate-200 text-left">
-              <th className={cx(label, "w-[28%] px-4 py-3")}>Capability</th><th className={cx(label, "px-4 py-3")}>Typical form-based intake</th><th className={cx(label, "px-4 py-3")}>Sirion (public material)</th><th className={cx(label, "bg-accent-50 px-4 py-3 text-accent-700")}>Ava</th>
+              <th className={cx(label, "w-[28%] px-4 py-3")}>Capability</th><th className={cx(label, "px-4 py-3")}>Sirion (public material)</th><th className={cx(label, "bg-accent-50 px-4 py-3 text-accent-700")}>Ava</th>
             </tr></thead>
             <tbody>{MATRIX.map((r) => (
               <tr key={r.cap} className="border-b border-slate-100 align-top">
                 <td className="px-4 py-3 text-[13.5px] font-semibold">{r.cap}</td>
-                <td className="px-4 py-3"><CellView c={r.form} /></td><td className="px-4 py-3"><CellView c={r.sirion} /></td><td className="bg-accent-50/50 px-4 py-3"><CellView c={r.ava} /></td>
+                <td className="px-4 py-3"><CellView c={r.sirion} /></td><td className="bg-accent-50/50 px-4 py-3"><CellView c={r.ava} /></td>
               </tr>))}</tbody>
           </table>
         </div>
-        <p className="mt-2 text-[12.5px] text-slate-500">Sources: <Ext href="https://www.legaltechnologyhub.com/vendors/sirion-clm-by-sirion/">Legaltech Hub profile</Ext> · <Ext href="https://www.getapp.com/operations-management-software/a/sirionone">GetApp profile</Ext> · <Ext href="https://marketplace.microsoft.com/en-us/product/web-apps/sirionlabsinc1658837034847.sirionlabs">Microsoft Marketplace listing</Ext></p>
+        <p className="mt-2 text-[12.5px] text-slate-500">
+          Sirion sources · <Ext href="https://www.sirion.ai/platform/create/contract-collaboration/">Collaboration</Ext> · <Ext href="https://www.sirion.ai/library/contract-insights/centralize-contract-requests-tools/">Email intake</Ext> · <Ext href="https://www.sirion.ai/library/contract-insights/pre-draft-approval-gate-systems/">Pre-draft approvals</Ext> · <Ext href="https://www.sirion.ai/library/contract-insights/clm-granular-user-permissions/">Reapproval guidance</Ext> · <Ext href="https://www.sirion.ai/platform/create/contract-negotiation/">Negotiation</Ext>
+        </p>
       </Section>
-      <Section title="Different from a typical intake tool">
-        <ul className="grid gap-3 sm:grid-cols-3">
-          {["No form, no portal, no forwarding.", "Ava reads attachments, not just email text.", "An approval belongs to the facts it was given for."].map((t) => <li key={t} className={cx(card, "flex gap-2 p-4 text-[14px] font-medium")}><Icon name="check" className="mt-0.5 shrink-0 text-emerald-600" />{t}</li>)}
-        </ul>
+      <Section title="See what happens when the price changes">
+        <div className={cx(card, "space-y-3 p-4 text-[14px] text-slate-700")}>
+          <p>The budget owner and VP approved ₹20L. The next supplier email carries a revised PDF quoting ₹21.5L. Ava links the new amount to the PDF, reopens those two approvals and holds the handoff until the updated amount is reconfirmed.</p>
+          <DemoLink sc="A" step={7} />
+        </div>
       </Section>
-      <Section title="What Ava adds in four lines">
-        <ol className="grid gap-3 sm:grid-cols-2 lg:grid-cols-4">
-          {[["Nothing to submit", "She records supplier email and attachments without anyone filling anything in.", ["A", 1]], ["Files early", "Supplier › project › request, before a contract exists.", ["A", 1]], ["Reads the paperwork", "Quotes, rate cards and certificates, line by line.", ["A", 3]], ["Approvals follow facts", "A changed fact reopens the approvals that depended on it.", ["A", 7]]].map(([t, d, demo], i) => (
-            <li key={t as string} className={cx(card, "flex flex-col p-4")}><span className="font-mono text-[12px] text-slate-400">0{i + 1}</span><h3 className="mt-1 text-[15px] font-semibold">{t as string}</h3><p className="mt-1 flex-1 text-[13.5px] text-slate-600">{d as string}</p><div className="mt-3"><DemoLink sc={(demo as any)[0]} step={(demo as any)[1]} /></div></li>
-          ))}
-        </ol>
+      <Section title="What Legal receives">
+        <div className={cx(card, "space-y-3 p-4 text-[14px] text-slate-700")}>
+          <p>The handoff packet includes the latest confirmed terms, source documents, approval receipts and open legal issues. In the new-project scenario, the packet calls out the data protection agreement and unreviewed supplier comments.</p>
+          <p>The prototype simulates assignment to Legal. A production integration would map the packet to a Sirion request and return its reference.</p>
+        </div>
       </Section>
     </StoryFrame>
   );
