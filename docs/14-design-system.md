@@ -55,7 +55,7 @@ Body 14 px / 1.5. Page title 20–24 px semibold. Card title 14 px semibold. Sec
 | `ReceiptModal`, `HandoffPacket`, `FactsTable`, `ChecklistView`, `ApprovalsView`, `RoutingPanel`, `DocumentsPanel`, `TimelineView`, `DraftBox` | request.tsx | Request details | |
 | `SourceViewer` | SourceViewer.tsx | Source modal with highlight and compare | |
 | `Shell` | Shell.tsx | Sidebar, top bar, toasts, pulse | |
-| `DemoBar`, `StepCoach`, `UiTour`, `Debrief`, `HelpMenu`, `PageTip`, `Term`, `Rich` | guide/ | Guided demo and in-product guidance | See [19](19-guided-demo.md); one narrator at a time |
+| `DemoBar`, `StepCoach`, `UiTour`, `Debrief`, `HelpMenu`, `PageTip`, `Term`, `Rich` | guide/ | Guided demo and in-product guidance | See [20](20-guided-demo.md); one narrator at a time |
 
 ## Patterns
 

@@ -1,4 +1,4 @@
-# 19 Guided demo and in-product guidance
+# 20 Guided demo and in-product guidance
 
 How a first-time viewer is taught the product: the demo bar, a coach card for every step, a short orientation, an end-of-scenario debrief, a Help menu, page tips and glossary terms. All of it lives in `components/guide/`, `lib/guide.ts` and `lib/guideStore.ts`. None of it touches the engine: the guide reads state, never writes it.
 
