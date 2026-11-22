@@ -11,6 +11,7 @@ import c7 from "@/data/extraction-cache/e-b4.json";
 import c8 from "@/data/extraction-cache/e-c1.json";
 import c9 from "@/data/extraction-cache/e-c2.json";
 import c10 from "@/data/extraction-cache/e-k1.json";
+import c11 from "@/data/extraction-cache/e-a6.json";
 export const EXTRACTION_CACHE: Record<string, Extraction> = {
   "e-a1": c0 as Extraction,
   "e-a2": c1 as Extraction,
@@ -23,4 +24,5 @@ export const EXTRACTION_CACHE: Record<string, Extraction> = {
   "e-c1": c8 as Extraction,
   "e-c2": c9 as Extraction,
   "e-k1": c10 as Extraction,
+  "e-a6": c11 as Extraction,
 };

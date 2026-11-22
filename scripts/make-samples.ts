@@ -6,6 +6,7 @@ import * as XLSX from "xlsx";
 import fs from "fs";
 import path from "path";
 import { extractFile } from "../lib/extractText";
+import contracts from "../data/contracts.json";
 
 const OUT = path.join(process.cwd(), "public", "samples");
 const FONT_DIR = path.join(process.cwd(), "node_modules", "dejavu-fonts-ttf", "ttf");
@@ -20,6 +21,7 @@ type Block =
 const FICTIONAL = "Fictional document for the Ava prototype. All companies, people and numbers are invented.";
 
 async function pdf(name: string, blocks: Block[]) {
+  fs.mkdirSync(path.dirname(path.join(OUT, name)), { recursive: true });
   const doc = await PDFDocument.create();
   doc.registerFontkit(fontkit);
   const reg = await doc.embedFont(fs.readFileSync(path.join(FONT_DIR, "DejaVuSans.ttf")), { subset: true });
@@ -103,7 +105,16 @@ async function main() {
   await pdf("Trivenika_Proposal_v1.pdf", proposal("v1", "12 Nov 2026", [], "₹20,00,000", "₹3,60,000", "₹23,60,000"));
   await pdf("Trivenika_Proposal_v2.pdf", proposal("v2", "13 Nov 2026",
     [["Data validation and UAT support", "1", "lump sum", "", "₹1,50,000"]], "₹21,50,000", "₹3,87,000", "₹25,37,000"));
-  await pdf("Trivenika_Quote_23L.pdf", proposal("v3", "16 Nov 2026",
+  const v3: string[][] = [
+    ["Role", "Qty", "Months", "Rate/month", "Amount"],
+    ["Salesforce Solution Architect", "1", "2", "₹3,00,000", "₹6,00,000"],
+    ["Senior Salesforce Developer", "2", "2", "₹1,94,400", "₹7,77,600"],
+    ["Data Migration Specialist", "1", "2", "₹1,94,400", "₹3,88,800"],
+    ["Project Manager (50%)", "0.5", "2", "₹1,94,400", "₹1,94,400"],
+    ["Data validation and UAT support", "1", "lump sum", "", "₹1,50,000"],
+  ];
+  await pdf("Trivenika_Proposal_v3.pdf", proposal("v3", "16 Nov 2026", [], "₹21,10,800", "₹3,79,944", "₹24,90,744").map((b) => (b.t === "table" && b.header ? { ...b, rows: v3 } : b)));
+  await pdf("Trivenika_Quote_23L.pdf", proposal("v4", "18 Nov 2026",
     [["Data validation and UAT support", "1", "lump sum", "", "₹1,50,000"], ["Hypercare support, 4 weeks", "1", "lump sum", "", "₹1,50,000"]],
     "₹23,00,000", "₹4,14,000", "₹27,14,000"));
 
@@ -193,7 +204,7 @@ async function main() {
     { t: "table", cols: [0, 410], rows: [["Amount (before GST)", "₹2,40,000"], ["GST 18%", "₹43,200"], ["Total", "₹2,83,200"]] },
     { t: "p", s: "Payment due: 30 days from invoice date (30 Nov 2026)." },
   ]);
-  await pdf("Kosha_MSA_2025.pdf", [...koshaHeader, { t: "h2", s: "Master Subscription Agreement" }, { t: "p", s: "Between Kosha Analytics Pvt Ltd and Prayaan Software Pvt Ltd. Signed 20 Dec 2025." }]);
+  if (false) await pdf("Kosha_MSA_2025.pdf", [...koshaHeader, { t: "h2", s: "Master Subscription Agreement" }, { t: "p", s: "Between Kosha Analytics Pvt Ltd and Prayaan Software Pvt Ltd. Signed 20 Dec 2025." }]);
 
   await pdf("Kalakriti_Invoice_INV-KDS-2291.pdf", [
     { t: "h1", s: "Kalakriti Design Studio" },
@@ -224,23 +235,36 @@ async function main() {
     { t: "table", cols: [0, 410], rows: [["Amount (before GST)", "₹7,80,000"], ["GST 18%", "₹1,40,400"], ["Total", "₹9,20,400"]] },
     { t: "p", s: "Validity: 15 days." },
   ]);
-  await pdf("Trivenika_NDA_2024.pdf", [...tvHeader("Mutual Non-Disclosure Agreement"), { t: "p", s: "Between Trivenika Systems Pvt Ltd and Prayaan Software Pvt Ltd. Signed 14 Mar 2024." }]);
-  await pdf("Trivenika_MSA_2024.pdf", [...tvHeader("Master Services Agreement"), { t: "p", s: "Signed 2 Apr 2024. Term: 3 years. Renewal: renews automatically for 12 months unless either party gives 60 days' notice." }]);
+  if (false) await pdf("Trivenika_NDA_2024.pdf", [...tvHeader("Mutual Non-Disclosure Agreement"), { t: "p", s: "Between Trivenika Systems Pvt Ltd and Prayaan Software Pvt Ltd. Signed 14 Mar 2024." }]);
+  if (false) await pdf("Trivenika_MSA_2024.pdf", [...tvHeader("Master Services Agreement"), { t: "p", s: "Signed 2 Apr 2024. Term: 3 years. Renewal: renews automatically for 12 months unless either party gives 60 days' notice." }]);
 
   // Rate card workbook with the 2025 values in a second sheet.
   const wb = XLSX.utils.book_new();
   const r26 = [["Role", "Rate per month (INR, before GST)"], ["Salesforce Solution Architect", 300000], ["Senior Salesforce Developer", 200000], ["Data Migration Specialist", 200000], ["Project Manager", 200000]];
-  const r25 = [["Role", "Rate per month (INR, before GST)"], ["Salesforce Solution Architect", 300000], ["Senior Salesforce Developer", 180000], ["Data Migration Specialist", 200000], ["Project Manager", 200000]];
+  const sched = [["Role", "Schedule A rate (MSA 2024)"], ["Salesforce Solution Architect", 280000], ["Senior Salesforce Developer", 180000], ["Data Migration Specialist", 180000], ["Project Manager", 180000]];
   XLSX.utils.book_append_sheet(wb, XLSX.utils.aoa_to_sheet(r26), "Rate card 2026");
-  XLSX.utils.book_append_sheet(wb, XLSX.utils.aoa_to_sheet(r25), "Rate card 2025");
+  XLSX.utils.book_append_sheet(wb, XLSX.utils.aoa_to_sheet(sched), "Schedule A 2024");
   fs.writeFileSync(path.join(OUT, "Trivenika_RateCard_2026.xlsx"), XLSX.write(wb, { type: "buffer", bookType: "xlsx" }));
+  const wb2 = XLSX.utils.book_new();
+  XLSX.utils.book_append_sheet(wb2, XLSX.utils.aoa_to_sheet([["Role", "Rate per month (INR, before GST)"], ["Salesforce Solution Architect", 300000], ["Senior Salesforce Developer", 194400], ["Data Migration Specialist", 194400], ["Project Manager", 194400]]), "Rate card 2026 v2");
+  XLSX.utils.book_append_sheet(wb2, XLSX.utils.aoa_to_sheet(sched), "Schedule A 2024");
+  fs.writeFileSync(path.join(OUT, "Trivenika_RateCard_2026_v2.xlsx"), XLSX.write(wb2, { type: "buffer", bookType: "xlsx" }));
+
+  // Contracts: real PDFs with numbered clauses, from data/contracts.json.
+  for (const d of contracts.docs as any[]) {
+    const blocks: Block[] = [{ t: "h1", s: d.title }, { t: "small", s: `${d.parties}. Signed ${new Date(d.signed + "T00:00:00Z").toLocaleDateString("en-GB", { day: "numeric", month: "short", year: "numeric", timeZone: "UTC" })}. Document ${d.docId}.` }, { t: "rule" }];
+    for (const c of d.clauses) blocks.push({ t: "p", s: `${c.clause} ${c.title}. ${c.text}` });
+    if (d.schedule) {
+      blocks.push({ t: "gap" }, { t: "h2", s: d.schedule.title });
+      blocks.push({ t: "table", cols: [0, 300], header: true, rows: [["Role", "Rate"], ...d.schedule.rows.map((r: [string, number]) => [r[0], "₹" + r[1].toLocaleString("en-IN")])] });
+    }
+    await pdf(`contracts/${d.docId}.pdf`, blocks);
+  }
 
   // Extract text with the same code the server uses.
   const texts: Record<string, unknown> = {};
-  for (const f of fs.readdirSync(OUT).sort()) {
-    const ex = await extractFile(f, new Uint8Array(fs.readFileSync(path.join(OUT, f))));
-    texts[f] = ex;
-  }
+  const files = [...fs.readdirSync(OUT).filter((f) => f.includes(".")), ...fs.readdirSync(path.join(OUT, "contracts")).map((f) => `contracts/${f}`)].sort();
+  for (const f of files) texts[f] = await extractFile(f, new Uint8Array(fs.readFileSync(path.join(OUT, f))));
   fs.mkdirSync(path.join(process.cwd(), "data"), { recursive: true });
   fs.writeFileSync(path.join(process.cwd(), "data", "sample-texts.json"), JSON.stringify(texts, null, 1));
   console.log(`Wrote ${Object.keys(texts).length} sample files`);

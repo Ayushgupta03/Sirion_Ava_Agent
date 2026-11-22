@@ -3,6 +3,8 @@ import { Fragment, useState } from "react";
 import type { ApprovalKey, Draft, State } from "@/lib/types";
 import type { Analysis, ApprovalView } from "@/lib/engine/rules";
 import { useAva } from "@/lib/store";
+import { actionsOf, currentRead } from "@/lib/engine/ai";
+import { AiLabel } from "./ai";
 import { contractsFor, firstName, personName } from "@/lib/engine/world";
 import { fmtDate, fmtDT, fmtShort, inr, lakh } from "@/lib/format";
 import { docDiff } from "@/lib/engine/facts";
@@ -142,6 +144,8 @@ export function ReceiptModal({ a, ap, onClose }: { a: Analysis; ap: ApprovalView
           <div className="flex items-center gap-2"><StateChip state={ap.status} /><Button small variant="ghost" onClick={onClose}>Close</Button></div>
         </div>
         <div className="space-y-4 px-5 py-4 text-[13px]">
+          {(() => { const v = useAva.getState().state.ai.recs[`receipt:${a.req.id}:${ap.key}`]; return v?.output.bullets ? (
+            <section className="rounded-lg border border-violet-200 bg-violet-50/60 px-3.5 py-2.5"><h3 className="mb-1 flex items-center gap-2 text-[12px] font-semibold uppercase tracking-wide text-violet-900">Ava’s summary for you <AiLabel source={v.source} /></h3><ul className="list-disc space-y-0.5 pl-5">{v.output.bullets.map((b) => <li key={b}>{b}</li>)}</ul><p className="mt-1 text-[11.5px] text-slate-500">Prepared {fmtDT(v.at)}. The decision is yours; Ava never approves.</p></section>) : null; })()}
           {ap.status === "needs_reconfirmation" && <div className="rounded-md bg-red-50 px-3 py-2 text-red-800 ring-1 ring-red-200"><b>Needs reconfirmation.</b> {ap.diffs.map((d) => `Given for ${d.old}. Current: ${d.new}.`).join(" ")}{ap.reopenSource && ` Source: ${ap.reopenSource}.`}</div>}
           <section><h3 className="mb-1.5 font-semibold">You are approving</h3>
             <table className="w-full tabular"><tbody>
@@ -260,12 +264,16 @@ export function DraftBox({ d }: { d: Draft }) {
 export function HandoffPacket({ a, state }: { a: Analysis; state: State }) {
   const msa = contractsFor(a.req.supplierId).find((c) => c.type === "MSA");
   const packet = {
-    request: { id: a.req.id, title: a.req.title, supplier: a.req.supplierId, project: a.req.project, requester: personName(a.req.requesterId), costCentre: a.req.costCentre, state: a.handoff.state, readyAt: a.req.readyAt },
+    request: { id: a.req.id, title: a.req.title, supplier: state.suppliers.find((s) => s.id === a.req.supplierId)?.name ?? a.req.supplierGuess?.name, project: a.req.project, requester: personName(a.req.requesterId), costCentre: a.req.costCentre, state: a.handoff.state, readyAt: a.req.readyAt },
     confirmedFacts: Object.values(a.facts).filter((f) => f.displayState === "confirmed").map((f) => ({ field: f.label, value: f.field === "amount" ? inr(f.num) : f.value, sources: f.sources.map((s) => ({ file: s.file, page: s.page, quote: s.quote })) })),
     documents: a.folded.documents.map((d) => ({ name: d.name, type: d.docType, version: d.version, superseded: !!d.supersededBy })),
     signedReceipts: a.approvals.flatMap((ap) => ap.receipts.map((r) => ({ approval: KEY_LABEL[ap.key], by: personName(r.by), at: r.at, kind: r.kind, snapshot: r.snapshot }))),
     exceptions: a.req.exceptions.map((e) => ({ kind: e.kind, reason: e.reason, by: personName(e.by), at: e.at })),
     assignedToLegalReview: a.checklist.filter((c) => c.status === "legal_review").map((c) => c.label),
+    avaFinalRead: currentRead(state, a.req.id).v.output.sentences.map((x) => x.text).join(" "),
+    contractIssuesRaisedAtIntake: (a.req.contractIssues ?? []).map((i) => ({ issue: i.title, note: i.note, by: personName(i.by), at: i.at })),
+    resolvedContractIssues: Object.values(state.conflicts).filter((c) => c.requestId === a.req.id && c.type === "against_contract" && c.status === "resolved" && c.resolution?.by === "ava").map((c) => ({ issue: c.title, resolution: c.resolution!.text })),
+    avaActions: actionsOf(a.req).ava.length, peopleDecisions: actionsOf(a.req).people.length,
     openNotes: [msa?.autoRenew ? "Nobody has reviewed the auto-renewal clause in the MSA." : "Nobody has reviewed clause wording.", ...a.folded.documents.filter((d) => d.docType === "msa_comments").map((d) => `Supplier comments on the MSA not reviewed (${d.name}).`)],
     proposedTerms: { label: "Proposed", price: a.amount != null ? inr(a.amount) : null, paymentTerms: a.facts.payment_terms?.value, validity: a.facts.validity?.value, duration: a.facts.duration?.value },
     existingAgreement: msa ? { id: msa.id, signed: msa.date, renewalAndNotice: msa.renewalTerms ?? null } : null,
@@ -275,6 +283,9 @@ export function HandoffPacket({ a, state }: { a: Analysis; state: State }) {
     <Card id="packet">
       <CardHead title={a.handoff.state === "ready_legal" ? "Handoff packet: Ready for Legal Review" : "Handoff packet: Ready to issue PO"} right={<Button small onClick={download}>Download packet (JSON)</Button>} sub={`Generated ${a.req.readyAt ? fmtDT(a.req.readyAt) : ""}. Prices and service terms from the supplier are marked Proposed.`} />
       <div className="grid gap-4 p-4 text-[13px] md:grid-cols-2">
+        <div className="rounded-lg bg-accent-50/60 px-3 py-2 md:col-span-2"><h3 className="mb-1 font-semibold">Ava’s final read</h3><p>{packet.avaFinalRead}</p><p className="mt-1 text-[12px] text-slate-600">Ava did {packet.avaActions} actions; people made {packet.peopleDecisions} decisions.</p></div>
+        {packet.contractIssuesRaisedAtIntake.length > 0 && <div className="md:col-span-2"><h3 className="mb-1 font-semibold">Contract issues raised at intake</h3><ul className="list-disc pl-5">{packet.contractIssuesRaisedAtIntake.map((i) => <li key={i.issue}><b>{i.issue}.</b> {i.note} ({i.by})</li>)}</ul></div>}
+        {packet.resolvedContractIssues.length > 0 && <div className="md:col-span-2"><h3 className="mb-1 font-semibold">Contract issues resolved during intake</h3><ul className="list-disc pl-5">{packet.resolvedContractIssues.map((i) => <li key={i.issue}><b>{i.issue}.</b> {i.resolution}</li>)}</ul></div>}
         <div><h3 className="mb-1 font-semibold">Confirmed facts</h3><ul className="space-y-0.5">{packet.confirmedFacts.map((f) => <li key={f.field}><span className="text-slate-500">{f.field}:</span> {f.value}</li>)}</ul></div>
         <div><h3 className="mb-1 font-semibold">Proposed terms <Chip tone="amber">Proposed</Chip></h3><ul className="space-y-0.5"><li>Price: {packet.proposedTerms.price}</li>{packet.proposedTerms.paymentTerms && <li>Payment terms: {packet.proposedTerms.paymentTerms}</li>}{packet.proposedTerms.validity && <li>Quote validity: {packet.proposedTerms.validity}</li>}{packet.proposedTerms.duration && <li>Duration: {packet.proposedTerms.duration}</li>}</ul>
           {packet.existingAgreement && <><h3 className="mb-1 mt-3 font-semibold">Existing agreement</h3><p>{packet.existingAgreement.id}, signed {fmtDate(packet.existingAgreement.signed)}. {packet.existingAgreement.renewalAndNotice}</p></>}</div>

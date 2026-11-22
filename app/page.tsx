@@ -5,21 +5,23 @@ import { useMemo, useState } from "react";
 import { useAva } from "@/lib/store";
 import { resolveFocus } from "@/lib/story";
 import { deriveItems } from "@/lib/engine/items";
+import { counters } from "@/lib/insights";
 import { cx } from "@/components/ui";
 import { Icon, type IconName } from "@/components/icons";
 
 const TABS: { k: string; verb: string; img: string; alt: string; line: string; href: string }[] = [
-  { k: "record", verb: "Record", img: "/screens/record.png", alt: "The Inbox with the Ava recorded panel: the email is filed under Trivenika Systems, Salesforce migration, REQ-1047.", line: "Rahul writes to a supplier as usual. Ava files it as REQ-1047 and pulls out the amount, start date and duration, each linked to its sentence.", href: "/inbox" },
-  { k: "check", verb: "Check", img: "/screens/check.png", alt: "The change banner: price changed in the attachment, ₹20,00,000 to ₹21,50,000. The email body says nothing about price.", line: "The email says “updated quote attached”. Only the PDF shows ₹1,50,000 more. Ava catches it and stops the handoff.", href: "/inbox" },
-  { k: "route", verb: "Route", img: "/screens/route.png", alt: "Meera Nair's My work list with one question: confirm the security certificate covers CRM data.", line: "Each person gets only what needs them, with one question each. Here, InfoSec is asked one thing.", href: "/items" },
-  { k: "track", verb: "Track", img: "/screens/track.png", alt: "The dashboard pipeline with requests by stage and the timing panel.", line: "Every request by stage, who it waits on, and how long intake took against a one-day target.", href: "/dashboard" },
+  { k: "reads", verb: "Reads", img: "/screens/reads.png", alt: "Ava's read of REQ-1047: four cited sentences on the deal and its risks.", line: "Ava reads the email and every attachment, then writes four plain sentences on what the deal is and what is risky. Every claim links to its source.", href: "/requests/REQ-1047" },
+  { k: "plans", verb: "Plans", img: "/screens/plans.png", alt: "Ava's plan for REQ-1047 with policy badges, the critical path and the predicted ready date of Tue 17 Nov.", line: "Ava plans the work: policy steps from the rules engine, its own steps with a reason, and a predicted ready date from supplier history.", href: "/requests/REQ-1047" },
+  { k: "acts", verb: "Acts", img: "/screens/acts.png", alt: "The handoff banner: Ava did the actions; people made the decisions.", line: "Ava does the legwork: reads, files, checks clauses, drafts and re-plans. People make the decisions, and the banner counts both.", href: "/requests/REQ-1047" },
+  { k: "advises", verb: "Advises", img: "/screens/advises.png", alt: "Ava recommends asking Rahul about the new ₹1,50,000 UAT line before re-approving. Medium confidence.", line: "On every problem, Ava recommends one next step with its reasons and a ready draft. A person uses it, edits it or dismisses it.", href: "/today" },
 ];
 
 export default function Landing() {
   const { state, reset, jumpTo } = useAva();
   const router = useRouter();
-  const [tab, setTab] = useState("record");
+  const [tab, setTab] = useState("reads");
   const items = useMemo(() => deriveItems(state), [state]);
+  const k = useMemo(() => counters(state), [state]);
   const cur = TABS.find((t) => t.k === tab)!;
   const watchA = () => { reset(); const f = useAva.getState().next(); if (f) router.push(resolveFocus(f, useAva.getState().state)); };
   const watchB = () => { const f = jumpTo("B", 1); if (f) router.push(resolveFocus(f, useAva.getState().state)); };
@@ -28,7 +30,7 @@ export default function Landing() {
     <div className="enter mx-auto max-w-[1100px] space-y-8">
       <section className="max-w-3xl">
         <h1 className="text-[36px] font-semibold leading-[1.08] tracking-[-0.02em] text-slate-900 sm:text-[46px]">Supplier email in. Routed request out.</h1>
-        <p className="mt-4 text-[18px] leading-relaxed text-slate-700">Ava records every supplier email, checks it against what was agreed, and routes it to the one person who must act.</p>
+        <p className="mt-4 text-[18px] leading-relaxed text-slate-700">Ava reads every supplier email, plans the work, does the legwork, and tells each person the one decision that needs them.</p>
         <ul className="mt-4 flex flex-col gap-2 text-[14px] text-slate-700 sm:flex-row sm:gap-6">
           {TRUST.map(([i, t]) => <li key={t} className="flex items-start gap-2"><Icon name={i} className="mt-0.5 shrink-0 text-accent" />{t}</li>)}
         </ul>
@@ -59,11 +61,11 @@ export default function Landing() {
       <section className="flex flex-wrap items-center gap-3">
         <button onClick={watchA} className="flex h-12 items-center gap-2 rounded-lg bg-accent px-5 text-[15px] font-semibold text-white hover:bg-accent-700"><Icon name="play" size={15} />Watch Scenario A: new project (3 min)</button>
         <button onClick={watchB} className="flex h-12 items-center gap-2 rounded-lg border border-accent bg-white px-5 text-[15px] font-semibold text-accent-700 hover:bg-accent-50"><Icon name="play" size={15} />Watch Scenario B: renewal (2 min)</button>
-        <Link href="/inbox?compose=1" className="text-[14px] font-medium text-slate-600 underline underline-offset-2 hover:text-slate-900">or send your own email</Link>
+        <Link href="/mail?compose=1" className="text-[14px] font-medium text-slate-600 underline underline-offset-2 hover:text-slate-900">or test with your own email</Link>
       </section>
 
       <p className="flex flex-wrap gap-x-5 gap-y-1 border-t border-slate-200 pt-4 font-mono text-[12.5px] text-slate-500">
-        <span>This session: {state.emails.length} email{state.emails.length === 1 ? "" : "s"} recorded</span><span>{state.requestOrder.length} requests</span><span>{items.length} open items</span><span>{state.requestOrder.filter((id) => state.requests[id].readyAt).length} ready</span><span>0 forms filled</span>
+        <span>This session: {state.emails.length} email{state.emails.length === 1 ? "" : "s"} recorded</span><span>{state.requestOrder.length} requests</span><span>{items.length} open items</span><span>{state.requestOrder.filter((id) => state.requests[id].readyAt).length} ready</span><span>{k.avaActions} Ava actions : {k.decisions} people decisions</span><span>{k.checks} contract terms checked</span><span>0 forms filled</span>
       </p>
     </div>
   );

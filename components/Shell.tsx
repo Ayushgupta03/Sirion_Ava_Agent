@@ -20,8 +20,8 @@ export const roleOf = (id: string) => VIEW_AS.find((v) => v.id === id)?.role ?? 
 export const initials = (id: string) => (person(id)?.name ?? id).split(" ").map((w) => w[0]).join("").slice(0, 2);
 
 const WORK: { href: string; label: string; icon: IconName; key?: "mine" | "requests" }[] = [
-  { href: "/inbox", label: "Inbox", icon: "inbox" },
-  { href: "/items", label: "My work", icon: "checkCircle", key: "mine" },
+  { href: "/mail", label: "Captured mail", icon: "inbox" },
+  { href: "/today", label: "Today", icon: "checkCircle", key: "mine" },
   { href: "/requests", label: "Requests", icon: "list", key: "requests" },
   { href: "/dashboard", label: "Dashboard", icon: "chart" },
 ];
@@ -146,7 +146,7 @@ function TopRight() {
           <button className="block w-full rounded px-2 py-1.5 text-left hover:bg-slate-100" onClick={() => { tick(60 * 24); setClock(false); }}>Move forward 1 day</button>
         </div>}
       </div>
-      <Link href="/items" aria-label={`${c.mine} items waiting on ${person(viewAs)?.name}`} className="relative grid h-9 w-9 shrink-0 place-items-center rounded-md border border-slate-200 bg-white">
+      <Link href="/today" aria-label={`${c.mine} items waiting on ${person(viewAs)?.name}`} className="relative grid h-9 w-9 shrink-0 place-items-center rounded-md border border-slate-200 bg-white">
         <Icon name="bell" />
         {c.mine > 0 && <span className="absolute -right-1.5 -top-1.5 grid h-[18px] min-w-[18px] place-items-center rounded-full bg-red-600 px-1 text-[10.5px] font-bold text-white">{c.mine}</span>}
       </Link>
@@ -199,7 +199,7 @@ function ActorToast() {
         <div className="min-w-0 flex-1 text-[13px]">
           <p className="font-semibold">Now acting as {toast.actors.map((a) => `${person(a)?.name} (${roleOf(a).split(",")[0].replace(/^(Budget owner|Requester|Procurement|Legal)$/, (m) => m.toLowerCase())})`).join(" and ")}</p>
           <p className="text-slate-600">The demo did this as them. Your own view has not changed.</p>
-          <div className="mt-2 flex flex-wrap gap-1.5">{toast.actors.map((a) => <button key={a} onClick={() => { setViewAs(a); dismiss(); router.push("/items"); }} className="rounded-md border border-slate-300 px-2 py-1 text-[12.5px] font-medium hover:bg-slate-50">Switch view to {person(a)?.name.split(" ")[0]}</button>)}</div>
+          <div className="mt-2 flex flex-wrap gap-1.5">{toast.actors.map((a) => <button key={a} onClick={() => { setViewAs(a); dismiss(); router.push("/today"); }} className="rounded-md border border-slate-300 px-2 py-1 text-[12.5px] font-medium hover:bg-slate-50">Switch view to {person(a)?.name.split(" ")[0]}</button>)}</div>
         </div>
         <button onClick={dismiss} aria-label="Dismiss" className="grid h-7 w-7 place-items-center rounded text-slate-400 hover:bg-slate-100"><Icon name="x" size={14} /></button>
       </div>
@@ -250,7 +250,8 @@ function DemoDock() {
           {cur && <span className="hidden font-mono md:inline">{fmtDT(cur.at)}</span>}
           <ol aria-hidden className="hidden gap-1 lg:flex">{steps.map((s, k) => <li key={s.id} className={cx("h-1.5 w-5 rounded-full", k < i ? "bg-accent" : "bg-slate-200")} />)}</ol>
           <span className="ml-auto flex items-center gap-1">
-            <button onClick={() => { runContrast(); router.push("/items"); }} className="hidden h-8 items-center gap-1.5 rounded-md px-2 text-[12.5px] text-slate-700 hover:bg-slate-100 md:flex" title="A repeat request under an existing agreement: one approval, done in minutes"><Icon name="repeat" size={14} />Show a repeat request</button>
+            <button onClick={() => router.push(`/mail?compose=1&t=${Date.now()}`)} className="hidden h-8 items-center gap-1.5 rounded-md px-2 text-[12.5px] text-slate-700 hover:bg-slate-100 md:flex" title="Write any email, as anyone. It runs through the same pipeline."><Icon name="mail" size={14} />Test lab: simulate an incoming email</button>
+            <button onClick={() => { runContrast(); router.push("/today"); }} className="hidden h-8 items-center gap-1.5 rounded-md px-2 text-[12.5px] text-slate-700 hover:bg-slate-100 md:flex" title="A repeat request under an existing agreement: one approval, done in minutes"><Icon name="repeat" size={14} />Show a repeat request</button>
             {confirmReset
               ? <span className="flex items-center gap-1"><button className="h-8 rounded-md border border-red-300 px-2 text-[12.5px] font-medium text-red-700" onClick={() => { reset(); setConfirmReset(false); router.push("/"); }}>Reset demo</button><button className="h-8 px-2 text-[12.5px] text-slate-600" onClick={() => setConfirmReset(false)}>Cancel</button></span>
               : <button onClick={() => setConfirmReset(true)} className="grid h-8 w-8 place-items-center rounded-md hover:bg-slate-100" aria-label="Reset demo" title="Reset demo: clears every step, composed email and action"><Icon name="reset" size={15} /></button>}

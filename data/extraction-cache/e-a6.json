@@ -1,0 +1,131 @@
+{
+ "isSupplierCommunication": true,
+ "supplier": {
+  "name": "Trivenika Systems Pvt Ltd",
+  "domain": "trivenika.example",
+  "known": true
+ },
+ "filing": {
+  "project": "Salesforce migration",
+  "request": "REQ-1047",
+  "requestType": "new_sow",
+  "confidence": "high",
+  "reason": "Same thread. Updated proposal TSPL-Q-2611-01 (v3) replaces v2; rates reissued within the MSA cap."
+ },
+ "facts": [
+  {
+   "field": "amount_pre_gst",
+   "value": "₹21,10,800",
+   "state": "confirmed",
+   "source": {
+    "file": "Trivenika_Proposal_v3.pdf",
+    "quote": "Subtotal (before GST) ₹21,10,800",
+    "page": 1
+   }
+  },
+  {
+   "field": "gst",
+   "value": "₹3,79,944",
+   "state": "confirmed",
+   "source": {
+    "file": "Trivenika_Proposal_v3.pdf",
+    "quote": "GST 18% ₹3,79,944",
+    "page": 1
+   }
+  },
+  {
+   "field": "total",
+   "value": "₹24,90,744",
+   "state": "confirmed",
+   "source": {
+    "file": "Trivenika_Proposal_v3.pdf",
+    "quote": "Total ₹24,90,744",
+    "page": 1
+   }
+  },
+  {
+   "field": "scope",
+   "value": "Migrate the sales pipeline, accounts, contacts and opportunity history from the legacy CRM to Salesforce",
+   "state": "confirmed",
+   "source": {
+    "file": "Trivenika_Proposal_v3.pdf",
+    "quote": "Scope: Migrate the sales pipeline, accounts, contacts and opportunity history from the legacy",
+    "page": 1
+   }
+  },
+  {
+   "field": "data_access",
+   "value": "Salesforce admin access to sync and validate customer records",
+   "state": "unconfirmed",
+   "source": {
+    "file": "Trivenika_Proposal_v3.pdf",
+    "quote": "Access required: Salesforce admin access to sync and validate customer records",
+    "page": 1
+   }
+  },
+  {
+   "field": "duration",
+   "value": "2 months (8 weeks)",
+   "state": "confirmed",
+   "source": {
+    "file": "Trivenika_Proposal_v3.pdf",
+    "quote": "Duration: 2 months (8 weeks), starting 16 Nov 2026.",
+    "page": 1
+   }
+  },
+  {
+   "field": "start_date",
+   "value": "16 Nov 2026",
+   "state": "confirmed",
+   "source": {
+    "file": "Trivenika_Proposal_v3.pdf",
+    "quote": "Duration: 2 months (8 weeks), starting 16 Nov 2026.",
+    "page": 1
+   }
+  },
+  {
+   "field": "validity",
+   "value": "30 days",
+   "state": "confirmed",
+   "source": {
+    "file": "Trivenika_Proposal_v3.pdf",
+    "quote": "Validity: 30 days from the date of this proposal.",
+    "page": 1
+   }
+  },
+  {
+   "field": "payment_terms",
+   "value": "30 days from invoice",
+   "state": "confirmed",
+   "source": {
+    "file": "Trivenika_Proposal_v3.pdf",
+    "quote": "Payment terms: 30 days from invoice.",
+    "page": 1
+   }
+  },
+  {
+   "field": "supplier_entity",
+   "value": "Trivenika Systems Pvt Ltd",
+   "state": "confirmed",
+   "source": {
+    "file": "Trivenika_Proposal_v3.pdf",
+    "quote": "Trivenika Systems Pvt Ltd",
+    "page": 1
+   }
+  }
+ ],
+ "changesVsKnown": [
+  {
+   "field": "amount_pre_gst",
+   "old": "₹20,00,000",
+   "new": "₹21,10,800",
+   "source": {
+    "file": "Trivenika_Proposal_v3.pdf",
+    "page": 1,
+    "quote": "Data validation and UAT support 1 lump sum ₹1,50,000"
+   }
+  }
+ ],
+ "flags": [],
+ "documents": null
+}

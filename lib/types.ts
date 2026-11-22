@@ -103,6 +103,8 @@ export type ExtractionSource = "live" | "cached" | "basic" | "none";
 // ---- Request state ----
 export interface Source {
   emailId: string;
+  docId?: string; // a signed contract, opened at a clause
+  clause?: string;
   file: string; // "email" or attachment name
   attachmentId?: string;
   page?: number;
@@ -180,7 +182,7 @@ export interface Flag {
   sendTo: Role;
   personId: string;
   evidence?: Source;
-  question?: "data_access";
+  question?: "data_access" | "keep_line";
   status: "open" | "answered" | "dismissed";
   answer?: string;
   createdAt: string;
@@ -234,13 +236,15 @@ export interface Request {
   approvalCache: Record<string, string>;
   supplierDocsAt?: string;
   withdrawals?: { at: string; reason: string }[];
+  checksSeen?: string[];
+  contractIssues?: { title: string; note: string; at: string; by: string }[];
 }
 
 export type FactEvent =
   | { at: string; kind: "extraction"; emailId: string }
   | { at: string; kind: "person"; field: string; value: string; num?: number; by: string; reason: string };
 
-export type ConflictType = "said_vs_written" | "started_before_approval" | "renewal_terms_changed" | "hidden_scope";
+export type ConflictType = "said_vs_written" | "started_before_approval" | "renewal_terms_changed" | "hidden_scope" | "against_contract";
 
 export interface ConflictSide { label: string; quotes: (Source & { note?: string })[] }
 
@@ -267,6 +271,10 @@ export interface Conflict {
   resolveText?: string;
   aValue?: string;
   bValue?: string;
+  impact?: number;
+  impactText?: string;
+  clauses?: string[];
+  originalFee?: number;
 }
 
 export interface Draft {
@@ -333,16 +341,21 @@ export interface State {
   lastReqNum: number;
   threadRequest: Record<string, string>;
   addedSuppliers: string[];
+  ai: import("./aiTypes").AiState;
 }
 
 // ---- Events ----
 export type Action =
-  | { type: "answer_flag"; requestId: string; flagId: string; answer: "yes" | "no" }
+  | { type: "answer_flag"; requestId: string; flagId: string; answer: "yes" | "no"; note?: string }
   | { type: "dismiss_flag"; requestId: string; flagId: string }
   | { type: "confirm_fact"; requestId: string; field: string }
   | { type: "dispute_fact"; requestId: string; field: string; reason: string }
   | { type: "set_fact"; requestId: string; field: string; value: string; reason: string }
-  | { type: "resolve_conflict"; conflictId: string; choice: "A" | "B" | "value"; value?: string; reason?: string }
+  | { type: "resolve_conflict"; conflictId: string; choice: "A" | "B" | "value" | "accept"; value?: string; reason?: string }
+  | { type: "require_cr"; conflictId: string; note: string }
+  | { type: "ask_legal"; conflictId: string; text: string }
+  | { type: "rec_use"; recKey: string; requestId: string; draft?: string }
+  | { type: "rec_dismiss"; recKey: string; requestId: string; reason: string }
   | { type: "ask_supplier"; requestId: string; conflictId?: string }
   | { type: "mark_sent"; draftId: string }
   | { type: "comment"; requestId: string; conflictId?: string; text: string }
@@ -359,7 +372,8 @@ export type Action =
 
 export type AvaEvent =
   | { id: string; at: string; kind: "email"; email: Email; extraction: Extraction | null; extractionSource: ExtractionSource; tag?: string }
-  | { id: string; at: string; kind: "action"; actor: string; action: Action; tag?: string };
+  | { id: string; at: string; kind: "action"; actor: string; action: Action; tag?: string }
+  | { id: string; at: string; kind: "ai"; requestId: string; layer: "read" | "plan" | "rec"; key: string; output: unknown; source: import("./aiTypes").AiSource; tag?: string };
 
 /** What the source viewer shows: one file or email, optional highlighted quotes, optional older version beside it. */
-export interface ViewerTarget { emailId: string; attachmentId?: string; quote?: string; quotes?: string[]; page?: number; compareWith?: string; title?: string }
+export interface ViewerTarget { docId?: string; clause?: string; emailId: string; attachmentId?: string; quote?: string; quotes?: string[]; page?: number; compareWith?: string; title?: string }

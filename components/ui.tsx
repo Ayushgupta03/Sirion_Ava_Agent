@@ -51,6 +51,11 @@ export function Button({ children, onClick, variant = "secondary", small, disabl
 export function SourceLink({ src, label }: { src?: Source; label?: string }) {
   const open = useAva((s) => s.openSource);
   if (!src) return <span className="text-slate-400">—</span>;
+  if (src.docId) return (
+    <button onClick={() => open(src)} className="text-left text-[12px] font-medium text-accent underline decoration-accent/30 underline-offset-2 hover:decoration-accent" title="Open the contract at this clause">
+      {label ?? `${src.docId}${src.clause ? ` ${src.clause}` : ""}`}
+    </button>
+  );
   if (!src.emailId) return <span className="text-[12px] text-slate-500" title={src.quote}>{label ?? (src.file === "directory" ? "Directory" : src.file === "person" ? "Person" : src.file)}</span>;
   const text = label ?? (src.file === "email" ? "Email" : `${src.file}${src.page ? `, p.${src.page}` : ""}`);
   return (

@@ -45,6 +45,9 @@ export function deriveItems(state: State): Item[] {
     for (const fl of req.flags.filter((f) => f.status === "open" && f.type === "mention")) {
       add({ key: `item:${fl.id}`, personId: fl.personId, requestId: id, kind: "mention", title: req.title, question: fl.message, flagId: fl.id });
     }
+    for (const fl of req.flags.filter((f) => f.status === "open" && f.question === "keep_line")) {
+      add({ key: `item:${fl.id}`, personId: fl.personId, requestId: id, kind: "question", title: req.title, question: fl.message, flagId: fl.id });
+    }
     // Drafts the requester has not sent yet
     for (const d of state.drafts.filter((d) => d.requestId === id && d.status === "draft")) {
       add({ key: `item:draft:${d.id}`, personId: d.forPersonId, requestId: id, kind: "draft", title: req.title, question: `Ava drafted an email for you to send to ${supShort}: ${d.purpose}.`, draftId: d.id });

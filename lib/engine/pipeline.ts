@@ -5,13 +5,15 @@ import { domainOf, fmtDT, hoursBetween, inr, lakh, norm, parseAmount, parseDate 
 import { classifyDoc, FIELD_LABEL, foldFacts, MATERIAL } from "./facts";
 import { analyze } from "./rules";
 import { deriveItems } from "./items";
+import { emptyAi, fingerprint, planDiff, validatePlan } from "./ai";
+import type { AiPlan, AiRec, AiRead } from "../aiTypes";
 import { COMPANY_DOMAIN, CONTRACTS, firstName, isInternal, PEOPLE, person, personByEmail, personName, POLICY, SEED_SUPPLIERS, START_CLOCK } from "./world";
 
 export function initialState(): State {
   return {
     now: START_CLOCK, emails: [], extractions: {}, suppliers: structuredClone(SEED_SUPPLIERS), requests: {}, requestOrder: [], conflicts: {},
     drafts: [], orphans: [], changes: [], items: {}, reassigned: {}, counters: { answeredFromDocs: 0, approvalsReopened: 0, startedBeforeApproval: {} },
-    lastReqNum: 1046, threadRequest: {}, addedSuppliers: [],
+    lastReqNum: 1046, threadRequest: {}, addedSuppliers: [], ai: emptyAi(),
   };
 }
 
@@ -35,12 +37,39 @@ export function applyEvent(prev: State, ev: AvaEvent): State {
   const state: State = structuredClone(prev);
   if (ev.at > state.now) state.now = ev.at;
   const ctx: Ctx = { reopened: [], touched: new Set() };
+  if (ev.kind === "ai") { applyAi(state, ev); return { ...state }; }
   if (ev.kind === "email") ingestEmail(state, ev.email, ev.extraction, ev.extractionSource, ctx);
   else applyAction(state, ev.actor, ev.action, ev.at, ev.id, ctx);
   return runRules(prev, state, ev.at, ctx);
 }
 
 interface Ctx { reopened: string[]; touched: Set<string>; resolvedConflict?: string }
+
+// ---------------- AI layers (read, plan, recommend) ----------------
+const SRC_WORD = { live: "Live AI", cached: "Cached", rules: "Summary from rules (AI unavailable)" } as const;
+function applyAi(state: State, ev: Extract<AvaEvent, { kind: "ai" }>) {
+  const req = state.requests[ev.requestId]; if (!req) return;
+  state.ai ??= emptyAi();
+  const fp = fingerprint(state, req.id);
+  if (ev.layer === "read") {
+    const list = (state.ai.reads[req.id] ??= []);
+    list.push({ at: ev.at, source: ev.source, fingerprint: fp, output: ev.output as AiRead });
+    log(req, ev.at, `Ava ${list.length > 1 ? "updated its read of" : "read"} the request (${SRC_WORD[ev.source]}).`, "action");
+  } else if (ev.layer === "plan") {
+    const a = analyze(state, req.id);
+    const list = (state.ai.plans[req.id] ??= []);
+    const { plan, fixes } = validatePlan(ev.output as AiPlan, a, state);
+    fixes.forEach((f) => log(req, ev.at, f + ".", "rule"));
+    const changes = planDiff(list[list.length - 1], plan, a);
+    list.push({ at: ev.at, source: ev.source, fingerprint: fp, output: plan, changes });
+    log(req, ev.at, `Ava ${list.length > 1 ? "re-planned" : "planned"} the work: ${plan.steps.length} steps${plan.predictedReady ? `, predicted ready ${plan.predictedReady}` : ""} (${SRC_WORD[ev.source]}).`, "action");
+  } else {
+    const rec = ev.output as AiRec;
+    state.ai.recs[ev.key] = { at: ev.at, source: ev.source, fingerprint: fp, output: rec };
+    if (ev.key.startsWith("receipt:")) log(req, ev.at, `Ava prepared a receipt summary for ${personName(analyze(state, req.id).approvals.find((x) => ev.key.endsWith(x.key))?.approverId)}.`, "action");
+    else log(req, ev.at, `Ava recommends: ${rec.recommendation}`, "action");
+  }
+}
 
 // ---------------- Email ----------------
 function ingestEmail(state: State, email: Email, ex: Extraction | null, source: State["extractions"][string]["source"], ctx: Ctx) {
@@ -134,6 +163,7 @@ function ingestEmail(state: State, email: Email, ex: Extraction | null, source: 
   req.factEvents.push({ at, kind: "extraction", emailId: email.id });
   const who = personByEmail(email.from)?.name ?? email.from;
   log(req, at, `Recorded email from ${who}: "${email.subject}"${email.attachments.length ? ` with ${email.attachments.map((a) => a.name).join(", ")}` : ""}. Filed by: ${reason}. Extraction: ${labelSource(source)}.`, "email");
+  for (const a of email.attachments) log(req, at, `Read ${a.name} (${a.pages.length} page${a.pages.length === 1 ? "" : "s"}) and pulled out the facts.`, "fact");
   if (fromSupplier) Object.values(state.conflicts).filter((c) => c.requestId === req!.id && c.waitingOnSupplier).forEach((c) => { c.waitingOnSupplier = undefined; });
   ctx.touched.add(req.id);
 }
@@ -169,6 +199,9 @@ function applyAction(state: State, actor: string, a: Action, at: string, evId: s
       if (a.flagId.endsWith(":data_access")) {
         req.factEvents.push({ at, kind: "person", field: "data_access", value: a.answer === "yes" ? "Yes: the supplier will access customer data" : "No access to personal or customer data", num: a.answer === "yes" ? 1 : 0, by: actor, reason: `${personName(actor)} answered ${a.answer === "yes" ? "Yes" : "No"} to "Will they access customer data?"` });
         log(req, at, `${personName(actor)} confirmed data access: ${a.answer === "yes" ? "Yes" : "No"}.`, "action", actor);
+      } else if (fl.question === "keep_line") {
+        fl.answer = a.note ? `${a.answer === "yes" ? "Keep it" : "Remove it"}: ${a.note}` : a.answer === "yes" ? "Keep it" : "Remove it";
+        log(req, at, `${personName(actor)} answered "${fl.message}": ${fl.answer}.`, "action", actor);
       }
       ctx.touched.add(req.id); return;
     }
@@ -198,6 +231,7 @@ function applyAction(state: State, actor: string, a: Action, at: string, evId: s
       let text = "";
       if (a.choice === "A") { text = `Accepted source A (${c.a.label})${c.aValue ? `: ${c.aValue}` : ""}.`; if (c.field && c.aValue) req.factEvents.push({ at, kind: "person", field: c.field, value: c.aValue, num: c.field === "amount" ? parseAmount(c.aValue) : c.field === "data_access" ? (/^y/i.test(c.aValue) ? 1 : 0) : undefined, by: actor, reason: `Accepted ${c.a.label}` }); }
       if (a.choice === "B") text = `Accepted source B (${c.b.label})${c.bValue ? `: ${c.bValue}` : ""}.`;
+      if (a.choice === "accept") { text = `Accepted with a reason: ${a.reason}`; (req.contractIssues ??= []).push({ title: c.title, note: `Accepted by ${personName(actor)}: ${a.reason}`, at, by: actor }); }
       if (a.choice === "value") { text = `Entered ${a.value}. Reason: ${a.reason}`; if (c.field) req.factEvents.push({ at, kind: "person", field: c.field, value: a.value ?? "", num: c.field === "amount" ? parseAmount(a.value) : undefined, by: actor, reason: a.reason ?? "" }); }
       c.status = "resolved"; c.resolvedAt = at; c.resolution = { by: actor, text, reopened: [] };
       ctx.resolvedConflict = c.id;
@@ -249,6 +283,37 @@ function applyAction(state: State, actor: string, a: Action, at: string, evId: s
       log(req, at, `${personName(actor)} recorded ${a.kind === "retro" ? "a reason for work started before approval" : "an exception"}: "${a.reason}"`, "action", actor); return;
     }
     case "competing_quote": { const req = reqOf(a.requestId); req.competingQuote = { note: a.note, by: actor, at }; log(req, at, `${personName(actor)} attached a competing quote: ${a.note}`, "action", actor); return; }
+    case "require_cr": {
+      const c = state.conflicts[a.conflictId]; if (!c) return; const req = reqOf(c.requestId);
+      const text = `Change request required before the new date is accepted. ${a.note}`;
+      c.status = "resolved"; c.resolvedAt = at; c.resolution = { by: actor, text, reopened: [] };
+      (req.contractIssues ??= []).push({ title: c.title, note: text, at, by: actor });
+      log(req, at, `${personName(actor)} required a change request on "${c.title}". ${a.note}`, "conflict", actor); return;
+    }
+    case "ask_legal": {
+      const c = state.conflicts[a.conflictId]; if (!c) return; const req = reqOf(c.requestId);
+      req.flags.push({ id: `flag:${req.id}:legal:${evId}`, type: "mention", message: `${personName(actor)} asks Legal about "${c.title}": ${a.text}`, sendTo: "legal", personId: POLICY.legal, status: "open", createdAt: at });
+      log(req, at, `${personName(actor)} asked ${personName(POLICY.legal)} (Legal) about "${c.title}".`, "conflict", actor); return;
+    }
+    case "rec_use": {
+      const req = reqOf(a.requestId); const v = (state.ai.recs[a.recKey] ??= { at, source: "rules", fingerprint: "", output: { recommendation: "Review the conflict.", reasoning: "", citations: [], confidence: "low", action: "review" } });
+      v.used = { by: actor, at };
+      const rec = a.draft ? { ...v.output, draft: a.draft } : v.output; const c = state.conflicts[a.recKey];
+      if (rec.action === "draft_supplier" && rec.draft) {
+        const sup = state.suppliers.find((s) => s.id === req.supplierId); const first = state.emails.find((e) => e.id === req.emailIds[0]);
+        state.drafts.push({ id: `draft-${evId}`, requestId: req.id, conflictId: c?.id, forPersonId: actor, to: sup?.contacts[0]?.email ?? "", subject: `RE: ${first?.subject.replace(/^(re|fwd?):\s*/i, "") ?? req.title}`, body: rec.draft, threadId: first?.threadId, createdAt: at, status: "draft", purpose: c ? `question about "${c.title}"` : "Ava's recommendation" });
+      }
+      if (rec.action === "ask_requester") {
+        req.flags.push({ id: `flag:${req.id}:keep_line`, type: "question", message: rec.draft ?? rec.recommendation, sendTo: "requester", personId: req.requesterId, status: "open", createdAt: at, question: "keep_line" });
+      }
+      if (rec.action === "require_cr" && c) { c.status = "resolved"; c.resolvedAt = at; c.resolution = { by: actor, text: "Change request required.", reopened: [] }; (req.contractIssues ??= []).push({ title: c.title, note: "Change request required.", at, by: actor }); }
+      log(req, at, `${personName(actor)} used Ava's recommendation${a.draft ? " (edited)" : ""}: ${rec.recommendation}`, "action", actor); return;
+    }
+    case "rec_dismiss": {
+      const req = reqOf(a.requestId); const v = (state.ai.recs[a.recKey] ??= { at, source: "rules", fingerprint: "", output: { recommendation: "Review the conflict.", reasoning: "", citations: [], confidence: "low", action: "review" } });
+      v.dismissed = { by: actor, at, reason: a.reason };
+      log(req, at, `${personName(actor)} dismissed Ava's recommendation. Reason: ${a.reason}`, "action", actor); return;
+    }
     case "reassign": { state.reassigned[a.itemKey] = a.to; return; }
     case "escalate": { const c = state.conflicts[a.conflictId]; if (!c) return; c.escalated = true; log(reqOf(c.requestId), at, `${personName(actor)} escalated "${c.title}" to ${personName(POLICY.vpApprover)}.`, "conflict", actor); return; }
     case "orphan_confirm": {
@@ -337,6 +402,13 @@ function runRules(prev: State, state: State, at: string, ctx: Ctx): State {
       c.status = "resolved"; c.resolvedAt = at; c.resolution = { by: "ava", text: c.resolveText ?? "The sources now agree.", reopened: [] };
       log(req, at, `Conflict closed: ${c.title}. ${c.resolution.text}`, "conflict");
     }
+    // Contract checks (Part 2): each one is an Ava action, logged once.
+    const seen = new Set(req.checksSeen ?? []);
+    for (const k of an.checks) {
+      const key = `${k.id}:${k.status}`; if (seen.has(key)) continue; seen.add(key);
+      log(req, at, `Checked against ${k.docId} ${k.clause}: ${k.status === "consistent" ? "consistent" : k.status === "conflict" ? "goes against the contract" : "note"}. ${k.text}`, "rule");
+    }
+    req.checksSeen = [...seen];
     // Flags
     for (const fl of an.flags) {
       if (!req.flags.find((x) => x.id === fl.id)) {
@@ -344,7 +416,7 @@ function runRules(prev: State, state: State, at: string, ctx: Ctx): State {
         log(req, at, `Flag to ${fl.sendTo.replace("_", " ")}: ${fl.message}`, "flag");
       }
     }
-    for (const fl of req.flags) if (fl.status === "open" && fl.type !== "mention" && !an.flags.find((x) => x.id === fl.id)) { fl.status = "dismissed"; fl.closedAt = at; }
+    for (const fl of req.flags) if (fl.status === "open" && fl.type !== "mention" && fl.question !== "keep_line" && !an.flags.find((x) => x.id === fl.id)) { fl.status = "dismissed"; fl.closedAt = at; }
     // Approvals: reopen when a material fact they depended on changed (rule 5).
     for (const ap of an.approvals) {
       const prevStatus = req.approvalCache[ap.key];

@@ -43,6 +43,7 @@ interface Store {
   openSource: (s: Source | ViewerTarget) => void;
   closeViewer: () => void;
   setAi: (v: boolean) => void;
+  addAi: (requestId: string, layer: "read" | "plan" | "rec", key: string, output: unknown, source: "live" | "cached" | "rules") => void;
 }
 
 export const STEPS: Record<Scn, Step[]> = { A: SCENARIO_A, B: SCENARIO_B };
@@ -163,7 +164,12 @@ export const useAva = create<Store>((set, get) => ({
     save(get());
   },
   setViewAs: (id) => { set({ viewAs: id }); save(get()); },
-  openSource: (s) => set({ viewer: { emailId: s.emailId, attachmentId: (s as any).attachmentId, quote: (s as any).quote, quotes: (s as any).quotes, page: (s as any).page, compareWith: (s as any).compareWith, title: (s as any).title } }),
+  openSource: (s) => set({ viewer: { docId: (s as any).docId, clause: (s as any).clause, emailId: s.emailId, attachmentId: (s as any).attachmentId, quote: (s as any).quote, quotes: (s as any).quotes, page: (s as any).page, compareWith: (s as any).compareWith, title: (s as any).title } }),
   closeViewer: () => set({ viewer: null }),
   setAi: (v) => set({ aiAvailable: v }),
+  addAi: (requestId, layer, key, output, source) => {
+    const { state, events } = get();
+    const ev: AvaEvent = { id: uid("ev"), at: state.now, kind: "ai", requestId, layer, key, output, source };
+    set({ state: applyEvent(state, ev), events: [...events, ev] }); save(get());
+  },
 }));

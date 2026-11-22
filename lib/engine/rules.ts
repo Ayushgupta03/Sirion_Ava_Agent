@@ -1,8 +1,9 @@
 // Policy rules (section 3). Plain code. The AI extracts facts; this file decides.
 import type { ApprovalKey, Attachment, Conflict, ConflictSide, ConflictType, FactRec, FactState, Receipt, Request, Role, SeedContract, Snapshot, Source, State } from "../types";
-import { addMonths, daysBetween, fmtDate, inr, istYmd, lakh, norm, parseDate } from "../format";
+import { addMonths, daysBetween, fmtDate, inr, istYmd, lakh, norm, parseAmount, parseDate } from "../format";
 import { baselineContract, docDiff, FIELD_LABEL, foldFacts, type Folded } from "./facts";
 import { budgetOwnerFor, CONTRACTS, contractsFor, firstName, personName, POLICY, roleOwner } from "./world";
+import { checkCommitments, clauseSource, type Check } from "./contracts";
 
 const LIMIT = POLICY.vpLimit;
 const WINDOW = POLICY.windowDays;
@@ -83,7 +84,7 @@ export function snapshotDiff(old: Snapshot, cur: Snapshot): Diff[] {
     if (b === undefined) continue;
     let differs = false;
     if (Array.isArray(b)) differs = !(Array.isArray(a) && a.length === b.length && a.every((x) => (b as string[]).includes(x)));
-    else if (typeof b === "number") differs = a === undefined ? false : Math.abs((a as number) - b) > 0.5;
+    else if (typeof b === "number") differs = a === undefined ? false : (k === "amount" || k === "total90" || k === "retro") ? b - (a as number) > 0.5 : Math.abs((a as number) - b) > 0.5; // a decrease never reopens an approval
     else differs = a !== undefined && norm(String(a)) !== norm(String(b));
     if (differs) out.push({ field: k, label: SNAP_LABEL[k] ?? k, old: fmtSnap(k, a), new: fmtSnap(k, b) });
   }
@@ -137,7 +138,7 @@ export interface Analysis {
   spend: Spend; routing: Routing; checklist: CheckItem[]; approvals: ApprovalView[]; conflicts: ConflictSpec[]; handoff: Handoff;
   flags: FlagSpec[]; drafts: { purpose: string; subject: string; body: string; to: string }[]; engagementEnd?: string; dataAccess?: number; dataAccessConfirmed: boolean;
   requiredFacts: string[]; securityCert?: { expiry?: string; name: string; source: string }; rateFlags: FlagSpec[]; pipeline: string; waitingOn?: string;
-  baseline?: SeedContract; newLines: string[];
+  baseline?: SeedContract; newLines: string[]; checks: Check[]; contractClauses: string[];
 }
 
 const cache = new WeakMap<State, Map<string, Analysis>>();
@@ -307,7 +308,7 @@ export function analyze(state: State, reqId: string): Analysis {
     const lastApproved = boRec[boRec.length - 1]?.snapshot.amount;
     const ref = lastApproved ?? amountFact.said?.num;
     const prevVersion = [...amountFact.versions].reverse().find((v) => v.status === "superseded" && v.num != null && Math.abs(v.num - (ref ?? -1)) < 0.5);
-    if (ref != null && amountFact.num != null && Math.abs(ref - amountFact.num) > 0.5) {
+    if (ref != null && amountFact.num != null && Math.abs(ref - amountFact.num) > 0.5 && !(lastApproved != null && amountFact.num < lastApproved)) {
       const curSrc = amountFact.sources[0];
       const coverEmail = state.emails.find((e) => e.id === curSrc.emailId);
       const coverSaysPrice = coverEmail ? /₹|\brs\b|\binr\b|lakh|\d+\s?l\b/i.test(coverEmail.body) : false;
@@ -320,7 +321,7 @@ export function analyze(state: State, reqId: string): Analysis {
       const bQuotes: ConflictSide["quotes"] = [{ ...curSrc, note: `Now: ${inr(amountFact.num)}, ${inr(amountFact.num - ref)} ${amountFact.num > ref ? "more" : "less"}` }];
       added.slice(0, 3).forEach((l) => bQuotes.push({ emailId: curSrc.emailId, file: curSrc.file, attachmentId: curSrc.attachmentId, page: 1, quote: l, note: "New line" }));
       conflicts.push({
-        id: `cf:${reqId}:said_vs_written:amount:${curSrc.attachmentId ?? curSrc.emailId}`, type: "said_vs_written", severity: "blocking", field: "amount",
+        id: `cf:${reqId}:said_vs_written:amount:${boRec.length}`, type: "said_vs_written", severity: "blocking", field: "amount",
         title: `Price changed in the attachment: ${lakh(ref)} → ${lakh(amountFact.num)}`,
         a: { label: lastApproved != null ? "What was said and approved" : "What was said", quotes: aQuotes },
         b: { label: `What ${curSrc.file} says`, quotes: bQuotes },
@@ -328,6 +329,8 @@ export function analyze(state: State, reqId: string): Analysis {
         ownerId: procurement, blocks: lastApproved != null ? "Handoff, and the approvals given for the old amount" : "Handoff",
         resolveText: lastApproved != null ? `${personName(bo.approverId)} reconfirmed at ${inr(amountFact.num)}.` : "Values now match.",
         aValue: inr(ref), bValue: inr(amountFact.num),
+        impact: added.reduce((n, l) => n + (parseAmount(l.match(/₹[\d,]+/g)?.pop()) ?? 0), 0) || Math.abs(amountFact.num - ref),
+        impactText: added.length ? `${inr(added.reduce((n, l) => n + (parseAmount(l.match(/₹[\d,]+/g)?.pop()) ?? 0), 0))} new line nobody mentioned` : `${inr(Math.abs(amountFact.num - ref))} change nobody mentioned`,
       });
     }
   }
@@ -403,6 +406,7 @@ export function analyze(state: State, reqId: string): Analysis {
       b: { label: "What the invoice says", quotes: [r.source] },
       whyItMatters: "Work started before approval. Procurement needs a reason and a retrospective approval from the budget owner.",
       ownerId: procurement, blocks: "Handoff", resolveText: `Reason recorded and ${personName(bo.approverId)} approved retrospectively.`,
+      impact: r.amount || undefined, impactText: r.amount ? `${inr(r.amount)} invoiced before approval` : "Work invoiced before approval",
     });
   }
   if (req.startedBeforeApproval && !req.retroItems.length) {
@@ -415,6 +419,28 @@ export function analyze(state: State, reqId: string): Analysis {
       whyItMatters: "Work started before approval. Procurement needs a reason and retrospective approvals.", ownerId: procurement, blocks: "Handoff",
       resolveText: "Reason recorded and all approvals signed.",
     });
+  }
+
+  // F: commitments in the signed contracts (Part 2). Code computes every consequence.
+  const cc = checkCommitments(state, req, f);
+  for (const c of cc.conflicts) {
+    const rateCase = c.id.includes(":contract:rates:");
+    conflicts.push({
+      id: c.id, type: "against_contract", severity: "blocking", title: c.title, a: c.a, b: c.b, whyItMatters: c.whyItMatters,
+      ownerId: procurement, blocks: "Handoff", impact: c.impact, impactText: c.impactText, clauses: c.clauses,
+      resolveText: rateCase ? `Rates now within the ${8}% cap: ${inr(c.impact ?? 0)} over-charge removed.` : "The sources now agree.",
+    });
+  }
+  // Renewal conflict: show the clauses it breaks.
+  const rc = conflicts.find((c) => c.type === "renewal_terms_changed");
+  if (rc) {
+    const capCheck = cc.checks.find((k) => k.clause === "4.2" && k.status === "conflict" && !k.id.endsWith(":notice"));
+    const notice = cc.checks.find((k) => k.id.endsWith(":4.2:notice") && k.status === "conflict");
+    const ar = cc.checks.find((k) => k.clause === "4.3" && k.status === "conflict");
+    const c42 = capCheck ?? notice;
+    if (c42) rc.a.quotes.push(clauseSource(c42.docId, "4.2", [capCheck?.text, notice?.text].filter(Boolean).join(" ")));
+    if (ar) rc.a.quotes.push(clauseSource(ar.docId, "4.3", ar.text));
+    rc.clauses = [capCheck, ar].filter(Boolean).map((k) => `${k!.docId} ${k!.clause}`);
   }
 
   // Approvers are not asked while the terms themselves are in dispute.
@@ -441,7 +467,7 @@ export function analyze(state: State, reqId: string): Analysis {
     const a = attachment(state, d.attachmentId); if (!a) continue;
     rateCardFlags(a).forEach((r, i) => rateFlags.push({ id: `flag:${reqId}:rate:${d.attachmentId}:${i}`, type: "rate_increase", sendTo: "procurement", message: r.message, evidence: { emailId: d.emailId, file: a.name, attachmentId: a.id, quote: r.quote } }));
   }
-  flags.push(...rateFlags);
+  // Rate-card checks now come from the MSA rate cap (contract check F), not a flag.
   // AI flags that code does not already cover.
   for (const id of req.emailIds) {
     const ex = state.extractions[id]?.result; if (!ex) continue;
@@ -506,7 +532,7 @@ export function analyze(state: State, reqId: string): Analysis {
     else if (!hasSupplierDoc) waitingOn = `${supName.split(" ")[0]}: quote`;
   }
 
-  const result: Analysis = { req, folded: f, facts: factsView, amount, retro, requestAmount: reqAmt, spend, routing, checklist, approvals, conflicts, handoff, flags, drafts, engagementEnd, dataAccess, dataAccessConfirmed, requiredFacts, securityCert, rateFlags, pipeline, waitingOn, baseline, newLines };
+  const result: Analysis = { req, folded: f, facts: factsView, amount, retro, requestAmount: reqAmt, spend, routing, checklist, approvals, conflicts, handoff, flags, drafts, engagementEnd, dataAccess, dataAccessConfirmed, requiredFacts, securityCert, rateFlags, pipeline, waitingOn, baseline, newLines, checks: cc.checks, contractClauses: cc.clauses };
   m.set(reqId, result);
   return result;
 }

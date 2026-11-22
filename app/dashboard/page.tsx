@@ -7,9 +7,11 @@ import { timingFor } from "@/lib/engine/timing";
 import { personName } from "@/lib/engine/world";
 import { BACKGROUND } from "@/lib/background";
 import { scenarioTag } from "@/lib/summary";
-import { fmtDT, hoursBetween, lakh, parseAmount, span } from "@/lib/format";
-import { Button, Card, CardHead, Chip, cx, Empty, PageTitle, SourceLink, Stat, supplierShort } from "@/components/ui";
+import { fmtDT, hoursBetween, lakh, opened, parseAmount, span } from "@/lib/format";
+import { Button, Card, CardHead, Chip, cx, Empty, PageTitle, SourceLink, Stat, StateChip, supplierShort } from "@/components/ui";
 import { ConflictsTable } from "@/components/ConflictsTable";
+import { atRisk, catches, counters } from "@/lib/insights";
+import { BG_CONFLICTS } from "@/lib/background";
 
 const COLS = ["New", "Waiting on someone", "Approvals", "Blocked", "Ready"] as const;
 const colOf = (p: string) => p === "New" ? "New" : p === "Approvals" ? "Approvals" : p === "Blocked by change" ? "Blocked" : p === "Ready" ? "Ready" : "Waiting on someone";
@@ -20,16 +22,37 @@ export default function Dashboard() {
   const ids = state.requestOrder;
   const all = ids.map((id) => analyze(state, id));
   const sba = Object.entries(state.counters.startedBeforeApproval);
-  const openConf = Object.values(state.conflicts).filter((c) => c.status === "open").length;
+  const openConf = Object.values(state.conflicts).filter((c) => c.status === "open").length + BG_CONFLICTS.length;
+  const risks = atRisk(state); const cs = catches(state); const k = counters(state);
   return (
     <div className="space-y-5">
-      <PageTitle title="Dashboard" sub="Where every request is, and who it waits on." />
-      <div className="grid grid-cols-2 gap-3 md:grid-cols-3 xl:grid-cols-5">
-        <Stat label="Forms filled" value={0} sub="Nobody filled in an intake form" tone="green" />
+      <PageTitle title="Dashboard" sub="What is at risk, what Ava caught, and where every request is." />
+      <section data-pulse="at-risk" aria-label="At risk"><Card><CardHead title={`At risk · ${risks.length}`} sub="Likely to miss the 1-business-day target or their plan date. From each plan’s predicted date." />
+        {risks.length ? <ul className="divide-y divide-slate-100">{risks.map((r) => (
+          <li key={r.reqId} className="flex flex-wrap items-baseline gap-x-3 gap-y-0.5 px-4 py-2.5 text-[13px]">
+            {r.live ? <Link className="font-mono text-[12.5px] font-medium text-accent hover:underline" href={`/requests/${r.reqId}`}>{r.reqId}</Link> : <span className="font-mono text-[12.5px] text-slate-600">{r.reqId}</span>}
+            <span className="font-medium">{r.title}</span>{!r.live && <Chip>Background</Chip>}
+            <span className="ml-auto text-[12.5px] text-slate-500">{r.predicted ? `Predicted ${r.predicted}` : ""}</span>
+            <p className="basis-full text-[12.5px] text-amber-900">{r.reason}</p>
+          </li>))}</ul> : <p className="px-4 py-3 text-[13px] text-slate-500">Nothing at risk.</p>}</Card></section>
+      <section aria-label="Ava caught this"><Card><CardHead title={`Ava caught this · ${cs.length}`} sub="Problems found in email and attachments, with the money or risk at stake. Amounts computed by code." />
+        <ul className="divide-y divide-slate-100">{cs.slice(0, 8).map((c, i) => (
+          <li key={i} className="flex flex-wrap items-baseline gap-x-3 gap-y-0.5 px-4 py-2.5 text-[13px]">
+            <span className={cx("w-[96px] shrink-0 font-mono text-[13px] font-semibold", c.impact ? "text-slate-900" : "text-slate-500")}>{c.impact ? lakh(c.impact) : "Risk"}</span>
+            <span className="min-w-0 flex-1"><span className="font-medium">{c.text}:</span> {c.impactText}. <span className="text-slate-500">{c.supplier} · {c.live ? <Link className="text-accent hover:underline" href={`/requests/${c.reqId}`}>{c.reqId}</Link> : c.reqId}</span></span>
+            <StateChip state={c.status === "open" ? "open" : "resolved"} />{!c.live && <Chip>Background</Chip>}
+          </li>))}</ul></Card></section>
+      <div className="grid grid-cols-2 gap-3 md:grid-cols-4">
+        <Stat label="₹ at stake caught" value={lakh(k.atStake)} sub="Over-charges, credits and savings found" tone="green" />
+        <Stat label="Ava actions vs people decisions" value={`${k.avaActions} : ${k.decisions}`} sub="Counted from the event log" />
+        <Stat label="Contract terms checked" value={k.checks} sub="Emails checked against signed clauses" />
+        <Stat label="Forms filled" value={0} sub="Nobody filled in an intake form" />
+      </div>
+      <div className="grid grid-cols-2 gap-3 md:grid-cols-4">
         <Stat label="Requests captured from email" value={ids.length + BACKGROUND.length} sub={`${ids.length} in this session, ${BACKGROUND.length} background`} />
-        <Stat label="Questions answered from documents" value={state.counters.answeredFromDocs} sub="instead of asking people" />
+        <Stat label="Questions answered from documents" value={state.counters.answeredFromDocs + BACKGROUND.reduce((n, b) => n + b.checks, 0)} sub="instead of asking people" />
         <Stat label="Approvals reopened by changed facts" value={state.counters.approvalsReopened} tone={state.counters.approvalsReopened ? "red" : undefined} />
-        <Stat label="Started before approval" value={sba.reduce((n, [, v]) => n + v, 0)} sub={sba.length ? sba.map(([d, v]) => `${d}: ${v}`).join(", ") : "none recorded yet"} />
+        <Stat label="Started before approval" value={sba.reduce((n, [, v]) => n + v, 0) + 1} sub={[...sba.map(([d, v]) => `${d}: ${v}`), "Marketing Ops: 1 (background)"].join(", ")} />
       </div>
       <div role="tablist" className="flex gap-1">
         {(["pipeline", "conflicts"] as const).map((t) => <button key={t} role="tab" aria-selected={tab === t} onClick={() => setTab(t)} className={cx("rounded-md px-3 py-1.5 text-[13px]", tab === t ? "bg-accent-50 font-semibold text-accent-700" : "text-slate-600 hover:bg-slate-100")}>{t === "pipeline" ? "Pipeline" : `Conflicts (${openConf} open)`}</button>)}
@@ -49,8 +72,8 @@ export default function Dashboard() {
                       <div className="truncate font-semibold text-slate-700">{b.supplier}</div>
                       <div className="truncate">{b.project}</div>
                       <div className="mt-1 font-mono">{lakh(b.amount)}</div>
-                      <div className="mt-0.5 truncate">{b.stage === "Ready" ? b.waitingOn : `Waiting on ${b.waitingOn.split(":")[0]}`}</div>
-                      <div className="mt-0.5 flex items-center justify-between gap-1 text-slate-400"><span className="truncate">{b.id} · {span(hoursBetween(b.createdAt, state.now))} old</span><span className="shrink-0 rounded bg-slate-100 px-1 text-[10.5px] text-slate-500">Background</span></div>
+                      <div className="mt-0.5 truncate">{b.stage === "Ready" ? b.waitingOn : `Waiting on ${b.waitingOn}`}</div>
+                      <div className="mt-0.5 flex items-center justify-between gap-1 text-slate-400"><span className="truncate">{b.id} · {opened(hoursBetween(b.createdAt, state.now))}</span><span className="shrink-0 rounded bg-slate-100 px-1 text-[10.5px] text-slate-500">Background</span></div>
                     </div>
                   ))}
                   {live.length + bg.length === 0 && <p className="px-1 py-6 text-center text-[12px] text-slate-400">None</p>}
@@ -105,7 +128,7 @@ function LiveCard({ a }: { a: Analysis }) {
       <div className="mt-1 font-mono">{lakh(a.requestAmount)} · 90d {lakh(a.spend.total)}</div>
       <div className="mt-1 flex flex-wrap gap-1">{a.routing.approvals.some((x) => x.key === "vp") && <Chip tone="grey">VP</Chip>}{a.routing.needsInfosec && <Chip tone="grey">InfoSec</Chip>}{a.req.startedBeforeApproval && <Chip tone="red">Early start</Chip>}</div>
       {a.waitingOn && <div className="mt-1 text-slate-700">Waiting on {a.waitingOn}</div>}
-      <div className="mt-1 flex items-center justify-between gap-1 text-slate-400"><span className="truncate">{a.req.id} · {span(hoursBetween(a.req.createdAt, a.req.readyAt ?? state.now))} old</span><Chip tone="blue">{scenarioTag(state, a.req.id)}</Chip></div>
+      <div className="mt-1 flex items-center justify-between gap-1 text-slate-400"><span className="truncate">{a.req.id} · {opened(hoursBetween(a.req.createdAt, a.req.readyAt ?? state.now))}</span><Chip tone="blue">{scenarioTag(state, a.req.id)}</Chip></div>
     </Link>
   );
 }

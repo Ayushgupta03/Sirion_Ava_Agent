@@ -6,13 +6,128 @@
   "project": "Contract QA engineers, Q1",
   "requester": "Priya Sharma",
   "dept": "Engineering",
-  "stage": "Approvals",
-  "waitingOn": "Vikram Rao: approve",
+  "stage": "Blocked",
+  "waitingOn": "Karan Shah: resolve conflict",
   "amount": 3240000,
   "createdAt": "2026-11-03T11:20:00+05:30",
   "routes": [
    "VP"
-  ]
+  ],
+  "read": [
+   "TalentBridge wants to replace Asha, a named QA contractor, with Rohan from Monday.",
+   "TB-MSA-2025 5.1 and 5.2 need written consent and equal or higher seniority, and neither is on file."
+  ],
+  "plan": {
+   "predictedReady": "Wed 18 Nov",
+   "predictionReason": "Each of TalentBridge's 2 replacements in 2025 needed a seniority check. Based on sample history in this prototype.",
+   "steps": [
+    {
+     "title": "Check Rohan's seniority against Asha's",
+     "ownerId": "karan",
+     "source": "ava",
+     "eta": "Mon 16 Nov",
+     "status": "todo",
+     "reason": "TB-MSA-2025 5.2"
+    },
+    {
+     "title": "Written consent for the replacement",
+     "ownerId": "karan",
+     "source": "ava",
+     "eta": "Mon 16 Nov",
+     "status": "todo",
+     "reason": "TB-MSA-2025 5.1"
+    },
+    {
+     "title": "VP approval of the ₹32.4L total",
+     "ownerId": "vikram",
+     "source": "policy",
+     "eta": "Tue 17 Nov",
+     "status": "todo",
+     "reason": null
+    },
+    {
+     "title": "Budget approval",
+     "ownerId": "ananya",
+     "source": "policy",
+     "eta": "Thu 12 Nov",
+     "status": "done",
+     "reason": null
+    }
+   ]
+  },
+  "conflict": {
+   "title": "Named contractor swapped without consent",
+   "a": {
+    "label": "What the contract says",
+    "clause": "TB-MSA-2025 5.1",
+    "quote": "Named contractors may be replaced only with written consent. Replacements must have equal or higher seniority (5.2)."
+   },
+   "b": {
+    "label": "What TalentBridge wrote",
+    "quote": "Asha is moving; Rohan joins Monday."
+   },
+   "clauses": [
+    "TB-MSA-2025 5.1",
+    "TB-MSA-2025 5.2"
+   ],
+   "impactText": "Unapproved change of a named contractor",
+   "risk": true,
+   "rec": {
+    "recommendation": "Ask TalentBridge for a written consent request and Rohan's CV before Monday, so Karan can check his seniority against Asha's.",
+    "reasoning": "TB-MSA-2025 5.1 and 5.2 need consent and equal seniority. Nothing is on file yet.",
+    "confidence": "high",
+    "draft": "Hi team,\n\nBefore Rohan joins on Monday, please send a written consent request and his CV. Our agreement (TB-MSA-2025 5.1, 5.2) needs consent and equal or higher seniority.\n\nThanks,\nKaran"
+   }
+  },
+  "atRisk": "Rohan starts Monday without written consent; both 2025 replacements needed a seniority check.",
+  "needs": [
+   {
+    "personId": "karan",
+    "kind": "conflict",
+    "question": "TalentBridge swapped a named contractor. Ask for consent and a CV?"
+   },
+   {
+    "personId": "vikram",
+    "kind": "approval",
+    "question": "Approve the ₹32.4L 90-day total for TalentBridge in Engineering?",
+    "rec": {
+     "recommendation": "Summary for Vikram",
+     "confidence": "medium",
+     "bullets": [
+      "₹32.4L for contract QA engineers in Q1, over the ₹25L limit.",
+      "Open: a named contractor is being replaced without consent (TB-MSA-2025 5.1).",
+      "Karan is checking the replacement before Monday."
+     ]
+    }
+   }
+  ],
+  "avaDid": [
+   {
+    "at": "2026-11-11T15:10:00+05:30",
+    "text": "Read TalentBridge's email and found a contractor swap.",
+    "for": [
+     "karan",
+     "vikram"
+    ]
+   },
+   {
+    "at": "2026-11-11T15:11:00+05:30",
+    "text": "Checked TB-MSA-2025 5.1 and 5.2: the swap goes against the contract.",
+    "for": [
+     "karan"
+    ]
+   },
+   {
+    "at": "2026-11-11T15:12:00+05:30",
+    "text": "Drafted a consent request for Karan to send.",
+    "for": [
+     "karan"
+    ]
+   }
+  ],
+  "checks": 4,
+  "avaActions": 9,
+  "decisions": 2
  },
  {
   "id": "REQ-1030",
@@ -27,7 +142,76 @@
   "createdAt": "2026-11-04T09:40:00+05:30",
   "routes": [
    "InfoSec"
-  ]
+  ],
+  "read": [
+   "Nimbus Cloud will expand log storage for Platform, ₹11.5L a year; the logs include customer IP addresses.",
+   "Their SOC 2 report is in date, so only Meera's review is left."
+  ],
+  "plan": {
+   "predictedReady": "Fri 13 Nov",
+   "predictionReason": "Only the InfoSec review is left; Meera has it today.",
+   "steps": [
+    {
+     "title": "InfoSec review of the SOC 2 report",
+     "ownerId": "meera",
+     "source": "policy",
+     "eta": "Fri 13 Nov",
+     "status": "in_progress",
+     "reason": null
+    },
+    {
+     "title": "DPA for log data (Legal review)",
+     "ownerId": "farah",
+     "source": "policy",
+     "eta": "Legal review",
+     "status": "todo",
+     "reason": null
+    },
+    {
+     "title": "Budget approval",
+     "ownerId": "ananya",
+     "source": "policy",
+     "eta": "Wed 11 Nov",
+     "status": "done",
+     "reason": null
+    }
+   ]
+  },
+  "needs": [
+   {
+    "personId": "meera",
+    "kind": "approval",
+    "question": "Review Nimbus Cloud's SOC 2 report for log hosting.",
+    "rec": {
+     "recommendation": "Summary for Meera",
+     "confidence": "high",
+     "bullets": [
+      "Logs include customer IP addresses, so this is customer data.",
+      "SOC 2 Type II report valid to Jun 2027 (page 1); it covers the Mumbai region (page 4).",
+      "No open conflicts."
+     ]
+    }
+   }
+  ],
+  "avaDid": [
+   {
+    "at": "2026-11-11T11:02:00+05:30",
+    "text": "Read the SOC 2 report and found its expiry date.",
+    "for": [
+     "meera"
+    ]
+   },
+   {
+    "at": "2026-11-11T11:03:00+05:30",
+    "text": "Routed the review to InfoSec because logs include customer IP addresses.",
+    "for": [
+     "meera"
+    ]
+   }
+  ],
+  "checks": 2,
+  "avaActions": 7,
+  "decisions": 1
  },
  {
   "id": "REQ-1031",
@@ -40,7 +224,72 @@
   "waitingOn": "PO issue",
   "amount": 780000,
   "createdAt": "2026-11-02T15:05:00+05:30",
-  "routes": []
+  "routes": [],
+  "read": [
+   "Rangmanch Media will run the Q4 product launch campaign for ₹7.8L under the existing agreement.",
+   "All checks pass; the PO can be issued."
+  ],
+  "plan": {
+   "predictedReady": "Ready",
+   "predictionReason": "Ready to issue PO.",
+   "steps": [
+    {
+     "title": "Budget approval",
+     "ownerId": "ritu",
+     "source": "policy",
+     "eta": null,
+     "status": "done",
+     "reason": null
+    },
+    {
+     "title": "Issue the PO",
+     "ownerId": "suresh",
+     "source": "ava",
+     "eta": "Thu 12 Nov",
+     "status": "in_progress",
+     "reason": null
+    }
+   ]
+  },
+  "needs": [
+   {
+    "personId": "suresh",
+    "kind": "info",
+    "question": "Issue the PO for Rangmanch Media's Q4 launch campaign (₹7.8L).",
+    "rec": {
+     "recommendation": "Issue the PO. GST and PAN are on file and Ritu approved ₹7,80,000.",
+     "reasoning": "All checks pass under the existing agreement.",
+     "confidence": "high"
+    }
+   }
+  ],
+  "avaDid": [
+   {
+    "at": "2026-11-11T16:40:00+05:30",
+    "text": "Filed Rangmanch's quote under Marketing Ops > Q4 product launch campaign.",
+    "for": [
+     "neha",
+     "ritu"
+    ]
+   },
+   {
+    "at": "2026-11-11T16:41:00+05:30",
+    "text": "Checked the quote against the 2025 agreement: consistent.",
+    "for": [
+     "neha"
+    ]
+   },
+   {
+    "at": "2026-11-11T17:05:00+05:30",
+    "text": "Prepared a receipt summary for Ritu.",
+    "for": [
+     "ritu"
+    ]
+   }
+  ],
+  "checks": 3,
+  "avaActions": 8,
+  "decisions": 1
  },
  {
   "id": "REQ-1032",
@@ -53,7 +302,66 @@
   "waitingOn": "Sukhda: insurance certificate",
   "amount": 420000,
   "createdAt": "2026-11-05T10:10:00+05:30",
-  "routes": []
+  "routes": [],
+  "read": [
+   "Sukhda Facility Services will run housekeeping for the Pune office for ₹4.2L.",
+   "We have waited 7 days for their insurance certificate."
+  ],
+  "plan": {
+   "predictedReady": "Thu 19 Nov",
+   "predictionReason": "Sukhda took 9 business days to send its insurance certificate last year. Based on sample history in this prototype.",
+   "steps": [
+    {
+     "title": "Insurance certificate from Sukhda",
+     "ownerId": "karan",
+     "source": "policy",
+     "eta": "Thu 19 Nov",
+     "status": "in_progress",
+     "reason": null
+    },
+    {
+     "title": "Budget approval",
+     "ownerId": "aditi",
+     "source": "policy",
+     "eta": "Thu 19 Nov",
+     "status": "todo",
+     "reason": null
+    }
+   ]
+  },
+  "atRisk": "Waiting 7 days for insurance; took 9 days last year.",
+  "needs": [
+   {
+    "personId": "karan",
+    "kind": "info",
+    "question": "Sukhda's insurance certificate is 7 days late. Send a reminder?",
+    "rec": {
+     "recommendation": "Send the reminder today and copy Imran, who manages the contract.",
+     "reasoning": "Last year the certificate took 9 business days. The plan date slips with every day.",
+     "confidence": "medium",
+     "draft": "Hi team,\n\nWe are still waiting for your insurance certificate for the housekeeping contract. Could you send it this week?\n\nThanks,\nKaran"
+    }
+   }
+  ],
+  "avaDid": [
+   {
+    "at": "2026-11-11T10:00:00+05:30",
+    "text": "Chased Sukhda for the insurance certificate (draft for Karan).",
+    "for": [
+     "karan"
+    ]
+   },
+   {
+    "at": "2026-11-12T08:30:00+05:30",
+    "text": "Predicted the ready date from last year's wait.",
+    "for": [
+     "karan"
+    ]
+   }
+  ],
+  "checks": 2,
+  "avaActions": 6,
+  "decisions": 1
  },
  {
   "id": "REQ-1033",
@@ -66,7 +374,57 @@
   "waitingOn": "Karan Shah: first look",
   "amount": 260000,
   "createdAt": "2026-11-11T17:30:00+05:30",
-  "routes": []
+  "routes": [],
+  "read": [
+   "Swift Movers quoted ₹2.6L to ship laptops to new hires.",
+   "Ava has filed it; Karan has not looked yet."
+  ],
+  "plan": {
+   "predictedReady": "Mon 16 Nov",
+   "predictionReason": "Small move under the ₹25L limit; one approval.",
+   "steps": [
+    {
+     "title": "First look",
+     "ownerId": "karan",
+     "source": "ava",
+     "eta": "Thu 12 Nov",
+     "status": "todo",
+     "reason": null
+    },
+    {
+     "title": "Budget approval",
+     "ownerId": "ananya",
+     "source": "policy",
+     "eta": "Fri 13 Nov",
+     "status": "todo",
+     "reason": null
+    }
+   ]
+  },
+  "needs": [
+   {
+    "personId": "karan",
+    "kind": "info",
+    "question": "New request from IT: Swift Movers, ₹2.6L. Take a first look.",
+    "rec": {
+     "recommendation": "Send it to the IT budget owner; no contract terms are in question.",
+     "reasoning": "Under ₹25L, no data access, existing supplier.",
+     "confidence": "high"
+    }
+   }
+  ],
+  "avaDid": [
+   {
+    "at": "2026-11-12T08:40:00+05:30",
+    "text": "Opened REQ-1033 from Kavya's email and filed it under IT.",
+    "for": [
+     "karan"
+    ]
+   }
+  ],
+  "checks": 1,
+  "avaActions": 4,
+  "decisions": 0
  },
  {
   "id": "REQ-1034",
@@ -76,12 +434,87 @@
   "requester": "Sanjay Gupta",
   "dept": "Product",
   "stage": "Blocked",
-  "waitingOn": "Karan Shah: renewal terms differ",
+  "waitingOn": "Karan Shah: resolve conflict",
   "amount": 2280000,
   "createdAt": "2026-11-06T12:00:00+05:30",
   "routes": [
    "InfoSec"
-  ]
+  ],
+  "read": [
+   "Pixelwise's renewal quote is ₹22.8L, up 14% from ₹20L.",
+   "Their 2025 order form fixes the price until 31 Mar 2027, so the increase goes against it."
+  ],
+  "plan": {
+   "predictedReady": "Fri 20 Nov",
+   "predictionReason": "Waiting on Pixelwise to reissue the quote at the fixed price.",
+   "steps": [
+    {
+     "title": "Get the renewal reissued at the fixed price",
+     "ownerId": "karan",
+     "source": "ava",
+     "eta": "Wed 18 Nov",
+     "status": "in_progress",
+     "reason": "Order form clause 3"
+    },
+    {
+     "title": "Budget approval",
+     "ownerId": "ananya",
+     "source": "policy",
+     "eta": "Fri 20 Nov",
+     "status": "todo",
+     "reason": null
+    }
+   ]
+  },
+  "conflict": {
+   "title": "Renewal price up 14% while the price is fixed",
+   "a": {
+    "label": "What the contract says",
+    "clause": "PW-ORD-2025 3",
+    "quote": "Price fixed at ₹20,00,000 a year until 31 Mar 2027."
+   },
+   "b": {
+    "label": "What Pixelwise quoted",
+    "quote": "Renewal: ₹22,80,000 a year."
+   },
+   "clauses": [
+    "PW-ORD-2025 3"
+   ],
+   "impactText": "₹2,80,000 a year over the fixed price",
+   "impact": 280000,
+   "rec": {
+    "recommendation": "Ask Pixelwise to reissue the renewal at ₹20,00,000, as the 2025 order form fixes the price until 31 Mar 2027.",
+    "reasoning": "Clause 3 of the 2025 order form fixes the price. The quote is ₹2,80,000 higher.",
+    "confidence": "high",
+    "draft": "Hi team,\n\nOur 2025 order form (clause 3) fixes the price at ₹20,00,000 a year until 31 Mar 2027. Could you reissue the renewal at that price?\n\nThanks,\nKaran"
+   }
+  },
+  "needs": [
+   {
+    "personId": "karan",
+    "kind": "conflict",
+    "question": "Pixelwise renewal is ₹2.8L over the fixed price. Ask them to reissue?"
+   }
+  ],
+  "avaDid": [
+   {
+    "at": "2026-11-10T14:20:00+05:30",
+    "text": "Compared the renewal quote with the 2025 order form.",
+    "for": [
+     "karan"
+    ]
+   },
+   {
+    "at": "2026-11-10T14:21:00+05:30",
+    "text": "Opened a conflict: price up 14% against a fixed price.",
+    "for": [
+     "karan"
+    ]
+   }
+  ],
+  "checks": 3,
+  "avaActions": 8,
+  "decisions": 1
  },
  {
   "id": "REQ-1035",
@@ -96,7 +529,74 @@
   "createdAt": "2026-10-29T10:00:00+05:30",
   "routes": [
    "InfoSec"
-  ]
+  ],
+  "endState": "legal",
+  "read": [
+   "TalentBridge contractors will answer support tickets that show customer names and emails, for ₹16.8L.",
+   "That is customer data, so this goes to Legal review for a DPA."
+  ],
+  "plan": {
+   "predictedReady": "Ready for Legal Review",
+   "predictionReason": "Handed to Legal on Wed 11 Nov.",
+   "steps": [
+    {
+     "title": "InfoSec review",
+     "ownerId": "meera",
+     "source": "policy",
+     "eta": null,
+     "status": "done",
+     "reason": null
+    },
+    {
+     "title": "Budget approval",
+     "ownerId": "ananya",
+     "source": "policy",
+     "eta": null,
+     "status": "done",
+     "reason": null
+    },
+    {
+     "title": "DPA and Legal review",
+     "ownerId": "farah",
+     "source": "policy",
+     "eta": "Mon 16 Nov",
+     "status": "in_progress",
+     "reason": null
+    }
+   ]
+  },
+  "needs": [
+   {
+    "personId": "farah",
+    "kind": "legal",
+    "question": "Legal review: TalentBridge support contractors with access to customer data (₹16.8L).",
+    "rec": {
+     "recommendation": "Start with the DPA: contractors will see ticket text with customer names and emails.",
+     "reasoning": "TB-MSA-2025 has no data clause, so a DPA is needed before they start.",
+     "confidence": "high"
+    }
+   }
+  ],
+  "avaDid": [
+   {
+    "at": "2026-11-11T12:00:00+05:30",
+    "text": "Built the handoff packet for Legal.",
+    "for": [
+     "farah"
+    ]
+   },
+   {
+    "at": "2026-11-11T12:01:00+05:30",
+    "text": "Flagged customer data in support tickets for the DPA.",
+    "for": [
+     "farah",
+     "meera"
+    ]
+   }
+  ],
+  "checks": 3,
+  "avaActions": 11,
+  "decisions": 3
  },
  {
   "id": "REQ-1036",
@@ -104,12 +604,73 @@
   "category": "Language services",
   "project": "Hindi and Tamil UI strings",
   "requester": "Rohit Bansal",
-  "dept": "Product",
-  "stage": "New",
-  "waitingOn": "Rohit Bansal: confirm scope",
+  "dept": "Finance",
+  "stage": "Approvals",
+  "waitingOn": "Deepa Menon: approve",
   "amount": 95000,
   "createdAt": "2026-11-12T08:45:00+05:30",
-  "routes": []
+  "routes": [],
+  "read": [
+   "Kalpana Translations quoted ₹95,000 for Hindi and Tamil UI strings.",
+   "Rohit confirmed the scope; Deepa's approval is the last step."
+  ],
+  "plan": {
+   "predictedReady": "Fri 13 Nov",
+   "predictionReason": "One approval left.",
+   "steps": [
+    {
+     "title": "Confirm scope",
+     "ownerId": "Rohit Bansal",
+     "source": "ava",
+     "eta": null,
+     "status": "done",
+     "reason": null
+    },
+    {
+     "title": "Budget approval",
+     "ownerId": "deepa",
+     "source": "policy",
+     "eta": "Fri 13 Nov",
+     "status": "in_progress",
+     "reason": null
+    }
+   ]
+  },
+  "needs": [
+   {
+    "personId": "deepa",
+    "kind": "approval",
+    "question": "Approve ₹95,000 for Hindi and Tamil UI strings?",
+    "rec": {
+     "recommendation": "Summary for Deepa",
+     "confidence": "high",
+     "bullets": [
+      "₹95,000 for Hindi and Tamil UI strings.",
+      "Rohit confirmed the scope on Wed 11 Nov.",
+      "No open conflicts."
+     ]
+    }
+   }
+  ],
+  "avaDid": [
+   {
+    "at": "2026-11-11T17:30:00+05:30",
+    "text": "Asked Rohit to confirm the scope (one-click question).",
+    "for": [
+     "deepa"
+    ]
+   },
+   {
+    "at": "2026-11-12T08:15:00+05:30",
+    "text": "Prepared a receipt summary for Deepa.",
+    "for": [
+     "deepa"
+    ]
+   }
+  ],
+  "checks": 1,
+  "avaActions": 5,
+  "decisions": 1
  },
  {
   "id": "REQ-1037",
@@ -124,7 +685,60 @@
   "createdAt": "2026-11-09T14:20:00+05:30",
   "routes": [
    "InfoSec"
-  ]
+  ],
+  "read": [
+   "Nimbus Cloud's disaster-recovery region costs ₹6.4L a year.",
+   "It sits under the existing Platform agreement, so only the budget approval is needed."
+  ],
+  "plan": {
+   "predictedReady": "Fri 13 Nov",
+   "predictionReason": "One approval left.",
+   "steps": [
+    {
+     "title": "Budget approval",
+     "ownerId": "ananya",
+     "source": "policy",
+     "eta": "Fri 13 Nov",
+     "status": "in_progress",
+     "reason": null
+    }
+   ]
+  },
+  "needs": [
+   {
+    "personId": "ananya",
+    "kind": "approval",
+    "question": "Approve ₹6.4L for Nimbus Cloud's disaster-recovery region?",
+    "rec": {
+     "recommendation": "Summary for Ananya",
+     "confidence": "high",
+     "bullets": [
+      "₹6,40,000 a year for a disaster-recovery region, under the existing Nimbus agreement.",
+      "No customer data beyond what Nimbus already hosts.",
+      "No open conflicts."
+     ]
+    }
+   }
+  ],
+  "avaDid": [
+   {
+    "at": "2026-11-12T08:05:00+05:30",
+    "text": "Prepared a receipt summary for Ananya.",
+    "for": [
+     "ananya"
+    ]
+   },
+   {
+    "at": "2026-11-12T08:04:00+05:30",
+    "text": "Checked the add-on against the Nimbus agreement: consistent.",
+    "for": [
+     "ananya"
+    ]
+   }
+  ],
+  "checks": 2,
+  "avaActions": 5,
+  "decisions": 0
  },
  {
   "id": "REQ-1038",
@@ -137,7 +751,72 @@
   "waitingOn": "Rahul Mehta: answer a question",
   "amount": 1890000,
   "createdAt": "2026-11-10T16:00:00+05:30",
-  "routes": []
+  "routes": [],
+  "read": [
+   "Greenleaf Events quoted ₹18.9L for the sales kick-off in January.",
+   "Their quote says they run attendee registration, which may mean personal data Rahul has not mentioned."
+  ],
+  "plan": {
+   "predictedReady": "Wed 18 Nov",
+   "predictionReason": "Waiting on Rahul's answer about attendee data.",
+   "steps": [
+    {
+     "title": "Confirm attendee data",
+     "ownerId": "rahul",
+     "source": "ava",
+     "eta": "Fri 13 Nov",
+     "status": "in_progress",
+     "reason": "Greenleaf runs registration"
+    },
+    {
+     "title": "Budget approval",
+     "ownerId": "ananya",
+     "source": "policy",
+     "eta": "Mon 16 Nov",
+     "status": "todo",
+     "reason": null
+    },
+    {
+     "title": "Competing quote",
+     "ownerId": "karan",
+     "source": "policy",
+     "eta": "Tue 17 Nov",
+     "status": "todo",
+     "reason": null
+    }
+   ]
+  },
+  "needs": [
+   {
+    "personId": "rahul",
+    "kind": "question",
+    "question": "Will Greenleaf handle attendee personal data (names, phone numbers)?",
+    "rec": {
+     "recommendation": "Answer yes if attendees register through Greenleaf's form; their quote says they run registration.",
+     "reasoning": "If yes, a DPA is needed before registration opens.",
+     "confidence": "medium"
+    }
+   }
+  ],
+  "avaDid": [
+   {
+    "at": "2026-11-11T13:45:00+05:30",
+    "text": "Read Greenleaf's quote and found attendee registration.",
+    "for": [
+     "rahul"
+    ]
+   },
+   {
+    "at": "2026-11-11T13:46:00+05:30",
+    "text": "Asked Rahul one question about attendee data.",
+    "for": [
+     "rahul"
+    ]
+   }
+  ],
+  "checks": 2,
+  "avaActions": 6,
+  "decisions": 0
  },
  {
   "id": "REQ-1039",
@@ -147,10 +826,41 @@
   "requester": "Imran Qureshi",
   "dept": "Workplace",
   "stage": "Approvals",
-  "waitingOn": "Budget owner: approve",
+  "waitingOn": "Aditi Verma: approve",
   "amount": 530000,
   "createdAt": "2026-11-08T11:00:00+05:30",
-  "routes": []
+  "routes": [],
+  "read": [
+   "Shieldline Security will upgrade office access control for ₹5.3L.",
+   "Insurance and licences are on file; only Aditi's approval is left."
+  ],
+  "plan": {
+   "predictedReady": "Fri 13 Nov",
+   "predictionReason": "One approval left.",
+   "steps": [
+    {
+     "title": "Budget approval",
+     "ownerId": "aditi",
+     "source": "policy",
+     "eta": "Fri 13 Nov",
+     "status": "in_progress",
+     "reason": null
+    }
+   ]
+  },
+  "needs": [],
+  "avaDid": [
+   {
+    "at": "2026-11-11T18:00:00+05:30",
+    "text": "Checked Shieldline's insurance certificate: in date.",
+    "for": [
+     "karan"
+    ]
+   }
+  ],
+  "checks": 2,
+  "avaActions": 5,
+  "decisions": 0
  },
  {
   "id": "REQ-1040",
@@ -160,10 +870,99 @@
   "requester": "Neha Kapoor",
   "dept": "Marketing Ops",
   "stage": "Blocked",
-  "waitingOn": "Neha Kapoor: work started before approval",
+  "waitingOn": "Neha Kapoor: record a reason",
   "amount": 310000,
   "createdAt": "2026-11-07T13:30:00+05:30",
-  "routes": []
+  "routes": [],
+  "read": [
+   "Rangmanch invoiced ₹3.1L for the brand video shoot days that already happened.",
+   "Nobody approved this work first, so Neha needs to record a reason and Ritu needs to approve it retrospectively."
+  ],
+  "plan": {
+   "predictedReady": "Mon 16 Nov",
+   "predictionReason": "Two people steps: Neha's reason, then Ritu's approval.",
+   "steps": [
+    {
+     "title": "Reason for work started early",
+     "ownerId": "neha",
+     "source": "policy",
+     "eta": "Fri 13 Nov",
+     "status": "in_progress",
+     "reason": null
+    },
+    {
+     "title": "Retrospective approval",
+     "ownerId": "ritu",
+     "source": "policy",
+     "eta": "Mon 16 Nov",
+     "status": "todo",
+     "reason": null
+    }
+   ]
+  },
+  "conflict": {
+   "type": "started_before_approval",
+   "title": "Invoice for shoot days nobody approved",
+   "a": {
+    "label": "Approvals on record",
+    "quote": "No approval covers the October shoot days."
+   },
+   "b": {
+    "label": "What the invoice says",
+    "quote": "Invoice RM-118: 3 shoot days, 20 to 22 Oct, ₹3,10,000."
+   },
+   "clauses": [],
+   "impactText": "₹3,10,000 of work started before approval",
+   "impact": 310000,
+   "risk": true,
+   "rec": {
+    "recommendation": "Record the reason with Neha, then ask Ritu for a retrospective approval.",
+    "reasoning": "Work started before approval. Policy needs a reason and a retrospective approval.",
+    "confidence": "medium"
+   }
+  },
+  "needs": [
+   {
+    "personId": "neha",
+    "kind": "retro",
+    "question": "Rangmanch invoiced ₹3.1L for shoot days before approval. Record the reason."
+   },
+   {
+    "personId": "ritu",
+    "kind": "approval",
+    "question": "Approve ₹3.1L retrospectively once Neha records the reason?",
+    "rec": {
+     "recommendation": "Summary for Ritu",
+     "confidence": "medium",
+     "bullets": [
+      "₹3,10,000 for 3 shoot days, 20 to 22 Oct.",
+      "No approval was given before the work.",
+      "Neha is recording the reason."
+     ]
+    }
+   }
+  ],
+  "avaDid": [
+   {
+    "at": "2026-11-11T09:30:00+05:30",
+    "text": "Linked invoice RM-118 to REQ-1040.",
+    "for": [
+     "neha",
+     "ritu"
+    ]
+   },
+   {
+    "at": "2026-11-11T09:31:00+05:30",
+    "text": "Marked the request \"Started before approval\".",
+    "for": [
+     "neha",
+     "ritu"
+    ]
+   }
+  ],
+  "checks": 1,
+  "avaActions": 6,
+  "decisions": 0
  },
  {
   "id": "REQ-1041",
@@ -178,7 +977,82 @@
   "createdAt": "2026-11-09T10:15:00+05:30",
   "routes": [
    "InfoSec"
-  ]
+  ],
+  "read": [
+   "Codehive's fixed-fee data warehouse audit for Product is ₹14.2L.",
+   "Their latest email adds two extra sprints billed at the end, about ₹5.6L of scope that CH-MSA-2026 9.1 says needs a signed change request."
+  ],
+  "plan": {
+   "predictedReady": "Thu 19 Nov",
+   "predictionReason": "Waiting on Codehive's revised quote or a change request.",
+   "steps": [
+    {
+     "title": "Change request or remove the extra sprints",
+     "ownerId": "karan",
+     "source": "ava",
+     "eta": "Wed 18 Nov",
+     "status": "in_progress",
+     "reason": "CH-MSA-2026 9.1"
+    },
+    {
+     "title": "Budget approval",
+     "ownerId": "ananya",
+     "source": "policy",
+     "eta": "Thu 19 Nov",
+     "status": "todo",
+     "reason": null
+    }
+   ]
+  },
+  "conflict": {
+   "title": "Two extra sprints added without a change request",
+   "a": {
+    "label": "What the contract says",
+    "clause": "CH-MSA-2026 9.1",
+    "quote": "Scope changes need a signed change request."
+   },
+   "b": {
+    "label": "What Codehive wrote",
+    "quote": "We've added two extra sprints, billed at the end."
+   },
+   "clauses": [
+    "CH-MSA-2026 9.1"
+   ],
+   "impactText": "About ₹5.6L of unapproved scope",
+   "impact": 560000,
+   "rec": {
+    "recommendation": "Ask Codehive for a signed change request before the extra sprints start, or remove them from the plan.",
+    "reasoning": "CH-MSA-2026 9.1 needs a signed change request for scope changes. The fixed fee is ₹14.2L.",
+    "confidence": "high",
+    "draft": "Hi team,\n\nThe two extra sprints are a scope change. Under CH-MSA-2026 9.1 we need a signed change request before they start. Please send one, or keep to the fixed scope.\n\nThanks,\nKaran"
+   }
+  },
+  "needs": [
+   {
+    "personId": "karan",
+    "kind": "conflict",
+    "question": "Codehive added two sprints (about ₹5.6L) without a change request."
+   }
+  ],
+  "avaDid": [
+   {
+    "at": "2026-11-12T08:50:00+05:30",
+    "text": "Checked Codehive's email against CH-MSA-2026 9.1: goes against the contract.",
+    "for": [
+     "karan"
+    ]
+   },
+   {
+    "at": "2026-11-12T08:51:00+05:30",
+    "text": "Drafted a change-request ask for Karan.",
+    "for": [
+     "karan"
+    ]
+   }
+  ],
+  "checks": 2,
+  "avaActions": 7,
+  "decisions": 0
  },
  {
   "id": "REQ-1042",
@@ -191,7 +1065,46 @@
   "waitingOn": "PO issue",
   "amount": 870000,
   "createdAt": "2026-10-30T09:30:00+05:30",
-  "routes": []
+  "routes": [],
+  "read": [
+   "Swift Movers will handle the Mumbai office move for ₹8.7L.",
+   "All checks pass; Finance can issue the PO."
+  ],
+  "plan": {
+   "predictedReady": "Ready",
+   "predictionReason": "Ready to issue PO.",
+   "steps": [
+    {
+     "title": "Budget approval",
+     "ownerId": "aditi",
+     "source": "policy",
+     "eta": null,
+     "status": "done",
+     "reason": null
+    },
+    {
+     "title": "Issue the PO",
+     "ownerId": "suresh",
+     "source": "ava",
+     "eta": "Fri 13 Nov",
+     "status": "in_progress",
+     "reason": null
+    }
+   ]
+  },
+  "needs": [],
+  "avaDid": [
+   {
+    "at": "2026-11-11T14:00:00+05:30",
+    "text": "Confirmed GST and PAN on file for Swift Movers.",
+    "for": [
+     "suresh"
+    ]
+   }
+  ],
+  "checks": 2,
+  "avaActions": 6,
+  "decisions": 1
  },
  {
   "id": "REQ-1043",
@@ -201,10 +1114,41 @@
   "requester": "Meenal Joshi",
   "dept": "People",
   "stage": "Approvals",
-  "waitingOn": "Budget owner: approve",
+  "waitingOn": "Sameer Kulkarni: approve",
   "amount": 360000,
   "createdAt": "2026-11-11T12:40:00+05:30",
-  "routes": []
+  "routes": [],
+  "read": [
+   "LearnLoop Academy quoted ₹3.6L for manager training in December.",
+   "No customer data and under the limit; only Sameer's approval is left."
+  ],
+  "plan": {
+   "predictedReady": "Fri 13 Nov",
+   "predictionReason": "One approval left.",
+   "steps": [
+    {
+     "title": "Budget approval",
+     "ownerId": "sameer",
+     "source": "policy",
+     "eta": "Fri 13 Nov",
+     "status": "in_progress",
+     "reason": null
+    }
+   ]
+  },
+  "needs": [],
+  "avaDid": [
+   {
+    "at": "2026-11-11T16:00:00+05:30",
+    "text": "Prepared a receipt summary for Sameer.",
+    "for": [
+     "karan"
+    ]
+   }
+  ],
+  "checks": 1,
+  "avaActions": 4,
+  "decisions": 0
  },
  {
   "id": "REQ-1044",
@@ -217,6 +1161,37 @@
   "waitingOn": "Karan Shah: first look",
   "amount": 210000,
   "createdAt": "2026-11-12T08:10:00+05:30",
-  "routes": []
+  "routes": [],
+  "read": [
+   "Pixelwise quoted ₹2.1L for 40 extra seats.",
+   "Karan should look at it with the open Pixelwise renewal (REQ-1034)."
+  ],
+  "plan": {
+   "predictedReady": "Mon 16 Nov",
+   "predictionReason": "Linked to the Pixelwise renewal.",
+   "steps": [
+    {
+     "title": "First look, with REQ-1034",
+     "ownerId": "karan",
+     "source": "ava",
+     "eta": "Fri 13 Nov",
+     "status": "todo",
+     "reason": null
+    }
+   ]
+  },
+  "needs": [],
+  "avaDid": [
+   {
+    "at": "2026-11-12T08:45:00+05:30",
+    "text": "Linked REQ-1044 to the open Pixelwise renewal.",
+    "for": [
+     "karan"
+    ]
+   }
+  ],
+  "checks": 1,
+  "avaActions": 3,
+  "decisions": 0
  }
 ]

@@ -1,0 +1,404 @@
+{
+ "docs": [
+  {
+   "docId": "TV-MSA-2024",
+   "supplierId": "trivenika",
+   "title": "Master Services Agreement",
+   "parties": "Prayaan Software Pvt Ltd and Trivenika Systems Pvt Ltd",
+   "signed": "2024-04-02",
+   "clauses": [
+    {
+     "clause": "2.1",
+     "title": "Term",
+     "text": "2 Apr 2024 to 1 Apr 2027.",
+     "kind": "term",
+     "due": "2027-04-01"
+    },
+    {
+     "clause": "2.2",
+     "title": "Renewal",
+     "text": "Renews automatically for 12 months unless either party gives 60 days' written notice.",
+     "kind": "auto_renew",
+     "due": "2027-01-31",
+     "value": "Notice by 31 Jan 2027"
+    },
+    {
+     "clause": "3",
+     "title": "Order of precedence",
+     "text": "Work is described in signed SOWs. If an SOW and the MSA conflict, the SOW prevails on scope and dates; the MSA prevails on everything else."
+    },
+    {
+     "clause": "4.1",
+     "title": "Delivery dates",
+     "text": "Deliverables are due on the dates in their SOW."
+    },
+    {
+     "clause": "4.2",
+     "title": "Notice of delay",
+     "text": "The supplier gives written notice of any expected delay at least 10 Business Days before the due date.",
+     "kind": "delay_notice",
+     "value": "10 business days"
+    },
+    {
+     "clause": "4.3",
+     "title": "New dates",
+     "text": "A new date applies only once agreed in a signed change request."
+    },
+    {
+     "clause": "5.1",
+     "title": "Fees",
+     "text": "Fees are as stated in each SOW."
+    },
+    {
+     "clause": "5.2",
+     "title": "Rates",
+     "text": "Rates are in Schedule A."
+    },
+    {
+     "clause": "5.3",
+     "title": "Rate increases",
+     "text": "Schedule A rates are fixed until 1 Apr 2026. After that, the supplier may increase them once a year, by no more than 8%, with 60 days' written notice.",
+     "kind": "rate_cap",
+     "value": "Up to 8% a year, 60 days' notice"
+    },
+    {
+     "clause": "6",
+     "title": "Payment",
+     "text": "Payment within 30 days of a valid invoice quoting the SOW and PO numbers.",
+     "value": "30 days"
+    },
+    {
+     "clause": "7.1",
+     "title": "Key personnel",
+     "text": "Named key personnel in an SOW may be replaced only with Prayaan's prior written consent."
+    },
+    {
+     "clause": "8.1",
+     "title": "Data processing",
+     "text": "A data processing agreement must be signed before the supplier processes Prayaan customer personal data.",
+     "kind": "dpa",
+     "value": "DPA before customer data"
+    },
+    {
+     "clause": "9.1",
+     "title": "Delay credits",
+     "text": "For each full week a Deliverable is late, the supplier credits 2% of that SOW's fees, up to 10%.",
+     "kind": "delay_credit",
+     "value": "2% a week, up to 10%"
+    },
+    {
+     "clause": "10",
+     "title": "Liability",
+     "text": "Liability is capped at the fees paid in the previous 12 months."
+    },
+    {
+     "clause": "11",
+     "title": "Insurance",
+     "text": "Professional indemnity insurance of at least ₹2 crore.",
+     "kind": "insurance",
+     "value": "At least ₹2 crore"
+    },
+    {
+     "clause": "12.1",
+     "title": "Changes",
+     "text": "Any change to an SOW's scope, fees or dates needs a change request signed by both parties.",
+     "kind": "change_request"
+    },
+    {
+     "clause": "13",
+     "title": "Termination",
+     "text": "Either party may terminate for convenience with 30 days' notice."
+    },
+    {
+     "clause": "14",
+     "title": "Governing law",
+     "text": "India. Courts at Pune."
+    }
+   ],
+   "schedule": {
+    "title": "Schedule A: rates per person-month",
+    "fixedUntil": "2026-04-01",
+    "capPct": 8,
+    "rows": [
+     [
+      "Salesforce Solution Architect",
+      280000
+     ],
+     [
+      "Senior Salesforce Developer",
+      180000
+     ],
+     [
+      "Data Migration Specialist",
+      180000
+     ],
+     [
+      "Project Manager",
+      180000
+     ]
+    ]
+   }
+  },
+  {
+   "docId": "TV-NDA-2024",
+   "supplierId": "trivenika",
+   "title": "Mutual Non-Disclosure Agreement",
+   "parties": "Prayaan Software Pvt Ltd and Trivenika Systems Pvt Ltd",
+   "signed": "2024-03-14",
+   "clauses": [
+    {
+     "clause": "1",
+     "title": "Confidential information",
+     "text": "Each party keeps the other's confidential information secret and uses it only for the discussions between them."
+    },
+    {
+     "clause": "2",
+     "title": "Term",
+     "text": "Obligations last 3 years from the last disclosure."
+    }
+   ]
+  },
+  {
+   "docId": "SOW-0391",
+   "supplierId": "trivenika",
+   "title": "SOW-0391: Marketing dashboard build",
+   "parties": "Under TV-MSA-2024",
+   "signed": "2026-07-15",
+   "fees": 800000,
+   "clauses": [
+    {
+     "clause": "1",
+     "title": "Scope",
+     "text": "Build the marketing dashboard for Marketing Ops."
+    },
+    {
+     "clause": "2",
+     "title": "Fees",
+     "text": "₹8,00,000 fixed."
+    },
+    {
+     "clause": "3",
+     "title": "Status",
+     "text": "Delivered and accepted 28 Aug 2026.",
+     "kind": "delivered"
+    }
+   ]
+  },
+  {
+   "docId": "SOW-0412",
+   "supplierId": "trivenika",
+   "title": "SOW-0412: Salesforce support retainer Q3",
+   "parties": "Under TV-MSA-2024",
+   "signed": "2026-09-01",
+   "fees": 900000,
+   "clauses": [
+    {
+     "clause": "1",
+     "title": "Fees",
+     "text": "₹9,00,000 for the term."
+    },
+    {
+     "clause": "2",
+     "title": "Term",
+     "text": "1 Sep to 30 Nov 2026.",
+     "kind": "term",
+     "due": "2026-11-30"
+    },
+    {
+     "clause": "4",
+     "title": "Hours",
+     "text": "Weekday support, 9:00 to 19:00 IST."
+    },
+    {
+     "clause": "5",
+     "title": "Response time",
+     "text": "Priority-1 response within 2 hours.",
+     "value": "2 hours"
+    },
+    {
+     "clause": "6",
+     "title": "Exclusions",
+     "text": "Weekend and on-call support are out of scope."
+    }
+   ]
+  },
+  {
+   "docId": "SOW-0438",
+   "supplierId": "trivenika",
+   "title": "SOW-0438: CRM data clean-up sprint",
+   "parties": "Under TV-MSA-2024",
+   "signed": "2026-10-06",
+   "fees": 900000,
+   "clauses": [
+    {
+     "clause": "1",
+     "title": "Fees",
+     "text": "₹9,00,000 fixed."
+    },
+    {
+     "clause": "2",
+     "title": "Term",
+     "text": "6 Oct to 15 Nov 2026."
+    },
+    {
+     "clause": "4.1",
+     "title": "First deliverable",
+     "text": "Cleaned dataset by 30 Oct 2026 (delivered 29 Oct).",
+     "kind": "delivered",
+     "due": "2026-10-30"
+    },
+    {
+     "clause": "4.2",
+     "title": "Final deliverable",
+     "text": "Final data-quality report and sign-off pack by 15 Nov 2026.",
+     "kind": "deliverable",
+     "due": "2026-11-15",
+     "keywords": [
+      "data-quality report",
+      "clean-up",
+      "sign-off pack"
+     ]
+    },
+    {
+     "clause": "6.1",
+     "title": "Lead",
+     "text": "Lead: Vivek Kulkarni, Data Architect."
+    }
+   ]
+  },
+  {
+   "docId": "KA-MSA-2025",
+   "supplierId": "kosha",
+   "title": "Master Subscription Agreement",
+   "parties": "Prayaan Software Pvt Ltd and Kosha Analytics Pvt Ltd",
+   "signed": "2025-12-20",
+   "clauses": [
+    {
+     "clause": "2",
+     "title": "Term",
+     "text": "1 Jan to 31 Dec 2026.",
+     "kind": "term",
+     "due": "2026-12-31"
+    },
+    {
+     "clause": "4.1",
+     "title": "Renewal",
+     "text": "Renewal needs a signed order form."
+    },
+    {
+     "clause": "4.2",
+     "title": "Renewal price",
+     "text": "Any renewal price increase is capped at 7%, notified at least 60 days before term end (by 1 Nov 2026).",
+     "kind": "renewal_cap",
+     "value": "Up to 7%, notice by 1 Nov 2026",
+     "due": "2026-11-01"
+    },
+    {
+     "clause": "4.3",
+     "title": "No automatic renewal",
+     "text": "No automatic renewal unless both parties agree in writing.",
+     "kind": "auto_renew_ban"
+    }
+   ]
+  },
+  {
+   "docId": "CH-MSA-2026",
+   "supplierId": "codehive",
+   "title": "Master Services Agreement",
+   "parties": "Prayaan Software Pvt Ltd and Codehive Consulting",
+   "signed": "2026-02-10",
+   "clauses": [
+    {
+     "clause": "9.1",
+     "title": "Scope changes",
+     "text": "Scope changes need a signed change request.",
+     "kind": "change_request"
+    }
+   ]
+  },
+  {
+   "docId": "TB-MSA-2025",
+   "supplierId": "talentbridge",
+   "title": "Staffing Agreement",
+   "parties": "Prayaan Software Pvt Ltd and TalentBridge Staffing",
+   "signed": "2025-06-01",
+   "clauses": [
+    {
+     "clause": "5.1",
+     "title": "Named contractors",
+     "text": "Named contractors may be replaced only with written consent."
+    },
+    {
+     "clause": "5.2",
+     "title": "Seniority",
+     "text": "Replacements must have equal or higher seniority."
+    }
+   ]
+  },
+  {
+   "docId": "PW-ORD-2025",
+   "supplierId": "pixelwise",
+   "title": "Order form, Pixelwise Analytics subscription",
+   "parties": "Prayaan Software Pvt Ltd and Pixelwise Analytics Pvt Ltd",
+   "signed": "2025-03-28",
+   "clauses": [
+    {
+     "clause": "1",
+     "title": "Service",
+     "text": "Product analytics subscription for up to 40 users."
+    },
+    {
+     "clause": "2",
+     "title": "Term",
+     "text": "1 Apr 2025 to 31 Mar 2026, renewable for 12 months by signed order form."
+    },
+    {
+     "clause": "3",
+     "title": "Price",
+     "text": "Price fixed at ₹20,00,000 a year until 31 Mar 2027."
+    }
+   ]
+  }
+ ],
+ "history": {
+  "trivenika": [
+   {
+    "what": "ISO certificate renewal",
+    "asked": "2025-03-03",
+    "received": "2025-03-07",
+    "businessDays": 4
+   },
+   {
+    "what": "Insurance certificate",
+    "year": 2024,
+    "businessDays": 2
+   },
+   {
+    "what": "Reply to commercial questions",
+    "note": "Same day on average"
+   }
+  ],
+  "kosha": [
+   {
+    "what": "Order-form correction",
+    "year": 2025,
+    "businessDays": 6
+   }
+  ],
+  "sukhda": [
+   {
+    "what": "Insurance certificate",
+    "year": 2025,
+    "businessDays": 9
+   }
+  ],
+  "talentbridge": [
+   {
+    "what": "Contractor replacements",
+    "year": 2025,
+    "count": 2,
+    "note": "Each needed a seniority check"
+   }
+  ]
+ }
+}

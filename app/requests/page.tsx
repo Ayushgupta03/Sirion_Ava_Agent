@@ -5,9 +5,9 @@ import { useSearchParams } from "next/navigation";
 import { useAva } from "@/lib/store";
 import { analyze } from "@/lib/engine/rules";
 import { personName } from "@/lib/engine/world";
-import { BACKGROUND } from "@/lib/background";
+import { BACKGROUND, bgState, bgTotal90 } from "@/lib/background";
 import { scenarioTag } from "@/lib/summary";
-import { hoursBetween, lakh, span } from "@/lib/format";
+import { hoursBetween, lakh, opened, span } from "@/lib/format";
 import { Card, Chip, cx, Empty, PageTitle, StateChip, supplierShort } from "@/components/ui";
 
 type Row = { id: string; live: boolean; supplier: string; supplierId?: string; title: string; requester: string; cc: string; value?: number; total?: number; routes: string[]; state: string; waiting: string; age: string; conflicts: number; tag: string };
@@ -23,9 +23,9 @@ function Requests() {
     const a = analyze(state, id); const r = state.requests[id]; const sup = state.suppliers.find((s) => s.id === r.supplierId);
     return { id, live: true, supplier: supplierShort(sup?.name ?? r.supplierGuess?.name), supplierId: sup?.id, title: r.title, requester: personName(r.requesterId), cc: r.costCentre, value: a.requestAmount, total: a.spend.total,
       routes: a.routing.approvals.map((x) => x.key === "budget_owner" ? "Budget" : x.key === "vp" ? "VP" : "InfoSec"), state: a.handoff.state, waiting: a.waitingOn ?? "—",
-      age: span(hoursBetween(r.createdAt, r.readyAt ?? state.now)), conflicts: Object.values(state.conflicts).filter((c) => c.requestId === id && c.status === "open").length, tag: scenarioTag(state, id) };
+      age: opened(hoursBetween(r.createdAt, r.readyAt ?? state.now)), conflicts: Object.values(state.conflicts).filter((c) => c.requestId === id && c.status === "open").length, tag: scenarioTag(state, id) };
   });
-  const bg: Row[] = BACKGROUND.map((b) => ({ id: b.id, live: false, supplier: b.supplier, title: b.project, requester: b.requester, cc: b.dept, value: b.amount, routes: ["Budget", ...b.routes], state: b.stage === "Ready" ? "ready" : b.stage === "Blocked" ? "blocked" : "in_progress", waiting: b.waitingOn, age: span(hoursBetween(b.createdAt, state.now)), conflicts: b.stage === "Blocked" ? 1 : 0, tag: "Background" }));
+  const bg: Row[] = BACKGROUND.map((b) => ({ id: b.id, live: false, supplier: b.supplier, title: b.project, requester: b.requester, cc: b.dept, value: b.amount, total: bgTotal90(b, state.now), routes: ["Budget", ...b.routes], state: bgState(b), waiting: b.waitingOn, age: opened(hoursBetween(b.createdAt, state.now)), conflicts: b.conflict ? 1 : 0, tag: "Background" }));
   const rows = [...live, ...bg].filter((r) => filter === "all" || r.conflicts > 0);
   const groups = group === "supplier" ? [...new Set(rows.map((r) => r.supplier))].sort().map((s) => ({ name: s, id: rows.find((r) => r.supplier === s)?.supplierId, rows: rows.filter((r) => r.supplier === s) })) : [{ name: "", id: undefined, rows }];
   const openCount = [...live, ...bg].filter((r) => r.conflicts > 0).length;
@@ -47,15 +47,15 @@ function Requests() {
         <div key={g.name || "all"} className="mb-5">
           {g.name && <h2 className="mb-2 text-[15px] font-semibold">{g.id ? <Link href={`/suppliers/${g.id}`} className="hover:underline">{g.name}</Link> : g.name} <span className="font-normal text-slate-500">· {g.rows.length}</span></h2>}
           <Card><div className="overflow-x-auto"><table className="w-full min-w-[860px] text-[13px]">
-            <thead><tr className="border-b border-slate-100 text-left text-[12px] text-slate-500">{["Request", "Supplier › Project", "Requester", "Value", "90-day total", "Routing", "Status", "Waiting on", "Age"].map((h) => <th key={h} className="px-3 py-2 font-medium">{h}</th>)}</tr></thead>
+            <thead><tr className="border-b border-slate-100 text-left text-[12px] text-slate-500">{["Request", "Supplier › Project", "Requester", "Value", "90-day total", "Routing", "Status", "Waiting on", "Opened"].map((h) => <th key={h} className="px-3 py-2 font-medium">{h}</th>)}</tr></thead>
             <tbody>{g.rows.map((r) => (
               <tr key={r.id} className={cx("border-b border-slate-50 align-top", !r.live && "text-slate-500")}>
-                <td className="whitespace-nowrap px-3 py-2">{r.live ? <Link className="font-medium text-accent hover:underline" href={`/requests/${r.id}`}>{r.id}</Link> : <span title="Background request, not part of the guided demo">{r.id}</span>}<div className="mt-0.5"><Chip tone={r.live ? "blue" : "grey"}>{r.tag}</Chip></div></td>
+                <td className="whitespace-nowrap px-3 py-2"><Link className={cx("font-medium hover:underline", r.live ? "text-accent" : "text-slate-600")} href={`/requests/${r.id}`} title={r.live ? undefined : "Background request, not part of the guided demo"}>{r.id}</Link><div className="mt-0.5"><Chip tone={r.live ? "blue" : "grey"}>{r.tag}</Chip></div></td>
                 <td className="px-3 py-2">{r.supplierId ? <Link href={`/suppliers/${r.supplierId}`} className="hover:underline">{r.supplier}</Link> : r.supplier} › {r.title}{r.conflicts > 0 && <div className="text-[12px] text-red-700">{r.conflicts} open conflict{r.conflicts > 1 ? "s" : ""}</div>}</td>
                 <td className="px-3 py-2">{r.requester}<div className="text-[12px] text-slate-500">{r.cc}</div></td>
                 <td className="whitespace-nowrap px-3 py-2 font-mono">{lakh(r.value)}</td><td className="whitespace-nowrap px-3 py-2 font-mono">{r.total != null ? lakh(r.total) : "—"}</td>
                 <td className="px-3 py-2"><div className="flex flex-wrap gap-1">{r.routes.map((x) => <Chip key={x} tone="grey">{x}</Chip>)}</div></td>
-                <td className="px-3 py-2"><StateChip state={r.state === "ready" ? "ready_po" : r.state} /></td><td className="px-3 py-2">{r.waiting}</td><td className="whitespace-nowrap px-3 py-2">{r.age}</td>
+                <td className="px-3 py-2"><StateChip state={r.state} /></td><td className="px-3 py-2">{r.waiting}</td><td className="whitespace-nowrap px-3 py-2">{r.age}</td>
               </tr>))}</tbody></table></div></Card>
         </div>
       ))}

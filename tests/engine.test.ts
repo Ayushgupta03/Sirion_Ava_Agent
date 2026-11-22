@@ -63,7 +63,13 @@ describe("Scenario A through the pipeline", () => {
     const s = run(SCENARIO_A, 3); const a = analyze(s, REQ(s, "t-sfm"));
     expect(a.facts.amount.state).toBe("confirmed"); expect(a.facts.amount.origin).toBe("document");
     expect(a.flags.find((f) => f.question === "data_access")).toBeTruthy();
-    expect(a.rateFlags[0].message).toMatch(/11% above the 2025 rate card/);
+    const rates = a.conflicts.find((c) => c.id.includes(":contract:rates:"))!;
+    expect(rates.impact).toBe(39200); expect(rates.type).toBe("against_contract");
+    expect(a.checks.find((c) => /Architect/.test(c.text))!.status).toBe("consistent");
+    const del = a.conflicts.find((c) => c.id.includes(":contract:delivery:"))!;
+    expect(del.impact).toBe(90000);
+    expect(del.a.quotes.map((q) => q.note).join(" ")).toMatch(/2 business days before the due date; 10 required/);
+    expect(del.title).toMatch(/35 days late/);
   });
   it("step 4: departments get their items", () => {
     const s = run(SCENARIO_A, 4); const items = deriveItems(s);
@@ -126,7 +132,7 @@ describe("Contrast and Scenario B", () => {
     const c = Object.values(s.conflicts).find((c) => c.requestId === id && c.type === "renewal_terms_changed")!;
     expect(c.b.quotes.length).toBe(3); expect(c.a.quotes[0].quote).toMatch(/nothing changes/);
     s = run(SCENARIO_B.slice(1), 1, s);
-    expect(s.drafts.find((d) => d.requestId === id && d.conflictId)!.body).toBe("Hi Priya, the order form shows a 12% increase, a 36-month term and auto-renewal, but your email says nothing changes. Could you send a form at this year's terms, or explain the changes?");
+    expect(s.drafts.find((d) => d.requestId === id && d.conflictId)!.body).toMatch(/counter|12 months at 5%/);
     s = run(SCENARIO_B.slice(2), 1, s);
     expect(s.requests[id].retroItems[0].invoiceNo).toBe("KA-7781");
     expect(Object.values(s.conflicts).some((c) => c.requestId === id && c.type === "started_before_approval" && c.status === "open")).toBe(true);
@@ -178,7 +184,46 @@ describe("revision: waits and withdrawals", () => {
     const email = { id: "w1", threadId: "t-sfm", from: "arjun.d@trivenika.example", to: ["rahul.mehta@prayaan.example"], cc: [], subject: "RE: quote", body: "Revised quote attached.", sentAt: "2026-11-18T10:00:00+05:30", attachments: [att], origin: "composed" as const };
     s = applyEvent(s, { id: "evw", at: email.sentAt, kind: "email", email, extraction: basicExtract(email, []), extractionSource: "basic" });
     const req = s.requests[REQ(s, "t-sfm")];
-    expect(req.withdrawals?.[0].reason).toBe("price changed in a new quote (₹21.5L → ₹23L). Approvals reopened.");
+    expect(req.withdrawals?.[0].reason).toBe("price changed in a new quote (₹21.11L → ₹23L). Approvals reopened.");
     expect(deriveItems(s).some((i) => i.personId === "farah" && /withdrawn from Legal review/.test(i.question))).toBe(true);
+  });
+});
+
+import { currentPlan, predictionHit, validatePlan, actionsOf } from "@/lib/engine/ai";
+describe("revision 3: contracts, plans and counts", () => {
+  it("step 8 ends with approvals at ₹21,10,800 and ₹39,10,800", () => {
+    const s = run(SCENARIO_A, 8); const a = analyze(s, REQ(s, "t-sfm"));
+    expect(a.approvals.find((x) => x.key === "budget_owner")!.last!.snapshot.amount).toBe(2110800);
+    expect(a.approvals.find((x) => x.key === "vp")!.last!.snapshot.total90).toBe(3910800);
+    expect(Object.values(s.conflicts).find((c) => c.id.includes(":contract:rates:"))!.status).toBe("resolved");
+    expect(s.requests[REQ(s, "t-sfm")].contractIssues!.some((i) => /90,000/.test(i.note))).toBe(true);
+  });
+  it("a decrease never reopens an approval", () => {
+    const st = approvalStatus([{ id: "r", at: "t", by: "ananya", kind: "approved", snapshot: { amount: 2150000, total90: 3950000 } }], { amount: 2110800, total90: 3910800 });
+    expect(st.status).toBe("approved");
+  });
+  it("step 9: ready, prediction hit, N > 20 Ava actions and about 10 decisions", () => {
+    const s = run(SCENARIO_A, 9); const id = REQ(s, "t-sfm");
+    expect(analyze(s, id).handoff.state).toBe("ready_legal");
+    expect(predictionHit(s, id)).toBe("Predicted on Thu 11:40: Tue 17 Nov. Actual: Tue 17 Nov 11:05.");
+    const { ava, people } = actionsOf(s.requests[id]);
+    expect(ava.length).toBeGreaterThan(20); expect(people.length).toBeGreaterThanOrEqual(8); expect(people.length).toBeLessThanOrEqual(14);
+  });
+  it("step 7 plan shows what changed", () => {
+    const s = run(SCENARIO_A, 7); const p = currentPlan(s, REQ(s, "t-sfm"));
+    expect(p.v.changes!.join(" | ")).toMatch(/Budget approval reopened/);
+    expect(p.v.changes!.join(" | ")).toMatch(/Handoff blocked/);
+  });
+  it("code inserts a policy step the AI left out, and removes cycles", () => {
+    const s = run(SCENARIO_A, 3); const a = analyze(s, REQ(s, "t-sfm"));
+    const { plan, fixes } = validatePlan({ steps: [{ id: "x", title: "X", ownerId: "nobody", source: "ava", dependsOn: ["y"], status: "todo" }, { id: "y", title: "Y", ownerId: "karan", source: "ava", dependsOn: ["x"], status: "todo" }], criticalPath: [], predictedReady: "", predictionReason: "", changesSinceLast: [] }, a, s);
+    expect(plan.steps.some((x) => x.id === "approve-vp" && x.source === "policy")).toBe(true);
+    expect(fixes.some((f) => /Added by policy check/.test(f))).toBe(true);
+    expect(fixes.some((f) => /circular/.test(f))).toBe(true);
+    expect(plan.steps.find((x) => x.id === "x")!.ownerId).toBe("karan");
+  });
+  it("Scenario B: 5% within the 7% cap and ₹1,26,000 saved", () => {
+    let s = run(SCENARIO_A, 9); s = run(SCENARIO_B, 4, s); const a = analyze(s, REQ(s, "t-kosha"));
+    expect(a.checks.find((c) => c.clause === "4.2" && c.status === "consistent")!.text).toMatch(/5% increase: within the 7% cap/);
   });
 });

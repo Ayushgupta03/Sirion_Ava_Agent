@@ -2,8 +2,10 @@
 import { useEffect, useMemo, useRef, useState } from "react";
 import { useAva } from "@/lib/store";
 import { displayAddr } from "@/lib/engine/world";
-import { fmtDT } from "@/lib/format";
+import { fmtDate, fmtDT } from "@/lib/format";
 import { Button, cx } from "./ui";
+import { sampleAttachment } from "@/lib/samples";
+import { clauseQuote, contractDoc } from "@/lib/engine/contracts";
 
 const n = (s: string) => s.replace(/[‘’]/g, "'").replace(/[–—]/g, "-").replace(/\s+/g, " ").trim();
 
@@ -65,7 +67,9 @@ export default function SourceViewer() {
   useEffect(() => { const k = (e: KeyboardEvent) => e.key === "Escape" && close(); window.addEventListener("keydown", k); return () => window.removeEventListener("keydown", k); }, [close]);
   if (!viewer) return null;
   const email = state.emails.find((e) => e.id === viewer.emailId);
-  const att = email?.attachments.find((a) => a.id === viewer.attachmentId);
+  const cdoc = viewer.docId ? contractDoc(viewer.docId) : undefined;
+  const att = cdoc ? sampleAttachment(`contracts/${cdoc.docId}.pdf`, `contract-${cdoc.docId}`) : email?.attachments.find((a) => a.id === viewer.attachmentId);
+  if (cdoc && viewer.clause && !viewer.quote) viewer.quote = clauseQuote(cdoc.docId, viewer.clause);
   const older = viewer.compareWith ? state.emails.flatMap((e) => e.attachments).find((a) => a.id === viewer.compareWith) : undefined;
   const added = older && att ? new Set(att.pages.flat().map(n).filter((l) => !new Set(older.pages.flat().map(n)).has(l))) : undefined;
   return (
@@ -74,9 +78,10 @@ export default function SourceViewer() {
         <div className="flex items-start justify-between gap-3 border-b border-slate-200 px-5 py-3">
           <div>
             <div className="text-[12px] font-medium uppercase tracking-wide text-slate-500">Source</div>
-            <div className="text-[15px] font-semibold">{viewer.title ?? (att ? att.name : email ? email.subject : "Not found")}</div>
+            <div className="text-[15px] font-semibold">{cdoc ? `${cdoc.docId}: ${cdoc.title}${viewer.clause ? `, clause ${viewer.clause}` : ""}` : viewer.title ?? (att ? att.name : email ? email.subject : "Not found")}</div>
+            {cdoc && <div className="text-[12px] text-slate-500">{cdoc.parties}. Signed {fmtDate(cdoc.signed)}. Sample contract in this prototype.</div>}
             {email && <div className="text-[12px] text-slate-500">{att ? "Attachment to" : "Email"} from {displayAddr(email.from, state)} to {email.to.map((t) => displayAddr(t, state)).join(", ")}, {fmtDT(email.sentAt)}</div>}
-            {(viewer.quote || viewer.quotes?.length) && <div className="mt-1 text-[12.5px] text-slate-700">Highlighted: {[...(viewer.quotes ?? []), ...(viewer.quote ? [viewer.quote] : [])].map((q) => `“${q}”`).join(", ")}</div>}
+            {!cdoc && (viewer.quote || viewer.quotes?.length) && <div className="mt-1 text-[12.5px] text-slate-700">Highlighted: {[...(viewer.quotes ?? []), ...(viewer.quote ? [viewer.quote] : [])].map((q) => `“${q}”`).join(", ")}</div>}
           </div>
           <Button small variant="ghost" onClick={close}>Close</Button>
         </div>
@@ -86,7 +91,7 @@ export default function SourceViewer() {
           </div>
         )}
         <div className="overflow-auto px-5 py-4">
-          {!email && <p>Source email not found in the mailbox.</p>}
+          {!email && !att && <p>Source email not found in the mailbox.</p>}
           {email && !att && <Lines lines={email.body.split(/\n|(?<=[.!?])\s+/)} quote={viewer.quote} />}
           {att && older && tab === "text" && (
             <div className="grid gap-4 md:grid-cols-2">

@@ -145,3 +145,5 @@ export function span(hours: number): string {
 }
 export function ago(fromIso: string, toIso: string) { const h = hoursBetween(fromIso, toIso); return h < 1 ? "just now" : `${span(h)} ago`; }
 export function closedAfter(fromIso: string, toIso: string) { const h = hoursBetween(fromIso, toIso); return h < 1 ? "closed within the hour" : `closed after ${span(h)}`; }
+
+export function opened(hours: number) { const t = span(hours); return t === "just now" ? "opened just now" : `opened ${t} ago`; }

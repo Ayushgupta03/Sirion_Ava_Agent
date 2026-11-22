@@ -9,12 +9,14 @@ import { labelSource } from "@/lib/engine/pipeline";
 import { closedAfter, fmtDT, fmtShort, hoursBetween, span } from "@/lib/format";
 import { Button, Chip, cx, Quote, StateChip } from "./ui";
 import { DraftBox } from "./request";
+import { AvaRecommends } from "./ai";
+import { inr } from "@/lib/format";
 
-export const CONFLICT_TYPE: Record<string, string> = { said_vs_written: "Said vs written", started_before_approval: "Started before approval", renewal_terms_changed: "Renewal terms changed", hidden_scope: "Hidden scope or data access" };
+export const CONFLICT_TYPE: Record<string, string> = { said_vs_written: "Said vs written", started_before_approval: "Started before approval", renewal_terms_changed: "Renewal terms changed", hidden_scope: "Hidden scope or data access", against_contract: "Goes against the contract" };
 
 export default function ConflictCard({ c, showRequest }: { c: Conflict; showRequest?: boolean }) {
   const { act, viewAs, state, setViewAs } = useAva();
-  const [mode, setMode] = useState<null | "value" | "comment">(null);
+  const [mode, setMode] = useState<null | "value" | "comment" | "accept" | "legal" | "cr">(null);
   const [val, setVal] = useState(""); const [reason, setReason] = useState(""); const [comment, setComment] = useState("");
   const [busy, setBusy] = useState<string | null>(null);
   const req = state.requests[c.requestId];
@@ -33,6 +35,7 @@ export default function ConflictCard({ c, showRequest }: { c: Conflict; showRequ
           <div className="mb-1 flex flex-wrap items-center gap-1.5"><Chip tone="blue">{CONFLICT_TYPE[c.type]}</Chip><StateChip state={c.severity} /><StateChip state={c.status} />{c.escalated && <Chip tone="red">Escalated to {firstName(POLICY.vpApprover)}</Chip>}
             {showRequest && <Link className="text-[12.5px] font-medium text-accent hover:underline" href={`/requests/${c.requestId}`}>{c.requestId} · {req?.title}</Link>}</div>
           <h3 className="text-[14.5px] font-semibold">{c.title}</h3>
+          {c.impactText && <p className="mt-0.5 text-[12.5px] font-medium text-red-800">Impact: {c.impactText}. Computed by code from the clause.</p>}
         </div>
         <div className="text-right text-[12px] text-slate-500">Opened {fmtDT(c.openedAt)}<br />{c.status === "open" ? `Open ${span(hoursBetween(c.openedAt, state.now))}` : `Closed ${fmtDT(c.resolvedAt!)}, ${closedAfter(c.openedAt, c.resolvedAt!)}`}</div>
       </header>
@@ -50,18 +53,30 @@ export default function ConflictCard({ c, showRequest }: { c: Conflict; showRequ
           <div><div className="text-[12px] font-semibold uppercase tracking-wide text-slate-500">4. What is blocked</div><p>{c.severity === "blocking" ? c.blocks : "Nothing (warning)"}</p></div>
         </div>
         {c.waitingOnSupplier && c.status === "open" && <p className="rounded-md bg-amber-50 px-3 py-2 text-amber-900">Waiting on supplier since {fmtShort(c.waitingOnSupplier)}. Ava will re-check the reply.</p>}
+        {(c.status === "open" || state.ai.recs[c.id]) && <AvaRecommends recKey={c.id} requestId={c.requestId} readOnly={c.status !== "open"} />}
         {c.status === "open" && (
           <div><div className="mb-1.5 text-[12px] font-semibold uppercase tracking-wide text-slate-500">5. Actions</div>
             {!canResolve && <p className="mb-2 text-[12.5px] text-slate-500">{personName(c.ownerId)} resolves this. <button className="text-accent underline" onClick={() => setViewAs(c.ownerId)}>View as {firstName(c.ownerId)}</button></p>}
             <div className="flex flex-wrap gap-1.5">
-              <Button small disabled={!canResolve} onClick={() => act({ type: "resolve_conflict", conflictId: c.id, choice: "A" })}>Accept source A{c.aValue ? `: ${c.aValue}` : ""}</Button>
+              {c.type !== "against_contract" && <><Button small disabled={!canResolve} onClick={() => act({ type: "resolve_conflict", conflictId: c.id, choice: "A" })}>Accept source A{c.aValue ? `: ${c.aValue}` : ""}</Button>
               <Button small disabled={!canResolve} onClick={() => act({ type: "resolve_conflict", conflictId: c.id, choice: "B" })}>Accept source B{c.bValue ? `: ${c.bValue}` : ""}</Button>
-              <Button small disabled={!canResolve} onClick={() => setMode(mode === "value" ? null : "value")}>Enter the correct value</Button>
+              <Button small disabled={!canResolve} onClick={() => setMode(mode === "value" ? null : "value")}>Enter the correct value</Button></>}
+              <Button small disabled={!canResolve} onClick={() => { setMode(mode === "accept" ? null : "accept"); setReason(""); }}>Accept with a reason</Button>
               <Button small onClick={() => act({ type: "ask_supplier", requestId: c.requestId, conflictId: c.id }, viewAs)}>Ask the supplier</Button>
+              <Button small onClick={() => { setMode(mode === "legal" ? null : "legal"); setReason(""); }}>Ask Legal</Button>
+              {c.type === "against_contract" && <Button small disabled={!canResolve} onClick={() => { setMode(mode === "cr" ? null : "cr"); setReason(c.impact ? `Credit of up to ${inr(c.impact)} for Legal to confirm.` : ""); }}>Require a change request</Button>}
               <Button small onClick={() => setMode(mode === "comment" ? null : "comment")}>Comment</Button>
               <Button small onClick={rerun}>Re-run Ava</Button>
               <Button small variant="danger" disabled={c.escalated} onClick={() => act({ type: "escalate", conflictId: c.id })}>Escalate</Button>
             </div>
+            {(mode === "accept" || mode === "legal" || mode === "cr") && <form className="mt-2 flex flex-wrap items-end gap-2" onSubmit={(e) => { e.preventDefault(); if (!reason.trim()) return;
+              if (mode === "accept") act({ type: "resolve_conflict", conflictId: c.id, choice: "accept", reason });
+              if (mode === "legal") act({ type: "ask_legal", conflictId: c.id, text: reason });
+              if (mode === "cr") act({ type: "require_cr", conflictId: c.id, note: reason });
+              setMode(null); }}>
+              <label className="flex-1 text-[12px]">{mode === "accept" ? "Reason (required, kept on the record)" : mode === "legal" ? "Question for Legal" : "Note for the change request"}<input autoFocus required value={reason} onChange={(e) => setReason(e.target.value)} className="mt-0.5 block w-full rounded border border-slate-300 px-2 py-1 text-[13px]" /></label>
+              <Button small variant="primary" type="submit">{mode === "legal" ? "Send to Legal" : "Save"}</Button>
+            </form>}
             {busy && <p className="mt-1.5 text-[12px] text-slate-500">{busy}</p>}
             {mode === "value" && <form className="mt-2 flex flex-wrap items-end gap-2" onSubmit={(e) => { e.preventDefault(); if (!val || !reason) return; act({ type: "resolve_conflict", conflictId: c.id, choice: "value", value: val, reason }); setMode(null); }}>
               <label className="text-[12px]">Value<input value={val} onChange={(e) => setVal(e.target.value)} placeholder="₹21,50,000" className="mt-0.5 block rounded border border-slate-300 px-2 py-1 text-[13px]" /></label>

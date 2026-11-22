@@ -210,7 +210,7 @@ export function Stakeholders() {
                 <div><dt className={label}>Worries</dt><dd className="text-slate-800">{p.worries}</dd></div>
                 <div><dt className={cx(label, "text-emerald-700")}>Ava gives them</dt><dd className="text-slate-800">{p.ava}</dd></div>
               </dl>
-              {p.id && <button onClick={() => { setViewAs(p.id!); router.push("/items"); }} className="mt-3 text-left text-[12.5px] font-medium text-accent hover:underline">See {person(p.id)?.name.split(" ")[0]}&apos;s screen →</button>}
+              {p.id && <button onClick={() => { setViewAs(p.id!); router.push("/today"); }} className="mt-3 text-left text-[12.5px] font-medium text-accent hover:underline">See {person(p.id)?.name.split(" ")[0]}&apos;s screen →</button>}
             </div>
           ))}
         </div>

@@ -6,7 +6,7 @@ import { basicExtract } from "./basicExtractor";
 export async function extractForEmail(email: Email, state: State): Promise<{ result: Extraction; source: ExtractionSource; note?: string }> {
   const openRequests = state.requestOrder.map((id) => state.requests[id]).filter((r) => !r.readyAt).map((r) => ({ id: r.id, title: r.title, supplier: r.supplierId, project: r.project, thread: Object.keys(state.threadRequest).find((t) => state.threadRequest[t] === r.id) }));
   try {
-    const res = await fetch("/api/ava", {
+    const res = await fetch("/api/ava/extract", {
       method: "POST", headers: { "content-type": "application/json" },
       body: JSON.stringify({
         email: { from: email.from, to: email.to, cc: email.cc, subject: email.subject, body: email.body, sentAt: email.sentAt, threadId: email.threadId },
