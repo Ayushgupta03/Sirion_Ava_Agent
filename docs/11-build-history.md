@@ -18,7 +18,9 @@ Everything done in this build, in order. Dates are 21 and 22 Nov 2026 (IST).
 | `a921130` | **Six case pages rebuilt** around what each must prove: question and one-line answer first, then evidence in the form that fits (lifecycle strip, stat cards, spectrum, north-star formula with a live value, assumption table, comparison matrix). Demo references are buttons that replay the engine. |
 | `283b998` | **Revision 2.** P0: AI label; "What changed" banner first in the recorded panel; guided steps scroll to and pulse what changed; A6 opens v1 beside v2; B1 highlights the three order-form lines; B4 shows v1 beside v2; 5-column dashboard with 16 background requests; display names, human ages, supplier waits attributed to the supplier, Legal sees withdrawn packets. P1: landing cut to essentials with four screenshot tabs; sidebar simplified; View as in the top bar with "Now acting as"; one summary sentence on the request page; routing drawer; Outlook view; "How Ava connects" diagram. P2: one date format, icon rail at tablet width, reset message. |
 | `b150b08` | **Revision 3: Ava visibly AI-powered.** See below. |
-| this commit | Documentation (`README.md`, `docs/`). |
+| `9150636` | Documentation (`README.md`, `docs/01`–`11`). |
+| `3033a7a` | AI output evals (`lib/evals.ts`, `npm run eval`), live-output guardrail and badge, AI context carries the VP limit and renewal saving, product spec. |
+| `7793322`–later | Roadmap, design system, developer guide, API reference, evals guide, ADRs, CI, issue and PR templates, `.env.example`, CONTRIBUTING, glossary. |
 
 ## Revision 3 in detail
 

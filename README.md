@@ -13,7 +13,8 @@ The AI understands, plans, acts and advises. Code enforces policy. People decide
 ```bash
 npm install
 npm run dev     # generates sample PDFs/XLSX and contract PDFs, then starts Next.js on :3000
-npm test        # 25 engine and scenario tests (Vitest)
+npm test        # 28 engine, scenario and eval tests (Vitest)
+npm run eval    # checks every cached AI output against the prompt's rules
 npm run build   # samples + production build
 ```
 
@@ -39,6 +40,16 @@ Optional environment variables:
 | [09 Testing](docs/09-testing.md) | Unit and scenario tests, browser walk-throughs, acceptance checks and their status |
 | [10 Deployment](docs/10-deployment.md) | GitHub, Vercel, build, environment variables, adding the API key |
 | [11 Build history](docs/11-build-history.md) | Every revision in order, design decisions, bugs fixed, known limits |
+| [12 Product spec](docs/12-product-spec.md) | Problem, users and jobs, scope and non-goals, AI vs code vs people, metrics, risks |
+| [13 Roadmap](docs/13-roadmap.md) | Prioritized backlog with where in the code, done-when and effort |
+| [14 Design system](docs/14-design-system.md) | Tokens, type, colour meaning, components, patterns, copy, accessibility, design debt |
+| [15 Developer guide](docs/15-developer-guide.md) | Setup, conventions, recipes (rules, conflicts, contract checks, AI layers, prompts, story steps, screens), debugging |
+| [16 API reference](docs/16-api-reference.md) | Routes with request and response JSON, actions, events |
+| [17 AI evals](docs/17-ai-evals.md) | Offline and live output checks, how to add checks and compare models |
+| [ADRs](docs/adr/README.md) | Ten architecture decision records |
+| [Glossary](docs/glossary.md) | Every term used in the app and docs |
+
+Contributing: [CONTRIBUTING.md](CONTRIBUTING.md). CI (`.github/workflows/ci.yml`) runs types, tests, evals and the build on every push and pull request. Copy `.env.example` to `.env.local` for a key.
 
 ## Honest notes
 
