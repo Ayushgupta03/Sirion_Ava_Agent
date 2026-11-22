@@ -31,7 +31,7 @@ Body 14 px / 1.5. Page title 20–24 px semibold. Card title 14 px semibold. Sec
 | Green | Done, confirmed, ready, consistent | Confirmed facts, ✓ checks, Ready banner, Live AI label |
 | Amber | Waiting, unconfirmed, medium confidence, what changed | What changed banner, Unconfirmed, risk reasons |
 | Red | Blocked, contradicted, goes against, failed check | Handoff blocked, conflict borders, ✗ checks, eval failure badge |
-| Slate | Background, neutral, rules fallback | Background chip, "Summary from rules" label |
+| Slate | Background, neutral, simulated | Background chip, "Simulated" label |
 
 ## Components (`components/`)
 
@@ -42,7 +42,7 @@ Body 14 px / 1.5. Page title 20–24 px semibold. Card title 14 px semibold. Sec
 | `Button` | ui.tsx | primary, secondary, danger, ghost; small | One primary per card |
 | `SourceLink`, `Quote` | ui.tsx | A source as a link; a quoted line with source and note | Handles email, attachment, contract clause |
 | `Stat`, `PageTitle`, `Empty` | ui.tsx | Counters, page headers, empty states | Empty states say what to do next |
-| `AiLabel` | ai.tsx | Live AI / Cached / Summary from rules | On every AI output |
+| `AiLabel` | ai.tsx | Live AI / Cached / Simulated | On every AI output; the tooltip says what each one means |
 | `EvalBadge` | ai.tsx | "n checks failed" on live outputs | Tooltip lists checks |
 | `CiteChip` | ai.tsx | Inline citation (✉ email, ▤ document, § clause) | Opens the source viewer |
 | `AvaRead` | ai.tsx | Cited summary, full or compact | |

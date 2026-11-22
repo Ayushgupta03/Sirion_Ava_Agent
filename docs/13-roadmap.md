@@ -12,6 +12,8 @@ N5 prompt versioning, N6 recommendation outcomes, N7 prediction accuracy, X8 re-
 
 ## Now: make the AI real and measurable
 
+**On hold by decision.** No `ANTHROPIC_API_KEY` will be added, so this prototype stays simulated: scripted scenarios use cached outputs, everything else uses the simulation (`lib/engine/simulated.ts`), and both are labelled. N1 to N3 stay valid if a key is ever added.
+
 | # | Item | Why | Where | Done when | Effort |
 |---|---|---|---|---|---|
 | N1 | Add `ANTHROPIC_API_KEY` on Vercel and redeploy | Live AI is built but has never run | Vercel settings | `GET /api/ava` returns `ai: true`; a composed email shows Live AI read, plan and recommendations | S |

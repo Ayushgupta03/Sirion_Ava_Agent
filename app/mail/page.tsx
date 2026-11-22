@@ -270,7 +270,7 @@ function TryThis() {
   ];
   return (
     <Card className="self-start">
-      <CardHead title="Try this" sub={<>Each one pre-fills the test lab. {ai ? <>Extraction: <b>Live AI</b>.</> : <>AI unavailable right now; basic extraction and summaries from rules are used.</>}</>} />
+      <CardHead title="Try this" sub={<>Each one pre-fills the test lab. {ai ? <>Extraction: <b>Live AI</b>.</> : <>This prototype is simulated: extraction and summaries are written by rules, with no model.</>}</>} />
       <ul className="divide-y divide-slate-100">
         {items.map((it) => <li key={it.label} className="px-4 py-2.5"><button className="text-left text-[13px] font-medium text-accent hover:underline" onClick={() => prefill(it.d)}>{it.label}</button><div className="text-[12px] text-slate-500">Expect: {it.expect}</div></li>)}
       </ul>

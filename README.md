@@ -56,4 +56,4 @@ Contributing: [CONTRIBUTING.md](CONTRIBUTING.md). CI (`.github/workflows/ci.yml`
 ## Honest notes
 
 - No API key was available while building. The extraction cache (`data/extraction-cache/*.json`) and the cached AI outputs for scripted steps (`lib/aiScript.ts`, `data/background.json`) were written by hand in the exact response shapes. They are labelled **Cached** in the app. See [05 AI layers](docs/05-ai-layers.md) for how to regenerate them with the model.
-- The live AI routes for read, plan and recommend are built and validated, but have not run against the model yet. The rules fallback path is tested.
+- The live AI routes for read, plan and recommend are built and validated, but have not run against the model yet. The simulated path (code writing the same outputs from the facts, labelled **Simulated**) is tested, including against the model's own output checks. By decision no key is added: the prototype ships simulated, and the live routes stay built but off.

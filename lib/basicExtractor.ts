@@ -73,7 +73,7 @@ export function basicExtract(email: Email, suppliers: Pick<Supplier, "name" | "d
   return {
     isSupplierCommunication: !!sup || (!!ext && /₹|quote|invoice|proposal|order form/i.test(all)),
     supplier: sup ? { name: sup.name, domain: sup.domain, known: sup.known } : ext ? { name: domainOf(ext).split(".")[0].replace(/^\w/, (c) => c.toUpperCase()), domain: domainOf(ext), known: false } : null,
-    filing: { project: project || "General", request: "NEW", requestType, confidence: "low", reason: "Basic extraction (AI unavailable): matched by thread, domain and subject." },
+    filing: { project: project || "General", request: "NEW", requestType, confidence: "low", reason: "Basic extraction (rules): matched by thread, domain and subject." },
     facts,
     changesVsKnown: [],
     flags: low.includes("₹") || email.attachments.length ? [] : [{ type: "missing", message: "No amount found yet.", sendTo: "requester" }],

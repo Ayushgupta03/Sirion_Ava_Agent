@@ -6,8 +6,8 @@ Five places use AI. Each has a schema, a server route, a cached path and a rules
 |---|---|
 | **Live AI** | The model answered this request now (needs `ANTHROPIC_API_KEY`) |
 | **Cached** | Stored output for scripted steps and background requests, same shape as a live answer |
-| **Summary from rules (AI unavailable)** | Built by code from facts when no AI output fits the current facts |
-| Basic extraction (AI unavailable) | Extraction label when the regex extractor ran instead of the model |
+| **Simulated** | Written by code from the facts, with no model. Used when no stored or live output fits the current facts. This is what every composed email, Test Lab email and Ask Ava request gets, because the prototype ships with no model key by decision |
+| Basic extraction (rules) | Extraction label when the regex extractor ran instead of the model |
 
 ## Shared rules for every call
 
@@ -93,7 +93,19 @@ Buttons, each logged as a **human decision** with the person as actor:
 
 Ava never applies an approval, a credit or a rejection herself. Decision Receipts open with "Ava's summary for you" (3 bullets) when a summary exists, and say "The decision is yours; Ava never approves."
 
-Rules fallback (`rulesRec`): "Review the conflict." with no draft, low confidence. Using or dismissing it still works and is logged.
+Simulated advice (`simulatedRec` in `lib/engine/simulated.ts`): when no recommendation is stored for a conflict, Ava's advice is written from the conflict itself, at medium confidence, labelled **Simulated**. It meets the model's contract: reasoning of at most two sentences, a citation taken from the conflict's own quotes, and no money figure that code did not produce. It never approves, rejects or applies a credit. A test runs it through `evalRec` for every conflict either scripted scenario produces.
+
+| Conflict | Advice | Action |
+|---|---|---|
+| Goes against the contract | Ask the supplier to reissue it within the agreement (clause named), with the contract line and the supplier's line quoted | Draft to the supplier |
+| Said vs written | Ask the supplier to confirm in writing which figure applies, naming both | Draft to the supplier |
+| Renewal terms changed | Hold the renewal and ask the supplier to confirm the changed terms within the clause | Draft to the supplier |
+| Hidden scope or data access | Ask the requester whether the supplier will touch customer data; if yes, InfoSec and a DPA | Advice only |
+| Started before approval | Record why work began early, then ask the budget owner for a retrospective approval | Advice only |
+
+Using or dismissing it is logged like any other recommendation, and the simulated text is what gets stored (`rec_use` and `rec_dismiss` keep it). For a kind of conflict with no simulated advice, the plain "Review the conflict." stub remains, with no primary button.
+
+The Decision Receipt's three-line summary is simulated the same way (`simulatedReceipt`) when no stored summary exists: what you are approving, what is open, and the 90-day total or the checks made. All figures come from the rules engine.
 
 ## 5. Ava did / Needs a person (shows action)
 
