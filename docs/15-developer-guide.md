@@ -24,7 +24,7 @@ Node 20+. The first `dev` or `build` runs `npm run samples`, which writes `publi
 
 ```bash
 npx tsc --noEmit      # types
-npm test              # 55 engine, scenario, intake, metrics, guide and eval tests
+npm test              # 94 engine, scenario, intake, metrics, board, simulated-advice, guide and eval tests
 npm run eval          # AI output checks for every cached output
 npm run build         # what Vercel runs
 ```

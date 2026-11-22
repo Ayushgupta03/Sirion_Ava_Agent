@@ -2,7 +2,7 @@
 
 ## Engine tests (`npm test`)
 
-Vitest, 55 tests, all passing: `tests/engine.test.ts` (26, including the status summary naming each open conflict), `tests/evals.test.ts` (3), `tests/intake.test.ts` (10, Ask Ava and autonomy; see [18](18-ask-ava.md#tests)) and `tests/metrics.test.ts` (3, the north star on Prayaan's own time) and `tests/guide.test.ts` (13, the guided demo: every step has coaching and a target, copy rules, debrief numbers, "Try it yourself" ticks; see [20](20-guided-demo.md)). See [17 AI evals](17-ai-evals.md) for `npm run eval`. They run the real story events through `applyEvent` without a browser.
+Vitest, 94 tests, all passing: `tests/engine.test.ts` (26, including the status summary naming each open conflict), `tests/evals.test.ts` (3), `tests/intake.test.ts` (10, Ask Ava and autonomy; see [18](18-ask-ava.md#tests)) and `tests/metrics.test.ts` (3, the north star on Prayaan's own time), `tests/ux-fixes.test.ts` (7: the receipt scope shown whole, send back, one count of what waits on a person), `tests/roadmap.test.ts` (16: prompt versions, advice outcomes, prediction accuracy, re-planning, quoted replies), `tests/board.test.ts` (8: why a card stays in its column, handing over items), `tests/simulated.test.ts` (8: simulated advice for every conflict the scenarios produce, run through the model's own output checks) and `tests/guide.test.ts` (13, the guided demo: every step has coaching and a target, copy rules, debrief numbers, "Try it yourself" ticks; see [20](20-guided-demo.md)). See [17 AI evals](17-ai-evals.md) for `npm run eval`. They run the real story events through `applyEvent` without a browser.
 
 | Group | Test | Asserts |
 |---|---|---|

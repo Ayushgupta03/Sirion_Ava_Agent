@@ -13,7 +13,7 @@ The AI understands, plans, acts and advises. Code enforces policy. People decide
 ```bash
 npm install
 npm run dev     # generates sample PDFs/XLSX and contract PDFs, then starts Next.js on :3000
-npm test        # 55 engine, scenario, intake, metrics, guide and eval tests (Vitest)
+npm test        # 94 engine, scenario, intake, metrics, board, simulated-advice, guide and eval tests (Vitest)
 npm run eval    # checks every cached AI output against the prompt's rules
 npm run build   # samples + production build
 ```
