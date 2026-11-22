@@ -2,7 +2,7 @@
 
 ## Engine tests (`npm test`)
 
-Vitest: `tests/engine.test.ts` (25 tests) and `tests/evals.test.ts` (3 tests), all passing. See [17 AI evals](17-ai-evals.md) for `npm run eval`. They run the real story events through `applyEvent` without a browser.
+Vitest: `tests/engine.test.ts` (26 tests, including the status summary naming each open conflict) and `tests/evals.test.ts` (3 tests), all passing. See [17 AI evals](17-ai-evals.md) for `npm run eval`. They run the real story events through `applyEvent` without a browser.
 
 | Group | Test | Asserts |
 |---|---|---|

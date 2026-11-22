@@ -219,14 +219,17 @@ function DemoDock() {
   const [collapsed, setCollapsed] = useState(false);
   const [confirmReset, setConfirmReset] = useState(false);
   const ref = useRef<HTMLElement>(null);
+  // The landing page carries its own "Watch" buttons; before a demo starts, the dock would be a second primary action.
+  const hidden = usePathname() === "/" && pos.A === 0 && pos.B === 0;
   useEffect(() => {
     const el = ref.current; const root = document.documentElement;
-    if (!el) { root.style.setProperty("--dock-h", "64px"); return; }
+    if (!el) { root.style.setProperty("--dock-h", hidden ? "0px" : "64px"); return; }
     const ro = new ResizeObserver(() => root.style.setProperty("--dock-h", `${el.offsetHeight}px`)); ro.observe(el); return () => ro.disconnect();
-  }, [collapsed]);
+  }, [collapsed, hidden]);
   const cur = i > 0 ? steps[i - 1] : undefined;
   const go = (f?: string) => { if (f) router.push(resolveFocus(f, useAva.getState().state)); };
   const done = i >= steps.length;
+  if (hidden) return null;
   if (collapsed) return (
     <div className="pointer-events-none fixed bottom-4 right-4 z-30">
       <button onClick={() => setCollapsed(false)} className="pointer-events-auto flex h-11 items-center gap-2 rounded-full bg-ink px-4 text-[13px] font-medium text-white shadow-lg">
@@ -246,7 +249,7 @@ function DemoDock() {
               </button>
             ))}
           </div>
-          <span className="font-semibold text-slate-700">{i === 0 ? "Not started" : `Step ${i} of ${steps.length}`}</span>
+          <span className="font-semibold text-slate-700">{i === 0 ? "Not started" : <><span className="hidden sm:inline">Step </span>{`${i} of ${steps.length}`}</>}</span>
           {cur && <span className="hidden font-mono md:inline">{fmtDT(cur.at)}</span>}
           <ol aria-hidden className="hidden gap-1 lg:flex">{steps.map((s, k) => <li key={s.id} className={cx("h-1.5 w-5 rounded-full", k < i ? "bg-accent" : "bg-slate-200")} />)}</ol>
           <span className="ml-auto flex items-center gap-1">
@@ -258,8 +261,8 @@ function DemoDock() {
             <button onClick={() => setCollapsed(true)} className="grid h-8 w-8 place-items-center rounded-md hover:bg-slate-100" aria-label="Minimise the guided demo" title="Minimise"><Icon name="chevronDown" size={15} /></button>
           </span>
         </div>
-        <div className="mt-1.5 flex items-center gap-3">
-          <div className="min-w-0 flex-1">
+        <div className="mt-1.5 flex flex-wrap items-center gap-x-3 gap-y-2 sm:flex-nowrap">
+          <div className="min-w-0 basis-full sm:basis-auto sm:flex-1">
             <p className="text-[14px] font-semibold leading-snug text-slate-900 sm:text-[15px]" aria-live="polite">
               {caption ?? (scenario === "A" ? "Watch one supplier email become a routed contract request." : "A software renewal where the email and the order form disagree.")}
             </p>
@@ -267,7 +270,7 @@ function DemoDock() {
               : cur && <button onClick={() => { go(cur.focus); setTimeout(() => firePulse(cur.pulse), 150); }} className="text-left text-[12.5px] font-medium text-accent hover:underline">Show me where this happened →</button>}
           </div>
           <button onClick={prev} disabled={i === 0} aria-label="Previous step" className="flex h-10 shrink-0 items-center gap-1 rounded-md border border-slate-300 bg-white px-2.5 text-[13px] font-medium disabled:opacity-40 sm:px-3"><Icon name="chevronLeft" /><span className="hidden sm:inline">Back</span></button>
-          <button onClick={() => go(next())} disabled={done} className="flex h-10 shrink-0 items-center gap-1 rounded-md bg-accent px-4 text-[13.5px] font-semibold text-white hover:bg-accent-700 disabled:opacity-50">
+          <button onClick={() => go(next())} disabled={done} className="flex h-10 flex-1 items-center justify-center gap-1 rounded-md bg-accent px-4 sm:flex-none text-[13.5px] font-semibold text-white hover:bg-accent-700 disabled:opacity-50">
             {i === 0 ? "Start" : done ? "Finished" : "Next step"}{!done && <Icon name="chevronRight" />}
           </button>
         </div>

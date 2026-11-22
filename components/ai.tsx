@@ -181,7 +181,7 @@ export function AvaDid({ req }: { req: Request }) {
         {[...req.timeline].reverse().map((t, i) => (
           <li key={i} className="flex gap-3"><span className="w-[92px] shrink-0 tabular-nums text-slate-500">{fmtDT(t.at)}</span>
             <span className={cx("shrink-0 rounded px-1.5 text-[10.5px] font-semibold leading-[18px]", t.actor && t.actor !== "ava" && t.actor !== "system" ? "bg-slate-200 text-slate-700" : "bg-violet-100 text-violet-800")}>{t.actor && t.actor !== "ava" && t.actor !== "system" ? ownerName(t.actor, useAva.getState().state).split(" ")[0] : "Ava"}</span>
-            <span className="text-slate-800">{t.text}</span></li>
+            <span className="min-w-0 text-slate-800 [overflow-wrap:anywhere]">{t.text}</span></li>
         ))}
       </ol>
     </details>

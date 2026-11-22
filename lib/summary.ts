@@ -12,7 +12,10 @@ export function conflictShort(c: Conflict) {
   if (c.type === "said_vs_written") return c.field === "amount" ? "price changed in a new quote" : `${c.field?.replace("_", " ")} differs from what was said`;
   if (c.type === "renewal_terms_changed") return "the order form differs from the email";
   if (c.type === "started_before_approval") return "an invoice arrived before approval";
-  return "data access not confirmed";
+  if (c.type === "hidden_scope") return "data access not confirmed";
+  // against_contract and anything new: use the conflict's own title, up to the first colon.
+  const t = c.title.split(":")[0].trim();
+  return t.charAt(0).toLowerCase() + t.slice(1);
 }
 
 /** One plain sentence about where the request stands, generated from the engine. */

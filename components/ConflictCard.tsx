@@ -14,6 +14,9 @@ import { inr } from "@/lib/format";
 
 export const CONFLICT_TYPE: Record<string, string> = { said_vs_written: "Said vs written", started_before_approval: "Started before approval", renewal_terms_changed: "Renewal terms changed", hidden_scope: "Hidden scope or data access", against_contract: "Goes against the contract" };
 
+/** In-page anchor for a conflict card (conflict ids contain colons). */
+export const conflictAnchor = (id: string) => `cf-${id.replace(/^cf:/, "").replace(/[^a-z0-9]+/gi, "-")}`;
+
 export default function ConflictCard({ c, showRequest }: { c: Conflict; showRequest?: boolean }) {
   const { act, viewAs, state, setViewAs } = useAva();
   const [mode, setMode] = useState<null | "value" | "comment" | "accept" | "legal" | "cr">(null);
@@ -29,7 +32,7 @@ export default function ConflictCard({ c, showRequest }: { c: Conflict; showRequ
     else { act({ type: "rerun", requestId: req.id }); setBusy("Re-ran Ava on this request."); }
   };
   return (
-    <article className={cx("rounded-lg border bg-white", c.status === "open" ? (c.severity === "blocking" ? "border-red-300" : "border-amber-300") : "border-slate-200")} aria-label={`Conflict: ${c.title}`}>
+    <article id={conflictAnchor(c.id)} className={cx("scroll-mt-20 rounded-lg border bg-white md:scroll-mt-56", c.status === "open" ? (c.severity === "blocking" ? "border-red-300" : "border-amber-300") : "border-slate-200")} aria-label={`Conflict: ${c.title}`}>
       <header className="flex flex-wrap items-start justify-between gap-2 border-b border-slate-100 px-4 py-3">
         <div className="min-w-0">
           <div className="mb-1 flex flex-wrap items-center gap-1.5"><Chip tone="blue">{CONFLICT_TYPE[c.type]}</Chip><StateChip state={c.severity} /><StateChip state={c.status} />{c.escalated && <Chip tone="red">Escalated to {firstName(POLICY.vpApprover)}</Chip>}
