@@ -20,8 +20,8 @@ export function EvalBadge({ issues }: { issues?: { severity: string; check: stri
   return <span title={f.map((i) => `${i.check}: ${i.detail}`).join("\n")} className="inline-flex h-5 items-center rounded bg-red-100 px-1.5 text-[10.5px] font-semibold text-red-800">{f.length} check{f.length > 1 ? "s" : ""} failed</span>;
 }
 export function AiLabel({ source, meta }: { source: "live" | "cached" | "rules"; meta?: AiMeta }) {
-  const t = source === "live" ? "Live AI" : source === "cached" ? "Cached" : "Summary from rules (AI unavailable)";
-  const tip = source === "cached" ? "Written for this scripted step and stored. Same shape as a live answer." : source === "live" && meta?.promptVersion ? `Live answer. Prompt version ${meta.promptVersion}${meta.model ? `, model ${meta.model}` : ""}.` : undefined;
+  const t = source === "live" ? "Live AI" : source === "cached" ? "Cached" : "Simulated";
+  const tip = source === "rules" ? "Written by code from the facts and the contract checks, with no model. In live use a model would write this." : source === "cached" ? "Written for this scripted step and stored. Same shape as a live answer." : source === "live" && meta?.promptVersion ? `Live answer. Prompt version ${meta.promptVersion}${meta.model ? `, model ${meta.model}` : ""}.` : undefined;
   return <span title={tip} className={cx("inline-flex h-5 items-center rounded px-1.5 text-[10.5px] font-semibold uppercase tracking-wide", source === "live" ? "bg-emerald-100 text-emerald-800" : source === "cached" ? "bg-violet-100 text-violet-800" : "bg-slate-200 text-slate-700")}>{t}</span>;
 }
 
@@ -86,7 +86,7 @@ export function AvaRead({ reqId, compact }: { reqId: string; compact?: boolean }
       <div className="mb-1.5 flex flex-wrap items-center gap-2">
         <h2 className="text-[14px] font-semibold text-slate-900">Ava’s read</h2><AiLabel source={v.source} meta={v} /><EvalBadge issues={v.evalIssues} />
         {list.length > 1 && !stale && <span className="text-[12px] text-slate-500">Updated {fmtDT(v.at)} · <button className="text-accent underline" onClick={() => setPrev(!prev)}>{prev ? "hide previous" : "see previous"}</button></span>}
-        {stale && <span className="text-[12px] text-amber-700">Facts changed since Ava’s last read ({fmtDT(list.at(-1)!.at)}). Showing a summary from rules.</span>}
+        {stale && <span className="text-[12px] text-amber-700">Facts changed since Ava’s last read ({fmtDT(list.at(-1)!.at)}). Showing a simulated summary from the facts.</span>}
       </div>
       <p className="max-w-[78ch] text-[14.5px] leading-[1.6] text-slate-900">{v.output.sentences.map((s, i) => <span key={i}>{s.text}{s.citations.map((c, j) => <CiteChip key={j} c={c} />)}{" "}</span>)}</p>
       {prev && p && <div className="mt-2 rounded-md border border-slate-200 bg-white px-3 py-2 text-[13px] text-slate-600"><div className="mb-0.5 text-[11.5px] font-semibold uppercase tracking-wide text-slate-500">Previous read, {fmtDT(p.at)}</div>{p.output.sentences.map((s) => s.text).join(" ")}</div>}
@@ -156,8 +156,8 @@ export function AvaRecommends({ recKey, requestId, readOnly }: { recKey: string;
   const [text, setText] = useState("");
   const v = recFallback(state, recKey); if (!v) return null;
   const r = v.output;
-  // The rules fallback ("AI is unavailable") has nothing to use, dismiss or edit. Say so quietly instead of showing a primary button.
-  if (v.source === "rules" && r.action === "review") return <p aria-label="No recommendation from Ava" className="rounded-lg border border-slate-200 bg-slate-50 px-3.5 py-2.5 text-[12.5px] text-slate-600">Ava has no recommendation for this one because AI is unavailable. Compare both sources and decide.</p>;
+  // The plain "review it" stub has nothing to use, dismiss or edit. Say so quietly instead of showing a primary button.
+  if (v.source === "rules" && r.action === "review") return <p aria-label="No recommendation from Ava" className="rounded-lg border border-slate-200 bg-slate-50 px-3.5 py-2.5 text-[12.5px] text-slate-600">Ava has no advice for this kind of conflict in the simulation. Compare both sources and decide.</p>;
   const done = v.used ? `Used by ${ownerName(v.used.by, state)}, ${fmtDT(v.used.at)}` : v.dismissed ? `Dismissed by ${ownerName(v.dismissed.by, state)}: ${v.dismissed.reason}` : null;
   const conf = r.confidence === "high" ? "bg-emerald-100 text-emerald-800" : r.confidence === "medium" ? "bg-amber-100 text-amber-900" : "bg-slate-200 text-slate-700";
   return (

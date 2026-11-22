@@ -2,8 +2,7 @@
 import Link from "next/link";
 import { usePathname, useRouter } from "next/navigation";
 import { useEffect, useMemo, useRef, useState, type ReactNode } from "react";
-import { useAva, STEPS, type Ripple } from "@/lib/store";
-import { resolveFocus } from "@/lib/story";
+import { useAva, type Ripple } from "@/lib/store";
 import { deriveItems } from "@/lib/engine/items";
 import { BACKGROUND, bgNeedCount } from "@/lib/background";
 import { fmtDT } from "@/lib/format";
@@ -11,6 +10,10 @@ import { person } from "@/lib/engine/world";
 import { cx } from "./ui";
 import { Icon, type IconName } from "./icons";
 import SourceViewer from "./SourceViewer";
+import DemoBar from "./guide/DemoBar";
+import GuideLayer from "./guide/GuideLayer";
+import HelpMenu from "./guide/HelpMenu";
+import { useCoachVisible } from "./guide/state";
 
 export const VIEW_AS: { id: string; role: string }[] = [
   { id: "rahul", role: "Requester, Sales Ops" }, { id: "neha", role: "Requester, Marketing Ops" }, { id: "suresh", role: "Requester, Finance" },
@@ -63,9 +66,10 @@ export default function Shell({ children }: { children: ReactNode }) {
         <main id="main" className="mx-auto w-full max-w-[1320px] flex-1 px-4 pt-6 sm:px-6" style={{ paddingBottom: "calc(var(--dock-h, 120px) + 32px)" }}>
           {hydrated ? children : <div className="space-y-3"><div className="h-8 w-64 animate-pulse rounded bg-slate-200" /><div className="h-40 animate-pulse rounded-lg bg-slate-100" /></div>}
         </main>
-        {hydrated && <DemoDock />}
+        {hydrated && <DemoBar />}
       </div>
       {hydrated && <ToastStack />}
+      {hydrated && <GuideLayer />}
       <SourceViewer />
     </div>
   );
@@ -140,7 +144,7 @@ function TopRight() {
   const [clock, setClock] = useState(false);
   return (
     <div className="ml-auto flex items-center gap-1.5 sm:gap-2">
-      <div className="relative">
+      <div className="relative" data-tour="clock">
         <button onClick={() => setClock(!clock)} aria-expanded={clock} aria-label={`Simulated clock: ${fmtDT(state.now)}`} className="flex h-9 items-center gap-1.5 rounded-md border border-slate-200 bg-white px-2 text-[13px] sm:px-2.5">
           <Icon name="clock" className="shrink-0 text-slate-400" /><span className="hidden whitespace-nowrap font-mono text-[12.5px] sm:inline">{fmtDT(state.now)}</span>
         </button>
@@ -150,6 +154,7 @@ function TopRight() {
           <button className="block w-full rounded px-2 py-1.5 text-left hover:bg-slate-100" onClick={() => { tick(60 * 24); setClock(false); }}>Move forward 1 day</button>
         </div>}
       </div>
+      <HelpMenu />
       <Link href="/today" aria-label={`${c.mine} items waiting on ${person(viewAs)?.name}`} className="relative grid h-9 w-9 shrink-0 place-items-center rounded-md border border-slate-200 bg-white">
         <Icon name="bell" />
         {c.mine > 0 && <span className="absolute -right-1.5 -top-1.5 grid h-[18px] min-w-[18px] place-items-center rounded-full bg-red-600 px-1 text-[10.5px] font-bold text-white">{c.mine}</span>}
@@ -169,7 +174,7 @@ function ViewAsMenu({ counts }: { counts: Record<string, number> }) {
     document.addEventListener("mousedown", close); return () => document.removeEventListener("mousedown", close);
   }, [open]);
   return (
-    <div ref={ref} className="relative" onKeyDown={(e) => e.key === "Escape" && setOpen(false)}>
+    <div ref={ref} data-tour="view-as" className="relative" onKeyDown={(e) => e.key === "Escape" && setOpen(false)}>
       <button onClick={() => setOpen(!open)} aria-haspopup="menu" aria-expanded={open} aria-label={`Viewing as ${person(viewAs)?.name}, ${roleOf(viewAs)}. Switch person`} className="flex h-9 items-center gap-2 rounded-md border border-slate-200 bg-white pl-1 pr-2 hover:bg-slate-50">
         <span className="grid h-7 w-7 place-items-center rounded-full bg-accent-100 text-[11.5px] font-semibold text-accent-700">{initials(viewAs)}</span>
         <span className="hidden text-left leading-tight sm:block"><span className="block text-[11px] text-slate-500">Viewing as</span><span className="block max-w-[150px] truncate text-[13px] font-semibold">{person(viewAs)?.name}</span></span>
@@ -192,10 +197,13 @@ function ViewAsMenu({ counts }: { counts: Record<string, number> }) {
 }
 
 function ToastStack() {
+  // While the coach card is up it already says who acted and who was reached, so the two toasts for the same step stay quiet.
+  const coaching = useCoachVisible(); const stepLabel = useAva((s) => s.caption); const ripple = useAva((s) => s.ripple);
+  const sameStep = coaching && !!ripple && ripple.label === stepLabel;
   return (
     <div className="pointer-events-none fixed right-4 top-[68px] z-40 flex w-[min(360px,calc(100vw-32px))] flex-col gap-2">
-      <ActorToast />
-      <RippleToast />
+      {!coaching && <ActorToast />}
+      {!sameStep && <RippleToast />}
     </div>
   );
 }
@@ -249,80 +257,5 @@ function RippleToast() {
         <button onClick={dismiss} aria-label="Dismiss" className="grid h-7 w-7 shrink-0 place-items-center rounded text-slate-400 hover:bg-slate-100"><Icon name="x" size={14} /></button>
       </div>
     </div>
-  );
-}
-
-const INTRO: Record<"A" | "B", string[]> = {
-  A: ["Step 1: a normal email opens the request", "Step 6: the PDF says ₹1.5L more", "Step 7: approvals reopen, handoff stops"],
-  B: ["Step 1: the email and the order form disagree", "Step 3: an invoice arrives before approval", "Step 5: approved at 5%, not 12%"],
-};
-
-function DemoDock() {
-  const router = useRouter();
-  const { scenario, pos, caption, next, prev, reset, setScenario, runContrast, firePulse } = useAva();
-  const steps = STEPS[scenario]; const i = pos[scenario];
-  const [collapsed, setCollapsed] = useState(false);
-  const [confirmReset, setConfirmReset] = useState(false);
-  // On a phone the dock would cover the page, so it starts as a pill.
-  useEffect(() => { if (window.matchMedia("(max-width: 639px)").matches) setCollapsed(true); }, []);
-  const ref = useRef<HTMLElement>(null);
-  // The landing page carries its own "Watch" buttons; before a demo starts, the dock would be a second primary action.
-  const path = usePathname();
-  const hidden = (path === "/" && pos.A === 0 && pos.B === 0) || path.startsWith("/supplier/");
-  useEffect(() => {
-    const el = ref.current; const root = document.documentElement;
-    if (!el) { root.style.setProperty("--dock-h", hidden ? "0px" : "64px"); return; }
-    const ro = new ResizeObserver(() => root.style.setProperty("--dock-h", `${el.offsetHeight}px`)); ro.observe(el); return () => ro.disconnect();
-  }, [collapsed, hidden]);
-  const cur = i > 0 ? steps[i - 1] : undefined;
-  const go = (f?: string) => { if (f) router.push(resolveFocus(f, useAva.getState().state)); };
-  const done = i >= steps.length;
-  if (hidden) return null;
-  if (collapsed) return (
-    <div className="pointer-events-none fixed bottom-4 right-4 z-30">
-      <button onClick={() => setCollapsed(false)} className="pointer-events-auto flex h-11 items-center gap-2 rounded-full bg-ink px-4 text-[13px] font-medium text-white shadow-lg">
-        <Icon name="play" size={14} /> Guided demo · {scenario === "A" ? "Scenario A" : "Scenario B"} · step {i}/{steps.length}
-      </button>
-    </div>
-  );
-  return (
-    <section ref={ref} aria-label="Guided demo" className="sticky bottom-0 z-20 border-t border-slate-200 bg-white/95 shadow-[0_-4px_16px_rgba(15,23,42,0.06)] backdrop-blur">
-      <div className="mx-auto max-w-[1320px] px-4 py-2.5 sm:px-6">
-        <div className="flex flex-wrap items-center gap-x-3 gap-y-1 whitespace-nowrap text-[12px] text-slate-500">
-          <span className="hidden items-center gap-1.5 font-semibold uppercase tracking-[0.05em] sm:flex"><Icon name="play" size={12} />Guided demo</span>
-          <div role="tablist" aria-label="Scenario" className="flex rounded-md bg-slate-100 p-0.5 text-[12px]">
-            {(["A", "B"] as const).map((s) => (
-              <button key={s} role="tab" aria-selected={scenario === s} onClick={() => setScenario(s)} className={cx("rounded px-2 py-0.5", scenario === s ? "bg-white font-semibold text-slate-900 shadow-sm" : "text-slate-600")}>
-                {s === "A" ? "A · New project" : "B · Renewal"}
-              </button>
-            ))}
-          </div>
-          <span className="font-semibold text-slate-700">{i === 0 ? "Not started" : <><span className="hidden sm:inline">Step </span>{`${i} of ${steps.length}`}</>}</span>
-          {cur && <span className="hidden font-mono md:inline">{fmtDT(cur.at)}</span>}
-          <ol aria-hidden className="hidden gap-1 lg:flex">{steps.map((s, k) => <li key={s.id} className={cx("h-1.5 w-5 rounded-full", k < i ? "bg-accent" : "bg-slate-200")} />)}</ol>
-          <span className="ml-auto flex items-center gap-1">
-            <button onClick={() => router.push(`/mail?compose=1&t=${Date.now()}`)} className="hidden h-8 items-center gap-1.5 rounded-md px-2 text-[12.5px] text-slate-700 hover:bg-slate-100 md:flex" title="Write any email, as anyone. It runs through the same pipeline."><Icon name="mail" size={14} />Test lab: simulate an incoming email</button>
-            <button onClick={() => { runContrast(); router.push("/today"); }} className="hidden h-8 items-center gap-1.5 rounded-md px-2 text-[12.5px] text-slate-700 hover:bg-slate-100 md:flex" title="A repeat request under an existing agreement: one approval, done in minutes"><Icon name="repeat" size={14} />Show a repeat request</button>
-            {confirmReset
-              ? <span className="flex items-center gap-1"><button className="h-8 rounded-md border border-red-300 px-2 text-[12.5px] font-medium text-red-700" onClick={() => { reset(); setConfirmReset(false); router.push("/"); }}>Reset demo</button><button className="h-8 px-2 text-[12.5px] text-slate-600" onClick={() => setConfirmReset(false)}>Cancel</button></span>
-              : <button onClick={() => setConfirmReset(true)} className="grid h-8 w-8 place-items-center rounded-md hover:bg-slate-100" aria-label="Reset demo" title="Reset demo: clears every step, composed email and action"><Icon name="reset" size={15} /></button>}
-            <button onClick={() => setCollapsed(true)} className="grid h-8 w-8 place-items-center rounded-md hover:bg-slate-100" aria-label="Minimise the guided demo" title="Minimise"><Icon name="chevronDown" size={15} /></button>
-          </span>
-        </div>
-        <div className="mt-1.5 flex flex-wrap items-center gap-x-3 gap-y-2 sm:flex-nowrap">
-          <div className="min-w-0 basis-full sm:basis-auto sm:flex-1">
-            <p className="text-[14px] font-semibold leading-snug text-slate-900 sm:text-[15px]" aria-live="polite">
-              {caption ?? (scenario === "A" ? "Watch one supplier email become a routed contract request." : "A software renewal where the email and the order form disagree.")}
-            </p>
-            {i === 0 ? <p className="mt-0.5 hidden text-[12.5px] text-slate-600 sm:block">Watch for: {INTRO[scenario].join(" · ")}</p>
-              : cur && <button onClick={() => { go(cur.focus); setTimeout(() => firePulse(cur.pulse), 150); }} className="text-left text-[12.5px] font-medium text-accent hover:underline">Show me where this happened →</button>}
-          </div>
-          <button onClick={prev} disabled={i === 0} aria-label="Previous step" className="flex h-10 shrink-0 items-center gap-1 rounded-md border border-slate-300 bg-white px-2.5 text-[13px] font-medium disabled:opacity-40 sm:px-3"><Icon name="chevronLeft" /><span className="hidden sm:inline">Back</span></button>
-          <button onClick={() => go(next())} disabled={done} className="flex h-10 flex-1 items-center justify-center gap-1 rounded-md bg-accent px-4 sm:flex-none text-[13.5px] font-semibold text-white hover:bg-accent-700 disabled:opacity-50">
-            {i === 0 ? "Start" : done ? "Finished" : "Next step"}{!done && <Icon name="chevronRight" />}
-          </button>
-        </div>
-      </div>
-    </section>
   );
 }

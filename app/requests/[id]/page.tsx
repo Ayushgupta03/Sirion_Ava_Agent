@@ -19,13 +19,13 @@ import { predictionHit, ownerName } from "@/lib/engine/ai";
 import { BACKGROUND, bgState, bgTotal90, type Bg } from "@/lib/background";
 import { AiLabel, CiteChip } from "@/components/ai";
 
-type Tab = "facts" | "documents" | "approvals" | "timeline" | "packet";
-const HASH_TAB: Record<string, Tab> = { routing: "approvals", approvals: "approvals", checklist: "approvals", documents: "documents", timeline: "timeline", packet: "packet", facts: "facts" };
-const PULSE_TAB: Record<string, Tab> = { routing: "approvals", approvals: "approvals", documents: "documents", handoff: "packet" };
+type Tab = "overview" | "problems" | "plan" | "contract" | "facts" | "documents" | "approvals" | "timeline" | "packet";
+// Every in-page anchor and every guided-demo pulse target lands on the tab that holds it.
+const HASH_TAB: Record<string, Tab> = { read: "overview", "needs-you": "overview", log: "overview", plan: "plan", conflicts: "problems", contract: "contract", routing: "approvals", approvals: "approvals", checklist: "approvals", documents: "documents", timeline: "timeline", packet: "packet", facts: "facts" };
+const PULSE_TAB: Record<string, Tab> = { status: "overview", handoff: "overview", "ava-read": "overview", problems: "problems", plan: "plan", contract: "contract", routing: "approvals", approvals: "approvals", documents: "documents" };
 
-// The sticky header (md and up) ends about 13rem from the top; anchors land below it.
-const ANCHOR = "scroll-mt-20 md:scroll-mt-56";
-const JUMP: [string, string][] = [["#read", "Ava’s read"], ["#needs-you", "Needs you"], ["#plan", "Plan"], ["#conflicts", "Problems"], ["#contract", "Contract"], ["#log", "Ava did"], ["#details", "Facts and documents"]];
+// The sticky header (md and up) ends about 12rem from the top; anchors land below it.
+const ANCHOR = "scroll-mt-20 md:scroll-mt-52";
 
 type StageState = "done" | "current" | "blocked" | "todo";
 function stages(a: Analysis) {
@@ -52,10 +52,14 @@ function stages(a: Analysis) {
 export default function RequestPage() {
   const { id } = useParams<{ id: string }>();
   const state = useAva((s) => s.state); const pulse = useAva((s) => s.pulse);
-  const [tab, setTab] = useState<Tab>("facts");
+  const [tab, setTab] = useState<Tab>("overview");
   const [routingOpen, setRoutingOpen] = useState(false);
   useEffect(() => {
-    const sync = () => { const h = window.location.hash.slice(1); if (HASH_TAB[h]) setTab(HASH_TAB[h]); };
+    const sync = () => {
+      const h = window.location.hash.slice(1);
+      if (HASH_TAB[h]) setTab(HASH_TAB[h]);
+      else if (h.startsWith("cf-")) { setTab("problems"); setTimeout(() => document.getElementById(h)?.scrollIntoView({ block: "start" }), 80); } // a conflict card
+    };
     sync(); window.addEventListener("hashchange", sync); return () => window.removeEventListener("hashchange", sync);
   }, [id]);
   useEffect(() => { if (pulse.target && PULSE_TAB[pulse.target]) setTab(PULSE_TAB[pulse.target]); setRoutingOpen(pulse.target === "routing"); }, [pulse.n, pulse.target]);
@@ -79,8 +83,9 @@ export default function RequestPage() {
   const t = timingFor(state, id);
   const ready = a.handoff.state === "ready_legal" || a.handoff.state === "ready_po";
   const st = stages(a);
-  const TABS: { k: Tab; label: string; badge?: number }[] = [
-    { k: "facts", label: "Facts" }, { k: "documents", label: "Documents" }, { k: "approvals", label: "Approvals", badge: a.approvals.filter((x) => x.status === "needs_reconfirmation").length || undefined },
+  const TABS: { k: Tab; label: string; badge?: number; tone?: "red" | "grey" }[] = [
+    { k: "overview", label: "Overview" }, { k: "problems", label: "Problems", badge: openConf.length || undefined, tone: "red" }, { k: "plan", label: "Plan" }, { k: "contract", label: "Contract" },
+    { k: "facts", label: "Facts" }, { k: "documents", label: "Documents" }, { k: "approvals", label: "Approvals", badge: a.approvals.filter((x) => x.status === "needs_reconfirmation").length || undefined, tone: "red" },
     { k: "timeline", label: "Timeline" }, ...(ready ? [{ k: "packet" as Tab, label: "Handoff packet" }] : []),
   ];
   const mine = deriveItems(state).filter((i) => i.requestId === id && i.personId === viewAs);
@@ -100,62 +105,70 @@ export default function RequestPage() {
             </button></li>
           ))}
         </ol>
-        <nav aria-label="On this page" className="-mx-1 mt-2 flex gap-x-1 overflow-x-auto whitespace-nowrap text-[12.5px]">
-          {JUMP.map(([href, label]) => <a key={href} href={href} className="rounded px-1.5 py-1 font-medium text-slate-600 hover:bg-slate-100 hover:text-slate-900">{label === "Problems" ? `Problems (${openConf.length} open)` : label}</a>)}
-        </nav>
+        <div role="tablist" aria-label="Request sections" className="-mx-1 mt-2 flex gap-x-1 overflow-x-auto whitespace-nowrap border-b border-slate-200">
+          {TABS.map((x) => (
+            <button key={x.k} role="tab" aria-selected={tab === x.k} onClick={() => openTab(x.k)} className={cx("-mb-px flex items-center gap-1.5 border-b-2 px-2.5 py-2 text-[13px]", tab === x.k ? "border-accent font-semibold text-slate-900" : "border-transparent text-slate-600 hover:text-slate-900")}>
+              {x.label}{x.badge ? <span className="rounded-full bg-red-600 px-1.5 text-[11px] font-semibold text-white">{x.badge}</span> : null}
+            </button>
+          ))}
+        </div>
       </header>
 
-      <p className={cx("-mt-2 text-[14px] font-medium", a.handoff.state === "blocked" ? "text-red-800" : ready ? "text-emerald-800" : "text-slate-800")}>{summary}</p>
+      <div id="details" className={cx("space-y-5", ANCHOR)}>
+      {tab === "overview" && <>
+        {!a.handoff.banner && <p className={cx("text-[14px] font-medium", ready ? "text-emerald-800" : "text-slate-800")}>{summary}</p>}
 
-      <dl className="grid grid-cols-2 gap-x-6 gap-y-2 text-[13px] sm:grid-cols-3 lg:grid-cols-6">
-        {[["Supplier", supplierShort(sup?.name ?? req.supplierGuess?.name)], ["Value (before GST)", lakh(a.requestAmount)], ["90-day total", lakh(a.spend.total)], ["Requester", personName(req.requesterId)], ["Owner", `${personName("karan")}, Procurement`], ["First email", fmtDT(t.firstAt)]].map(([k, v]) => (
-          <div key={k}><dt className="text-[11.5px] text-slate-500">{k}</dt><dd className={cx("font-medium", k === "90-day total" && a.spend.overLimit && "text-red-700", (k.startsWith("Value") || k.startsWith("90")) && "font-mono")}>{v}</dd></div>
-        ))}
-      </dl>
+        <dl className="grid grid-cols-2 gap-x-6 gap-y-2 text-[13px] sm:grid-cols-3 lg:grid-cols-6">
+          {[["Supplier", supplierShort(sup?.name ?? req.supplierGuess?.name)], ["Value (before GST)", lakh(a.requestAmount)], ["90-day total", lakh(a.spend.total)], ["Requester", personName(req.requesterId)], ["Owner", `${personName("karan")}, Procurement`], ["First email", fmtDT(t.firstAt)]].map(([k, v]) => (
+            <div key={k}><dt className="text-[11.5px] text-slate-500">{k}</dt><dd className={cx("font-medium", k === "90-day total" && a.spend.overLimit && "text-red-700", (k.startsWith("Value") || k.startsWith("90")) && "font-mono")}>{v}</dd></div>
+          ))}
+        </dl>
 
-      <div data-pulse="status">
-        {a.handoff.banner ? (
-          <div role="alert" className="rounded-lg border border-red-300 bg-red-50 px-4 py-3">
-            <p className="text-[15px] font-semibold text-red-800">{a.handoff.banner}</p>
-            <p className="mt-0.5 text-[13px] text-red-800">{a.handoff.reasons.filter((r) => /reconfirmation|conflict/i.test(r)).join(" · ")}</p>
-          </div>
-        ) : ready ? (
-          <div data-pulse="handoff" className="rounded-lg border border-emerald-300 bg-emerald-50 px-4 py-3 text-emerald-900">
-            <p className="text-[15px] font-semibold">{a.handoff.state === "ready_legal" ? "Ready for Legal Review. The handoff packet went to Farah Khan." : "Ready to issue PO."} <ActsBanner req={req} /></p>
-            <p className="text-[13px]">Took {timeLine(state, id)}{t.longest && ` Longest wait: ${t.longest}.`}{hit && ` ${hit}`}</p>
-          </div>
-        ) : null}
-      </div>
+        <div data-pulse="status">
+          {a.handoff.banner ? (
+            <div role="alert" className="rounded-lg border border-red-300 bg-red-50 px-4 py-3">
+              <p className="text-[15px] font-semibold text-red-800">{a.handoff.banner}</p>
+              <p className="mt-0.5 text-[13px] text-red-800">{a.handoff.reasons.filter((r) => /reconfirmation|conflict/i.test(r)).join(" · ")}</p>
+              {a.waitingOn && <p className="mt-1 text-[13px] font-medium text-red-900">Waiting on {a.waitingOn}.</p>}
+              {openConf.length > 0 && <button onClick={() => openTab("problems")} className="mt-2 rounded-md bg-red-700 px-3 py-1.5 text-[13px] font-semibold text-white hover:bg-red-800">Resolve {openConf.length} problem{openConf.length === 1 ? "" : "s"}</button>}
+            </div>
+          ) : ready ? (
+            <div data-pulse="handoff" className="rounded-lg border border-emerald-300 bg-emerald-50 px-4 py-3 text-emerald-900">
+              <p className="text-[15px] font-semibold">{a.handoff.state === "ready_legal" ? "Ready for Legal Review. The handoff packet went to Farah Khan." : "Ready to issue PO."} <ActsBanner req={req} /></p>
+              <p className="text-[13px]">Took {timeLine(state, id)}{t.longest && ` Longest wait: ${t.longest}.`}{hit && ` ${hit}`}</p>
+              <button onClick={() => openTab("packet")} className="mt-2 rounded-md border border-emerald-700 px-3 py-1.5 text-[13px] font-semibold text-emerald-900 hover:bg-emerald-100">Open the handoff packet</button>
+            </div>
+          ) : null}
+        </div>
 
-      <div id="read" className={ANCHOR}><AvaRead reqId={id} /></div>
+        <div id="read" className={ANCHOR}><AvaRead reqId={id} /></div>
 
-      <section id="needs-you" aria-label="Needs you" className={cx("space-y-2", ANCHOR)}>
-        <h2 className="text-[15px] font-semibold">Needs you <span className="font-normal text-slate-500">· {personName(viewAs)}</span></h2>
-        {mine.length ? mine.map((it) => <ItemCard key={it.key} it={it} compact />) : <p className="rounded-lg border border-dashed border-slate-300 bg-white px-4 py-3 text-[13px] text-slate-600">Nothing here needs {personName(viewAs).split(" ")[0]}.{others.length > 0 && " Waiting on others:"}</p>}
-        {others.length > 0 && <ul className="flex flex-wrap gap-1.5 text-[12.5px]">{others.map((o) => <li key={o.key} className="rounded-full border border-slate-200 bg-white px-2.5 py-1"><b>{personName(o.personId)}</b>: {o.question.length > 70 ? o.question.slice(0, 68) + "…" : o.question}</li>)}</ul>}
-      </section>
+        <section id="needs-you" aria-label="Needs you" className={cx("space-y-2", ANCHOR)}>
+          <h2 className="text-[15px] font-semibold">Needs you <span className="font-normal text-slate-500">· {personName(viewAs)}</span></h2>
+          {mine.length ? mine.map((it) => <ItemCard key={it.key} it={it} compact />) : <p className="rounded-lg border border-dashed border-slate-300 bg-white px-4 py-3 text-[13px] text-slate-600">Nothing here needs {personName(viewAs).split(" ")[0]}.{others.length > 0 && " Waiting on others:"}</p>}
+          {others.length > 0 && <ul className="flex flex-wrap gap-1.5 text-[12.5px]">{others.map((o) => <li key={o.key} className="rounded-full border border-slate-200 bg-white px-2.5 py-1"><b>{personName(o.personId)}</b>: {o.question.length > 70 ? o.question.slice(0, 68) + "…" : o.question}</li>)}</ul>}
+        </section>
 
-      <div id="plan" className={ANCHOR}><AvaPlan reqId={id} /></div>
+        {openConf.length > 0 && <section aria-label="Open problems" className="rounded-xl border border-slate-200 bg-white">
+          <div className="flex items-center justify-between gap-2 border-b border-slate-100 px-4 py-2.5"><h2 className="text-[14px] font-semibold">Open problems <span className="font-normal text-slate-500">· {openConf.length}</span></h2><button onClick={() => openTab("problems")} className="text-[13px] font-medium text-accent hover:underline">See all and resolve →</button></div>
+          <ul className="divide-y divide-slate-100 text-[13px]">{openConf.map((c) => <li key={c.id} className="flex flex-wrap items-center gap-x-2 px-4 py-2"><StateChip state={c.severity} /><span className="font-medium">{c.title}</span>{c.impactText && <span className="text-slate-500">{c.impactText}</span>}</li>)}</ul>
+        </section>}
 
-      <section data-pulse="problems" id="conflicts" aria-label="Problems Ava found" className={cx("space-y-3", ANCHOR)}>
-        <h2 className="text-[15px] font-semibold">Problems Ava found <span className="font-normal text-slate-500">· {openConf.length} open{resolved.length ? `, ${resolved.length} resolved` : ""}. Ava never picks a side.</span></h2>
-        {openConf.length === 0 && <p className="rounded-lg border border-dashed border-slate-300 bg-white px-4 py-3 text-[13px] text-slate-600">No open problems.</p>}
-        {openConf.map((c) => <ConflictCard key={c.id} c={c} />)}
-        {resolved.length > 0 && <details className="rounded-xl border border-slate-200 bg-white"><summary className="cursor-pointer px-4 py-3 text-[14px] font-semibold">Resolved ({resolved.length})</summary><div className="space-y-3 p-3">{resolved.map((c) => <ConflictCard key={c.id} c={c} />)}</div></details>}
-        {drafts.length > 0 && <details className="rounded-xl border border-slate-200 bg-white"><summary className="cursor-pointer px-4 py-3 text-[14px] font-semibold">Drafts for the requester ({drafts.length}) <span className="font-normal text-slate-500">· Ava never emails suppliers</span></summary><div className="space-y-2 border-t border-slate-100 p-3">{drafts.map((d) => <DraftBox key={d.id} d={d} />)}</div></details>}
-      </section>
+        <div id="log" className={ANCHOR}><AvaDid req={req} /></div>
+      </>}
 
-      <div id="contract" className={ANCHOR}><ContractCard a={a} /></div>
+      {tab === "problems" && (
+        <section data-pulse="problems" id="conflicts" aria-label="Problems Ava found" className={cx("space-y-3", ANCHOR)}>
+          <h2 className="text-[15px] font-semibold">Problems Ava found <span className="font-normal text-slate-500">· {openConf.length} open{resolved.length ? `, ${resolved.length} resolved` : ""}. Ava never picks a side.</span></h2>
+          {openConf.length === 0 && <p className="rounded-lg border border-dashed border-slate-300 bg-white px-4 py-3 text-[13px] text-slate-600">No open problems.</p>}
+          {openConf.map((c) => <ConflictCard key={c.id} c={c} />)}
+          {resolved.length > 0 && <details className="rounded-xl border border-slate-200 bg-white"><summary className="cursor-pointer px-4 py-3 text-[14px] font-semibold">Resolved ({resolved.length})</summary><div className="space-y-3 p-3">{resolved.map((c) => <ConflictCard key={c.id} c={c} />)}</div></details>}
+          {drafts.length > 0 && <details className="rounded-xl border border-slate-200 bg-white"><summary className="cursor-pointer px-4 py-3 text-[14px] font-semibold">Drafts for the requester ({drafts.length}) <span className="font-normal text-slate-500">· Ava never emails suppliers</span></summary><div className="space-y-2 border-t border-slate-100 p-3">{drafts.map((d) => <DraftBox key={d.id} d={d} />)}</div></details>}
+        </section>
+      )}
 
-      <div id="log" className={ANCHOR}><AvaDid req={req} /></div>
-
-      <div id="details" role="tablist" aria-label="Request sections" className={cx("flex gap-1 overflow-x-auto border-b border-slate-200", ANCHOR)}>
-        {TABS.map((x) => (
-          <button key={x.k} role="tab" aria-selected={tab === x.k} onClick={() => setTab(x.k)} className={cx("-mb-px flex items-center gap-1.5 whitespace-nowrap border-b-2 px-3 py-2.5 text-[13.5px]", tab === x.k ? "border-accent font-semibold text-slate-900" : "border-transparent text-slate-600 hover:text-slate-900")}>
-            {x.label}{x.badge ? <span className="rounded-full bg-red-600 px-1.5 text-[11px] font-semibold text-white">{x.badge}</span> : null}
-          </button>
-        ))}
-      </div>
+      {tab === "plan" && <div id="plan" className={ANCHOR}><AvaPlan reqId={id} /></div>}
+      {tab === "contract" && <div id="contract" className={ANCHOR}><ContractCard a={a} /></div>}
 
       {tab === "approvals" && (
         <div className="space-y-4">
@@ -171,6 +184,7 @@ export default function RequestPage() {
       {tab === "documents" && <div data-pulse="documents"><DocumentsPanel a={a} state={state} /></div>}
       {tab === "timeline" && <TimelineView a={a} />}
       {tab === "packet" && ready && <HandoffPacket a={a} state={state} />}
+      </div>
     </div>
   );
 }

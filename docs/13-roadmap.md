@@ -10,7 +10,18 @@ Ask Ava (the front door), autonomy for routine messages, the supplier view, "Wha
 
 N5 prompt versioning, N6 recommendation outcomes, N7 prediction accuracy, X8 re-planning after approvals and replies, X9 quoted-reply stripping. Plus the six UX fixes from the product review (send back from a receipt, overdue items, one count for what waits on a person). See [05 AI layers](05-ai-layers.md) and [07 Screens](07-screens.md).
 
+## Guided demo follow-ups
+
+| # | Item | Why | Where | Done when | Effort |
+|---|---|---|---|---|---|
+| D1 | Use `Term` on the request page, Today and the AI labels | Jargon (Decision Receipt, Critical path, Cached, Reconfirm) is still unexplained where people meet it | `request.tsx`, `ai.tsx`, `app/today` | Each term on those pages defines itself | S |
+| D2 | Count how far reviewers get | Know whether the orientation, the steps and the debrief land | Send `tour_done`, `step_n`, `debrief_open`, `task_done` to the analytics tool chosen in X2 | Funnel from landing to debrief | S |
+| D3 | Role-based first run | A budget owner should learn Approvals first, Legal the packet | `lib/guide.ts` page help and tasks keyed by `viewAs` | Switching to Vikram offers "Approve a receipt" | M |
+| D4 | Coach marks for the request page itself, outside the demo | Someone who lands on a request from a link gets no tour | New stops in `UiTour` keyed to page | "Replay tips for this page" in Help | M |
+
 ## Now: make the AI real and measurable
+
+**On hold by decision.** No `ANTHROPIC_API_KEY` will be added, so this prototype stays simulated: scripted scenarios use cached outputs, everything else uses the simulation (`lib/engine/simulated.ts`), and both are labelled. N1 to N3 stay valid if a key is ever added.
 
 | # | Item | Why | Where | Done when | Effort |
 |---|---|---|---|---|---|

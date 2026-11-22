@@ -2,6 +2,7 @@
 import { QuotedBody } from "@/components/QuotedBody";
 import { Suspense, useEffect, useMemo, useState } from "react";
 import { useRouter, useSearchParams } from "next/navigation";
+import { Term } from "@/components/guide/Term";
 import Link from "next/link";
 import type { Attachment, Email, Source, State } from "@/lib/types";
 import { useAva } from "@/lib/store";
@@ -33,7 +34,7 @@ function Mail() {
   const email = state.emails.find((e) => e.id === selected) ?? (composing ? undefined : emails[0]);
   return (
     <div>
-      <PageTitle title="Captured mail" sub="Supplier email Ava received through the mail rule. Simulated here." right={<Button onClick={() => setComposing(true)}>Test lab: simulate an incoming email</Button>} />
+      <PageTitle title="Captured mail" sub={<>Supplier email Ava received through the <Term id="mail-rule">mail rule</Term>. Simulated here.</>} right={<Button onClick={() => setComposing(true)}>Test lab: simulate an incoming email</Button>} />
       <div className="grid grid-cols-1 gap-4 break-words lg:grid-cols-[300px_minmax(0,1fr)_360px]">
         <Card>
           <div role="tablist" aria-label="Mailbox filter" className="flex gap-1 border-b border-slate-100 p-2">
@@ -270,7 +271,7 @@ function TryThis() {
   ];
   return (
     <Card className="self-start">
-      <CardHead title="Try this" sub={<>Each one pre-fills the test lab. {ai ? <>Extraction: <b>Live AI</b>.</> : <>AI unavailable right now; basic extraction and summaries from rules are used.</>}</>} />
+      <CardHead title="Try this" sub={<>Each one pre-fills the test lab. {ai ? <>Extraction: <b>Live AI</b>.</> : <>This prototype is simulated: extraction and summaries are written by rules, with no model.</>}</>} />
       <ul className="divide-y divide-slate-100">
         {items.map((it) => <li key={it.label} className="px-4 py-2.5"><button className="text-left text-[13px] font-medium text-accent hover:underline" onClick={() => prefill(it.d)}>{it.label}</button><div className="text-[12px] text-slate-500">Expect: {it.expect}</div></li>)}
       </ul>

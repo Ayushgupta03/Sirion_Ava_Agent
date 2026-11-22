@@ -11,11 +11,11 @@ import { fmtDT, hoursBetween, lakh, opened, parseAmount, span } from "@/lib/form
 import { Button, Card, CardHead, Chip, cx, Empty, PageTitle, SourceLink, Stat, StateChip, supplierShort } from "@/components/ui";
 import { ConflictsTable } from "@/components/ConflictsTable";
 import { AdviceCard, PredictionCard } from "@/components/insights";
+import Board from "@/components/Board";
 import { atRisk, catches, counters, northStar } from "@/lib/insights";
 import { BG_CONFLICTS } from "@/lib/background";
+import { Term } from "@/components/guide/Term";
 
-const COLS = ["New", "Waiting on someone", "Approvals", "Blocked", "Ready"] as const;
-const colOf = (p: string) => p === "New" ? "New" : p === "Approvals" ? "Approvals" : p === "Blocked by change" ? "Blocked" : p === "Ready" ? "Ready" : "Waiting on someone";
 
 export default function Dashboard() {
   const { state, act, viewAs, setViewAs } = useAva();
@@ -27,7 +27,11 @@ export default function Dashboard() {
   const risks = atRisk(state); const cs = catches(state); const k = counters(state); const ns = northStar(state);
   return (
     <div className="space-y-5">
-      <PageTitle title="Dashboard" sub="What is at risk, what Ava caught, and where every request is." />
+      <PageTitle title="Dashboard" sub="Where every request is, what is at risk, and what Ava caught." />
+      <div role="tablist" aria-label="Dashboard view" className="flex gap-1">
+        {(["pipeline", "conflicts"] as const).map((t) => <button key={t} role="tab" aria-selected={tab === t} onClick={() => setTab(t)} className={cx("rounded-md px-3 py-1.5 text-[13px]", tab === t ? "bg-accent-50 font-semibold text-accent-700" : "text-slate-600 hover:bg-slate-100")}>{t === "pipeline" ? "Pipeline" : `Conflicts (${openConf} open)`}</button>)}
+      </div>
+      {tab === "conflicts" ? <ConflictsTable /> : <Board />}
       <section data-pulse="at-risk" aria-label="At risk"><Card><CardHead title={`At risk · ${risks.length}`} sub="Plan date is later than the next business day, or the handoff is blocked. Often that is the supplier’s wait, which the timing panel separates." />
         {risks.length ? <ul className="divide-y divide-slate-100">{risks.map((r) => (
           <li key={r.reqId} className="flex flex-wrap items-baseline gap-x-3 gap-y-0.5 px-4 py-2.5 text-[13px]">
@@ -47,7 +51,7 @@ export default function Dashboard() {
         <Stat label="₹ at stake caught" value={lakh(k.atStake)} sub="Over-charges, credits and savings found" tone="green" />
         <Stat label="Touches per request" value={ns.total ? ns.touches.toFixed(1) : "–"} sub="People decisions per request. Lower is better." />
         <Stat label="Started in Ask Ava" value={`${ns.fromAsk} / ${ns.total}`} sub="Before any supplier email" />
-        <Stat label="Clean and fast" value={`${ns.good} / ${ns.total}`} sub="North star: complete, never withdrawn, Prayaan time under 1 day" tone="green" />
+        <Stat label="Clean and fast" value={`${ns.good} / ${ns.total}`} sub={<>North star: complete, never withdrawn, <Term id="own-time">Prayaan time</Term> under 1 day</>} tone="green" />
       </div>
       <div className="grid grid-cols-2 gap-3 md:grid-cols-4">
         <Stat label="Requests captured from email" value={ids.length + BACKGROUND.length} sub={`${ids.length} in this session, ${BACKGROUND.length} background`} />
@@ -55,34 +59,6 @@ export default function Dashboard() {
         <Stat label="Approvals reopened by changed facts" value={state.counters.approvalsReopened} tone={state.counters.approvalsReopened ? "red" : undefined} />
         <Stat label="Started before approval" value={sba.reduce((n, [, v]) => n + v, 0) + 1} sub={[...sba.map(([d, v]) => `${d}: ${v}`), "Marketing Ops: 1 (background)"].join(", ")} />
       </div>
-      <div role="tablist" className="flex gap-1">
-        {(["pipeline", "conflicts"] as const).map((t) => <button key={t} role="tab" aria-selected={tab === t} onClick={() => setTab(t)} className={cx("rounded-md px-3 py-1.5 text-[13px]", tab === t ? "bg-accent-50 font-semibold text-accent-700" : "text-slate-600 hover:bg-slate-100")}>{t === "pipeline" ? "Pipeline" : `Conflicts (${openConf} open)`}</button>)}
-      </div>
-      {tab === "conflicts" ? <ConflictsTable /> : (
-        <div className="grid grid-cols-1 gap-3 sm:grid-cols-2 lg:grid-cols-5">
-          {COLS.map((col) => {
-            const live = all.filter((a) => colOf(a.pipeline) === col);
-            const bg = BACKGROUND.filter((b) => b.stage === col);
-            return (
-              <div key={col} className="min-w-0 rounded-xl bg-slate-100/80 p-2">
-                <div className="mb-2 flex items-center justify-between px-1 text-[12.5px] font-semibold text-slate-700"><span>{col}</span><span className="tabular text-slate-500">{live.length + bg.length}</span></div>
-                <div className="space-y-2">
-                  {live.map((a) => <LiveCard key={a.req.id} a={a} />)}
-                  {bg.map((b) => (
-                    <div key={b.id} title="Background request, not part of the guided demo" className="rounded-lg border border-slate-200 bg-white/70 p-2.5 text-[12.5px] text-slate-600">
-                      <div className="truncate font-semibold text-slate-700">{b.supplier}</div>
-                      <div className="truncate">{b.project}</div>
-                      <div className="mt-1 font-mono">{lakh(b.amount)}</div>
-                      <div className="mt-0.5 truncate">{b.stage === "Ready" ? b.waitingOn : `Waiting on ${b.waitingOn}`}</div>
-                      <div className="mt-0.5 flex items-center justify-between gap-1 text-slate-400"><span className="truncate">{b.id} · {opened(hoursBetween(b.createdAt, state.now))}</span><span className="shrink-0 rounded bg-slate-100 px-1 text-[10.5px] text-slate-500">Background</span></div>
-                    </div>
-                  ))}
-                  {live.length + bg.length === 0 && <p className="px-1 py-6 text-center text-[12px] text-slate-400">None</p>}
-                </div>
-              </div>);
-          })}
-        </div>
-      )}
       <p className="text-[12px] text-slate-500">Activity, for context and not a measure of success: Ava took {k.avaActions} actions (each contract check counts as one), people made {k.decisions} decisions, and {k.checks} contract terms were checked. Ava sent {ns.autoSent} routine message{ns.autoSent === 1 ? "" : "s"} on her own.</p>
       <p className="text-[12px] text-slate-500">Background requests are other teams&apos; work in the same week. They are not part of the guided demo and never change its numbers.</p>
       <div className="grid gap-5 lg:grid-cols-2"><AdviceCard /><PredictionCard /></div>
@@ -117,21 +93,5 @@ export default function Dashboard() {
           </div></Card>
       </div>
     </div>
-  );
-}
-
-function LiveCard({ a }: { a: Analysis }) {
-  const state = useAva((s) => s.state);
-  const sup = state.suppliers.find((s) => s.id === a.req.supplierId);
-  const col = colOf(a.pipeline);
-  return (
-    <Link href={`/requests/${a.req.id}`} className={cx("block rounded-lg border bg-white p-2.5 text-[12.5px] shadow-sm hover:border-accent", col === "Blocked" ? "border-red-300" : col === "Ready" ? "border-emerald-300" : "border-slate-300")}>
-      <div className="truncate font-semibold text-slate-900">{supplierShort(sup?.name ?? a.req.supplierGuess?.name)}</div>
-      <div className="truncate text-slate-600">{a.req.project}</div>
-      <div className="mt-1 font-mono">{lakh(a.requestAmount)} · 90d {lakh(a.spend.total)}</div>
-      <div className="mt-1 flex flex-wrap gap-1">{a.routing.approvals.some((x) => x.key === "vp") && <Chip tone="grey">VP</Chip>}{a.routing.needsInfosec && <Chip tone="grey">InfoSec</Chip>}{a.req.startedBeforeApproval && <Chip tone="red">Early start</Chip>}</div>
-      {a.waitingOn && <div className="mt-1 text-slate-700">Waiting on {a.waitingOn}</div>}
-      <div className="mt-1 flex items-center justify-between gap-1 text-slate-400"><span className="truncate">{a.req.id} · {opened(hoursBetween(a.req.createdAt, a.req.readyAt ?? state.now))}</span><Chip tone="blue">{scenarioTag(state, a.req.id)}</Chip></div>
-    </Link>
   );
 }

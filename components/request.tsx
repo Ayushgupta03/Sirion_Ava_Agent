@@ -4,6 +4,7 @@ import type { ApprovalKey, Draft, State } from "@/lib/types";
 import type { Analysis, ApprovalView } from "@/lib/engine/rules";
 import { useAva } from "@/lib/store";
 import { actionsOf, currentRead } from "@/lib/engine/ai";
+import { simulatedReceipt } from "@/lib/engine/simulated";
 import { AiLabel } from "./ai";
 import { contractsFor, firstName, personName } from "@/lib/engine/world";
 import { fmtDate, fmtDT, fmtShort, inr, lakh } from "@/lib/format";
@@ -145,7 +146,7 @@ export function ReceiptModal({ a, ap, onClose }: { a: Analysis; ap: ApprovalView
           <div className="flex items-center gap-2"><StateChip state={ap.status} /><Button small variant="ghost" onClick={onClose}>Close</Button></div>
         </div>
         <div className="min-h-0 flex-1 space-y-4 overflow-auto px-5 py-4 text-[13px]">
-          {(() => { const v = useAva.getState().state.ai.recs[`receipt:${a.req.id}:${ap.key}`]; return v?.output.bullets ? (
+          {(() => { const st = useAva.getState().state; const sim = simulatedReceipt(st, a.req.id, ap.key); const v = st.ai.recs[`receipt:${a.req.id}:${ap.key}`] ?? (sim ? { at: st.now, source: "rules" as const, output: sim } : undefined); return v?.output.bullets ? (
             <section className="rounded-lg border border-violet-200 bg-violet-50/60 px-3.5 py-2.5"><h3 className="mb-1 flex items-center gap-2 text-[12px] font-semibold uppercase tracking-wide text-violet-900">Ava’s summary for you <AiLabel source={v.source} meta={v} /></h3><ul className="list-disc space-y-0.5 pl-5">{v.output.bullets.map((b) => <li key={b}>{b}</li>)}</ul><p className="mt-1 text-[11.5px] text-slate-500">Prepared {fmtDT(v.at)}. The decision is yours; Ava never approves.</p></section>) : null; })()}
           {ap.status === "needs_reconfirmation" && <div className="rounded-md bg-red-50 px-3 py-2 text-red-800 ring-1 ring-red-200"><b>Needs reconfirmation.</b> {ap.diffs.map((d) => `Given for ${d.old}. Current: ${d.new}.`).join(" ")}{ap.reopenSource && ` Source: ${ap.reopenSource}.`}</div>}
           <section><h3 className="mb-1.5 font-semibold">You are approving</h3>

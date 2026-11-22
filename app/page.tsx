@@ -8,6 +8,8 @@ import { deriveItems } from "@/lib/engine/items";
 import { counters, northStar } from "@/lib/insights";
 import { cx } from "@/components/ui";
 import { Icon, type IconName } from "@/components/icons";
+import { SCENARIO_BLURB } from "@/lib/guide";
+import { Term } from "@/components/guide/Term";
 
 function STEPS_FOCUS() { const st = useAva.getState(); const f = st.focus; return f ? resolveFocus(f, st.state) : "/requests"; }
 
@@ -37,7 +39,7 @@ export default function Landing() {
     if (j < 0) return;
     e.preventDefault(); setTab(TABS[j].k); document.getElementById(`tab-${TABS[j].k}`)?.focus();
   };
-  const TRUST:[IconName, string][] = [["file", "Every fact links to the sentence it came from."], ["shield", "Ava reads only supplier email, through a mail rule IT controls. She sends only the routine messages you switch on, and never approves."]];
+  const TRUST:[IconName, React.ReactNode][] = [["file", "Every fact links to the sentence it came from."], ["shield", <>Ava reads only supplier email, through a <Term id="mail-rule">mail rule</Term> IT controls. She sends only the routine messages you switch on, and never approves.</>]];
   return (
     <div className="enter mx-auto max-w-[1100px] space-y-8">
       {resume && (
@@ -48,14 +50,22 @@ export default function Landing() {
       <section className="max-w-3xl">
         <h1 className="text-[36px] font-semibold leading-[1.08] tracking-[-0.02em] text-slate-900 sm:text-[46px]">Supplier email in. Routed request out.</h1>
         <p className="mt-4 text-[18px] leading-relaxed text-slate-700">Ava reads every supplier email, plans the work, does the legwork, and tells each person the one decision that needs them. Or start earlier: tell Ava what you need in a sentence, before the supplier hears from anyone.</p>
-        <div className="mt-6 flex flex-col gap-3 sm:flex-row sm:flex-wrap sm:items-center">
-          <button onClick={watchA} className="flex min-h-12 items-center justify-center gap-2 rounded-lg py-2 leading-tight bg-accent px-5 text-[15px] font-semibold text-white hover:bg-accent-700"><Icon name="play" size={15} />Watch Scenario A: new project (3 min)</button>
-          <button onClick={watchB} className="flex min-h-12 items-center justify-center gap-2 rounded-lg py-2 leading-tight border border-accent bg-white px-5 text-[15px] font-semibold text-accent-700 hover:bg-accent-50"><Icon name="play" size={15} />Watch Scenario B: renewal (2 min)</button>
-          <Link href="/new" className="self-center py-2 text-[14px] font-semibold text-accent-700 underline underline-offset-2 hover:text-accent">Start a request in Ask Ava</Link>
-          <Link href="/mail?compose=1" className="self-center py-2 text-[14px] font-medium text-slate-600 underline underline-offset-2 hover:text-slate-900">Or test it with your own email</Link>
+        <div className="mt-6 grid max-w-[720px] gap-4 sm:grid-cols-2">
+          <div>
+            <button onClick={watchA} className="flex min-h-12 w-full items-center justify-center gap-2 rounded-lg py-2 leading-tight bg-accent px-5 text-[15px] font-semibold text-white hover:bg-accent-700"><Icon name="play" size={15} />Watch Scenario A: new project (3 min)</button>
+            <p className="mt-2 text-[13px] leading-snug text-slate-600">{SCENARIO_BLURB.A.line} Nine steps, with a note on what to look at in each.</p>
+          </div>
+          <div>
+            <button onClick={watchB} className="flex min-h-12 w-full items-center justify-center gap-2 rounded-lg py-2 leading-tight border border-accent bg-white px-5 text-[15px] font-semibold text-accent-700 hover:bg-accent-50"><Icon name="play" size={15} />Watch Scenario B: renewal (2 min)</button>
+            <p className="mt-2 text-[13px] leading-snug text-slate-600">{SCENARIO_BLURB.B.line} Five steps.</p>
+          </div>
+        </div>
+        <div className="mt-4 flex flex-col gap-1 sm:flex-row sm:items-center sm:gap-5">
+          <Link href="/new" className="py-2 text-[14px] font-semibold text-accent-700 underline underline-offset-2 hover:text-accent">Start a request in Ask Ava</Link>
+          <Link href="/mail?compose=1" className="py-2 text-[14px] font-medium text-slate-600 underline underline-offset-2 hover:text-slate-900">Or test it with your own email</Link>
         </div>
         <ul className="mt-6 flex flex-col gap-2 text-[14px] text-slate-700 sm:flex-row sm:gap-6">
-          {TRUST.map(([i, t]) => <li key={t} className="flex items-start gap-2"><Icon name={i} className="mt-0.5 shrink-0 text-accent" />{t}</li>)}
+          {TRUST.map(([i, t], k) => <li key={k} className="flex items-start gap-2"><Icon name={i} className="mt-0.5 shrink-0 text-accent" /><span>{t}</span></li>)}
         </ul>
       </section>
 

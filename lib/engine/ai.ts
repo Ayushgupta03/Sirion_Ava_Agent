@@ -1,4 +1,5 @@
 // Part 3: the AI layers on top of the engine. The AI understands, plans, acts and advises; code enforces policy.
+import { simulatedRec } from "./simulated";
 import type { AiPlan, AiRead, AiRec, AiSource, PlanStep, StepStatus, Versioned } from "../aiTypes";
 import type { Conflict, Request, State } from "../types";
 import { fmtDT, lakh } from "../format";
@@ -106,7 +107,7 @@ export function planDiff(prev: Versioned<AiPlan> | undefined, next: AiPlan, a: A
   return out.slice(0, 6);
 }
 
-// ── Rules-only fallbacks (AI unavailable) ──
+// ── Simulated fallbacks: written by code from the facts, no model. Labelled "Simulated" wherever they show. ──
 export function rulesRead(state: State, a: Analysis): AiRead {
   const r = a.req; const sup = state.suppliers.find((s) => s.id === r.supplierId);
   const supName = (sup?.name ?? r.supplierGuess?.name ?? "the supplier").replace(/ (Pvt Ltd|LLP)$/, "");
@@ -118,7 +119,7 @@ export function rulesRead(state: State, a: Analysis): AiRead {
   return { sentences: s, risks: open.map((c) => c.title) };
 }
 export function rulesPlan(a: Analysis, state: State): AiPlan {
-  const { plan } = validatePlan({ steps: [], criticalPath: [], predictedReady: "", predictionReason: "Not predicted: AI unavailable.", changesSinceLast: [] }, a, state);
+  const { plan } = validatePlan({ steps: [], criticalPath: [], predictedReady: "", predictionReason: "No date predicted: the simulation predicts dates only for the scripted scenarios.", changesSinceLast: [] }, a, state);
   plan.steps.forEach((s) => { s.reason = undefined; });
   // The fallback plan also shows the two steps every request has: the supplier's written quote (approvers sign nothing without it) and the handoff.
   const hasQuote = a.folded.documents.some((d) => ["quote", "order_form", "sow"].includes(d.docType));
@@ -127,7 +128,7 @@ export function rulesPlan(a: Analysis, state: State): AiPlan {
   if (!plan.steps.some((x) => x.id === "handoff")) plan.steps.push({ id: "handoff", title: a.routing.endState === "legal" ? "Hand off to Legal review" : "Ready to issue PO", ownerId: "ava", source: "ava", dependsOn: plan.steps.map((x) => x.id), status: "todo", reason: `Rule 9: ${a.routing.endReason || "work under an existing agreement, no data access, within limits"}.` });
   return plan;
 }
-export const rulesRec = (): AiRec => ({ recommendation: "Review the conflict.", reasoning: "AI is unavailable right now, so Ava has no recommendation. The card shows both sources.", citations: [], confidence: "low", action: "review" });
+export const rulesRec = (): AiRec => ({ recommendation: "Review the conflict.", reasoning: "Ava has no advice for this kind of conflict in the simulation. The card shows both sources.", citations: [], confidence: "low", action: "review" });
 
 // ── Display helpers: the current output, or a labelled fallback ──
 export function currentRead(state: State, reqId: string): { v: Versioned<AiRead>; prev?: Versioned<AiRead>; stale: boolean } {
@@ -147,7 +148,8 @@ export function currentPlan(state: State, reqId: string): { v: Versioned<AiPlan>
   return { v: { ...base, output: plan }, stale: !!last && last.fingerprint !== fp, refresh };
 }
 export function currentRec(state: State, key: string): Versioned<AiRec> {
-  return state.ai.recs[key] ?? { at: state.now, source: "rules", fingerprint: "", output: rulesRec() };
+  const c = state.conflicts[key];
+  return state.ai.recs[key] ?? { at: state.now, source: "rules", fingerprint: "", output: (c && simulatedRec(state, c)) || rulesRec() };
 }
 
 /** Ava's actions and people's decisions, both counted from the event log. */

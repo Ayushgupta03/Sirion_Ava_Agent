@@ -23,6 +23,7 @@ Everything done in this build, in order. Dates are 21 and 22 Nov 2026 (IST).
 | `7793322`–later | Roadmap, design system, developer guide, API reference, evals guide, ADRs, CI, issue and PR templates, `.env.example`, CONTRIBUTING, glossary. |
 | `42a9137` | **Status line fix** (branch `design-floor-pass`, PR #2). `conflictShort` named only three of the five conflict types, so the summary called rate-cap and late-delivery conflicts "data access not confirmed". Contract conflicts now use their own title. Test added. |
 | `6b97d2e` | **Design floor pass** (branch `design-floor-pass`, PR #2). Landing: Watch buttons in the hero, dock hidden until a demo starts, full-width screenshots, arrow-key tabs, honest stats labels. Request page: header sticks only from tablet width, "On this page" jump list, Needs you links to the conflict card instead of repeating the recommendation, long log lines wrap. Phone dock: caption above buttons. Checked at 320, 375, 768 and 1280 px. |
+| branch `demo-guided-experience` | **Guided demo and in-product guidance.** Demo bar with outline and keyboard; coach card per step (what to notice, why it matters, who acted, who was reached) with a steady ring and a "Look here" pin; first-run orientation; debrief with the scenario's numbers; Help menu with "Try it yourself"; page tips; glossary `Term`. See [20](20-guided-demo.md). 13 new tests (55 in all). |
 | uncommitted | **Ask Ava, autonomy, own time, ripple, supplier view.** See below and [18](18-ask-ava.md). |
 
 ## Revision 3 in detail

@@ -31,7 +31,7 @@ Body 14 px / 1.5. Page title 20–24 px semibold. Card title 14 px semibold. Sec
 | Green | Done, confirmed, ready, consistent | Confirmed facts, ✓ checks, Ready banner, Live AI label |
 | Amber | Waiting, unconfirmed, medium confidence, what changed | What changed banner, Unconfirmed, risk reasons |
 | Red | Blocked, contradicted, goes against, failed check | Handoff blocked, conflict borders, ✗ checks, eval failure badge |
-| Slate | Background, neutral, rules fallback | Background chip, "Summary from rules" label |
+| Slate | Background, neutral, simulated | Background chip, "Simulated" label |
 
 ## Components (`components/`)
 
@@ -42,7 +42,7 @@ Body 14 px / 1.5. Page title 20–24 px semibold. Card title 14 px semibold. Sec
 | `Button` | ui.tsx | primary, secondary, danger, ghost; small | One primary per card |
 | `SourceLink`, `Quote` | ui.tsx | A source as a link; a quoted line with source and note | Handles email, attachment, contract clause |
 | `Stat`, `PageTitle`, `Empty` | ui.tsx | Counters, page headers, empty states | Empty states say what to do next |
-| `AiLabel` | ai.tsx | Live AI / Cached / Summary from rules | On every AI output |
+| `AiLabel` | ai.tsx | Live AI / Cached / Simulated | On every AI output; the tooltip says what each one means |
 | `EvalBadge` | ai.tsx | "n checks failed" on live outputs | Tooltip lists checks |
 | `CiteChip` | ai.tsx | Inline citation (✉ email, ▤ document, § clause) | Opens the source viewer |
 | `AvaRead` | ai.tsx | Cited summary, full or compact | |
@@ -54,7 +54,9 @@ Body 14 px / 1.5. Page title 20–24 px semibold. Card title 14 px semibold. Sec
 | `ItemCard` | ItemCard.tsx | One decision for one person | `compact` on the request page |
 | `ReceiptModal`, `HandoffPacket`, `FactsTable`, `ChecklistView`, `ApprovalsView`, `RoutingPanel`, `DocumentsPanel`, `TimelineView`, `DraftBox` | request.tsx | Request details | |
 | `SourceViewer` | SourceViewer.tsx | Source modal with highlight and compare | |
-| `Shell` | Shell.tsx | Sidebar, top bar, demo dock, toasts, pulse | |
+| `Board` | Board.tsx, `lib/board.ts` | The pipeline board: click for a detail drawer, drag to hand over or to be told why a stage cannot move, stage switcher on phones | Used on the Dashboard and the Requests page. Rules and wording live in `lib/board.ts` so they can be tested |
+| `Shell` | Shell.tsx | Sidebar, top bar, toasts, pulse | |
+| `DemoBar`, `StepCoach`, `UiTour`, `Debrief`, `HelpMenu`, `PageTip`, `Term`, `Rich` | guide/ | Guided demo and in-product guidance | See [20](20-guided-demo.md); one narrator at a time |
 
 ## Patterns
 
@@ -63,7 +65,7 @@ Body 14 px / 1.5. Page title 20–24 px semibold. Card title 14 px semibold. Sec
 - **Two sides, never a verdict.** Conflicts show source A and source B with quotes; a person resolves.
 - **Advice is boxed and owned.** Ava's advice lives in the violet box with confidence and a label; using it is a logged human action.
 - **Progressive disclosure.** Facts, logs, drafts, resolved conflicts and routing explanations are collapsed by default.
-- **Pulse what a step changed.** `data-pulse="<target>"` on the element; the dock fires it after each step.
+- **Pulse what a step changed.** `data-pulse="<target>"` on the element; the demo bar fires it after each step and the coach card keeps a steady ring on it.
 - **Numbers.** Exact amounts in full Indian format (₹21,10,800) where people act; totals in lakh (₹39.11L) in summaries and counters. Mono for ids and amounts.
 
 ## Copy rules
@@ -78,10 +80,10 @@ Focus ring on every interactive element; buttons are `<button>`; tabs use `role=
 
 | Debt | Suggested fix |
 |---|---|
-| The request page is long once a request has many conflicts | Done: "On this page" jump list in the sticky header; resolved collapsed. Still open: paginate the log |
+| The request page is long once a request has many conflicts | Done: the case file is tabs (Overview, Problems, Plan, Contract, Facts, Documents, Approvals, Timeline, Handoff packet); the Overview is about 1,500 px, was about 5,800. Still open: paginate the log |
 | The plan's "What changed" line can wrap to three lines at A3 | Render as chips; show the 3 most important and "more" |
 | Two places show the same recommendation (Needs you and the conflict card) | Done: on the request page a conflict item links to its card (`conflictAnchor`). Today still shows the full recommendation, by design |
 | Background cards look similar to live ones on Today | A distinct, quieter card style |
-| Mobile: the demo dock covers content on small screens | Done: the dock starts as a pill under 640 px; opened, its caption sits above the buttons (about 170 px, was about 280); the request header no longer sticks on phones |
+| Mobile: the demo bar covers content on small screens | Done: the bar starts as a pill under 640 px; opened, it drops its title while the coach card shows. The request header no longer sticks on phones |
 | No dark mode | Tokens are OKLCH; add a dark `@theme` layer |
 | Copy is inline in components | Move to a copy file per screen (see roadmap L5) |
