@@ -12,6 +12,7 @@ import { fmtDT, fmtShort, hoursBetween } from "@/lib/format";
 import { ItemCard, due } from "@/components/ItemCard";
 import { AiLabel } from "@/components/ai";
 import { Card, CardHead, Chip, cx, Empty, PageTitle, StateChip } from "@/components/ui";
+import { Icon } from "@/components/icons";
 import type { State } from "@/lib/types";
 
 const DEPTS = [["karan", "Procurement"], ["meera", "InfoSec"], ["suresh", "Finance"], ["farah", "Legal"], ["ananya", "Budget owner (Ananya)"], ["deepa", "Budget owner (Deepa)"], ["ritu", "Budget owner (Ritu)"], ["vikram", "VP"], ["rahul", "Requester (Rahul)"], ["neha", "Requester (Neha)"]];
@@ -32,6 +33,13 @@ export default function TodayPage() {
   // Earliest due date first, so whatever is overdue is at the top.
   const items = useMemo(() => deriveItems(state).filter((i) => i.personId === viewAs).sort((x, y) => due(state.items[x.key]?.openedAt ?? state.now).localeCompare(due(state.items[y.key]?.openedAt ?? state.now))), [state, viewAs]);
   const p = person(viewAs); const first = personName(viewAs).split(" ")[0];
+  // One heading per request when it has several decisions; the group with the earliest due date comes first.
+  const groups = useMemo(() => {
+    const m = new Map<string, { key: string; req?: State["requests"][string]; items: typeof items }>();
+    for (const it of items) { const k = it.requestId ?? it.key; if (!m.has(k)) m.set(k, { key: k, req: it.requestId ? state.requests[it.requestId] : undefined, items: [] }); m.get(k)!.items.push(it); }
+    return [...m.values()];
+  }, [items, state.requests]);
+  const [logOpen, setLogOpen] = useState<boolean | null>(null);
   const since = (at: string) => hoursBetween(at, state.now) <= 36 && at <= state.now;
   const handled = [
     ...state.requestOrder.filter((id) => involved(state, id, viewAs)).flatMap((id) => state.requests[id].timeline.filter((t) => (!t.actor || t.actor === "ava") && since(t.at)).map((t) => ({ at: t.at, text: t.text, req: id }))),
@@ -47,25 +55,33 @@ export default function TodayPage() {
   return (
     <div>
       <PageTitle title={`Today for ${first}`} sub={`${fmtDT(state.now)} · ${p?.title ?? ""}. Ava does the legwork; you make the decisions.`} />
-      <div role="tablist" aria-label="Person" className="mb-5 flex flex-wrap gap-1">
+      <div role="tablist" aria-label="Person" className="mb-5 flex gap-1 overflow-x-auto pb-1 sm:flex-wrap sm:overflow-visible sm:pb-0">
         {DEPTS.map(([id, label]) => { const k = deriveItems(state).filter((i) => i.personId === id).length + bgNeedCount(id); return (
-          <button key={id} role="tab" aria-selected={viewAs === id} onClick={() => setViewAs(id)} className={cx("rounded-md border px-2.5 py-1 text-[12.5px]", viewAs === id ? "border-accent bg-accent-50 font-semibold text-accent-700" : "border-slate-300 bg-white text-slate-700 hover:bg-slate-50")}>{label}{k > 0 && <span className="ml-1.5 rounded-full bg-red-600 px-1.5 text-[10.5px] font-bold text-white">{k}</span>}</button>); })}
+          <button key={id} role="tab" aria-selected={viewAs === id} onClick={() => setViewAs(id)} className={cx("shrink-0 whitespace-nowrap rounded-md border px-2.5 py-1 text-[12.5px]", viewAs === id ? "border-accent bg-accent-50 font-semibold text-accent-700" : "border-slate-300 bg-white text-slate-700 hover:bg-slate-50")}>{label}{k > 0 && <span className="ml-1.5 rounded-full bg-red-600 px-1.5 text-[10.5px] font-bold text-white">{k}</span>}</button>); })}
       </div>
       <div className="grid gap-5 lg:grid-cols-[1fr_360px]">
         <div className="space-y-5">
           <section data-pulse="items" aria-label="Needs your decision" className="space-y-3">
             <h2 className="text-[16px] font-semibold">Needs your decision <span className="font-normal text-slate-500">· {n}</span></h2>
             {n === 0 && <Empty>Nothing needs {first}’s decision right now.</Empty>}
-            {items.map((it) => <ItemCard key={it.key} it={it} />)}
+            {groups.map((g) => (
+              <div key={g.key} className="space-y-3">
+                {g.items.length > 1 && g.req && <h3 className="flex flex-wrap items-baseline gap-x-2 pt-1 text-[13px]"><Link className="font-semibold text-accent hover:underline" href={`/requests/${g.req.id}`}>{g.req.id} · {g.req.title}</Link><span className="text-slate-500">{g.items.length} decisions on this request</span></h3>}
+                {g.items.map((it) => <ItemCard key={it.key} it={it} grouped={g.items.length > 1} first={it === items[0] && n > 1} />)}
+              </div>))}
             {bgNeeds.map(({ b, n }) => <BgNeedCard key={b.id + n.question} b={b} n={n} />)}
           </section>
           <section aria-label="Coming up"><Card><CardHead title="Coming up" sub="Your next steps from Ava’s plans." />
             {coming.length ? <ul className="divide-y divide-slate-100">{coming.map((c, i) => <li key={i} className="flex items-baseline gap-3 px-4 py-2 text-[13px]"><span className="w-[88px] shrink-0 text-slate-500">{c.eta ?? "No date"}</span><span className="flex-1">{c.title}</span>{c.live ? <Link className="font-mono text-[12px] text-accent hover:underline" href={`/requests/${c.req}`}>{c.req}</Link> : <span className="font-mono text-[12px] text-slate-500">{c.req}</span>}</li>)}</ul> : <p className="px-4 py-3 text-[13px] text-slate-500">Nothing planned for you.</p>}</Card></section>
         </div>
         <div className="space-y-4">
-          <Card><CardHead title={`Since yesterday, Ava handled ${handled.length} thing${handled.length === 1 ? "" : "s"} for you`} sub="Read, filed, checked, drafted and planned. Nothing here needed you." />
-            <ul className="divide-y divide-slate-100">{(all ? handled : handled.slice(0, 8)).map((h, i) => <li key={i} className="px-4 py-2 text-[12.5px]"><div className="text-[11.5px] text-slate-500">{fmtShort(h.at)} · <span className="font-mono">{h.req}</span></div>{h.text}</li>)}</ul>
-            {handled.length > 8 && <button onClick={() => setAll(!all)} className="w-full border-t border-slate-100 px-4 py-2 text-left text-[12.5px] font-medium text-accent">{all ? "Show fewer" : `Show all ${handled.length}`}</button>}
+          <Card>
+            <button onClick={() => setLogOpen(!(logOpen ?? handled.length <= 3))} aria-expanded={logOpen ?? handled.length <= 3} className="flex w-full items-start justify-between gap-3 px-4 py-3 text-left">
+              <span><span className="block text-[14px] font-semibold text-slate-900">Since yesterday, Ava handled {handled.length} thing{handled.length === 1 ? "" : "s"} for you</span><span className="mt-0.5 block text-[12.5px] text-slate-500">Read, filed, checked, drafted and planned. Nothing here needed you.</span></span>
+              <Icon name="chevronDown" className={cx("mt-1 shrink-0 text-slate-400 transition-transform", (logOpen ?? handled.length <= 3) && "rotate-180")} />
+            </button>
+            {(logOpen ?? handled.length <= 3) && <ul className="divide-y divide-slate-100 border-t border-slate-100">{(all ? handled : handled.slice(0, 8)).map((h, i) => <li key={i} className="px-4 py-2 text-[12.5px]"><div className="text-[11.5px] text-slate-500">{fmtShort(h.at)} · <span className="font-mono">{h.req}</span></div>{h.text}</li>)}</ul>}
+            {(logOpen ?? handled.length <= 3) && handled.length > 8 && <button onClick={() => setAll(!all)} className="w-full border-t border-slate-100 px-4 py-2 text-left text-[12.5px] font-medium text-accent">{all ? "Show fewer" : `Show all ${handled.length}`}</button>}
           </Card>
           {myRequests.length > 0 && <Card><CardHead title="My requests" sub="Status in plain words." />
             <ul className="divide-y divide-slate-100">{myRequests.map((r) => { const a = analyze(state, r.id); return (

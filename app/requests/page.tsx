@@ -9,6 +9,7 @@ import { BACKGROUND, bgState, bgTotal90 } from "@/lib/background";
 import { scenarioTag } from "@/lib/summary";
 import { hoursBetween, lakh, opened, span } from "@/lib/format";
 import { Card, Chip, cx, Empty, PageTitle, StateChip, supplierShort } from "@/components/ui";
+import Board from "@/components/Board";
 
 type Row = { id: string; live: boolean; supplier: string; supplierId?: string; title: string; requester: string; cc: string; value?: number; total?: number; routes: string[]; state: string; waiting: string; age: string; conflicts: number; tag: string };
 
@@ -19,6 +20,7 @@ function Requests() {
   const sp = useSearchParams();
   const [filter, setFilter] = useState<"all" | "conflict">(sp.get("filter") === "conflict" ? "conflict" : "all");
   const [group, setGroup] = useState<"list" | "supplier">("list");
+  const [view, setView] = useState<"table" | "board">("table");
   const live: Row[] = [...state.requestOrder].reverse().map((id) => {
     const a = analyze(state, id); const r = state.requests[id]; const sup = state.suppliers.find((s) => s.id === r.supplierId);
     return { id, live: true, supplier: supplierShort(sup?.name ?? r.supplierGuess?.name), supplierId: sup?.id, title: r.title, requester: personName(r.requesterId), cc: r.costCentre, value: a.requestAmount, total: a.spend.total,
@@ -32,6 +34,10 @@ function Requests() {
   return (
     <div>
       <PageTitle title="Requests" sub="Every request Ava built from email." />
+      <div className="mb-3 flex rounded-md bg-slate-100 p-0.5 text-[13px] w-fit" role="tablist" aria-label="View">
+        {([["table", "Table"], ["board", "Board"]] as const).map(([v, l]) => <button key={v} role="tab" aria-selected={view === v} onClick={() => setView(v)} className={cx("rounded px-3 py-1", view === v ? "bg-white font-semibold shadow-sm" : "text-slate-600")}>{l}</button>)}
+      </div>
+      {view === "board" ? <Board /> : <>
       <div className="mb-4 flex flex-wrap items-center gap-3">
         <div role="tablist" aria-label="Filter" className="flex rounded-md bg-slate-100 p-0.5 text-[13px]">
           <button role="tab" aria-selected={filter === "all"} onClick={() => setFilter("all")} className={cx("rounded px-3 py-1", filter === "all" ? "bg-white font-semibold shadow-sm" : "text-slate-600")}>All ({live.length + bg.length})</button>
@@ -60,6 +66,7 @@ function Requests() {
         </div>
       ))}
       <p className="text-[12px] text-slate-500">Background requests are other teams&apos; work in the same week. They are not part of the guided demo.</p>
+      </>}
     </div>
   );
 }

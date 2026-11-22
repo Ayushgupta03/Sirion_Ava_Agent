@@ -14,6 +14,9 @@ import { inr } from "@/lib/format";
 
 export const CONFLICT_TYPE: Record<string, string> = { said_vs_written: "Said vs written", started_before_approval: "Started before approval", renewal_terms_changed: "Renewal terms changed", hidden_scope: "Hidden scope or data access", against_contract: "Goes against the contract" };
 
+/** "What Rahul said" becomes "Go with what Rahul said"; other labels keep their capital ("Go with Rahul's request"). */
+const goWith = (label: string) => `Go with ${label.replace(/^What /, "what ")}`;
+
 /** In-page anchor for a conflict card (conflict ids contain colons). */
 export const conflictAnchor = (id: string) => `cf-${id.replace(/^cf:/, "").replace(/[^a-z0-9]+/gi, "-")}`;
 
@@ -58,19 +61,26 @@ export default function ConflictCard({ c, showRequest }: { c: Conflict; showRequ
         {c.waitingOnSupplier && c.status === "open" && <p className="rounded-md bg-amber-50 px-3 py-2 text-amber-900">Waiting on supplier since {fmtShort(c.waitingOnSupplier)}. Ava will re-check the reply.</p>}
         {(c.status === "open" || state.ai.recs[c.id]) && <AvaRecommends recKey={c.id} requestId={c.requestId} readOnly={c.status !== "open"} />}
         {c.status === "open" && (
-          <div><div className="mb-1.5 text-[12px] font-semibold uppercase tracking-wide text-slate-500">5. Actions</div>
+          <div><div className="mb-1.5 text-[12px] font-semibold uppercase tracking-wide text-slate-500">5. Resolve it</div>
             {!canResolve && <p className="mb-2 text-[12.5px] text-slate-500">{personName(c.ownerId)} resolves this. <button className="text-accent underline" onClick={() => setViewAs(c.ownerId)}>View as {firstName(c.ownerId)}</button></p>}
-            <div className="flex flex-wrap gap-1.5">
-              {c.type !== "against_contract" && <><Button small disabled={!canResolve} onClick={() => act({ type: "resolve_conflict", conflictId: c.id, choice: "A" })}>Accept source A{c.aValue ? `: ${c.aValue}` : ""}</Button>
-              <Button small disabled={!canResolve} onClick={() => act({ type: "resolve_conflict", conflictId: c.id, choice: "B" })}>Accept source B{c.bValue ? `: ${c.bValue}` : ""}</Button>
-              <Button small disabled={!canResolve} onClick={() => setMode(mode === "value" ? null : "value")}>Enter the correct value</Button></>}
-              <Button small disabled={!canResolve} onClick={() => { setMode(mode === "accept" ? null : "accept"); setReason(""); }}>Accept with a reason</Button>
-              <Button small onClick={() => act({ type: "ask_supplier", requestId: c.requestId, conflictId: c.id }, viewAs)}>Ask the supplier</Button>
-              <Button small onClick={() => { setMode(mode === "legal" ? null : "legal"); setReason(""); }}>Ask Legal</Button>
-              {c.type === "against_contract" && <Button small disabled={!canResolve} onClick={() => { setMode(mode === "cr" ? null : "cr"); setReason(c.impact ? `Credit of up to ${inr(c.impact)} for Legal to confirm.` : ""); }}>Require a change request</Button>}
-              <Button small onClick={() => setMode(mode === "comment" ? null : "comment")}>Comment</Button>
-              <Button small onClick={rerun}>Re-run Ava</Button>
-              <Button small variant="danger" disabled={c.escalated} onClick={() => act({ type: "escalate", conflictId: c.id })}>Escalate</Button>
+            <div className="space-y-2">
+              <div role="group" aria-label="Decide it" className="flex flex-wrap items-center gap-1.5">
+                <span className="w-full text-[12px] font-medium text-slate-600 sm:w-[88px] sm:shrink-0">Decide it</span>
+                {c.type !== "against_contract" && <>
+                  <Button small disabled={!canResolve} onClick={() => act({ type: "resolve_conflict", conflictId: c.id, choice: "A" })}>{goWith(c.a.label)}{c.aValue ? `: ${c.aValue}` : ""}</Button>
+                  <Button small disabled={!canResolve} onClick={() => act({ type: "resolve_conflict", conflictId: c.id, choice: "B" })}>{goWith(c.b.label)}{c.bValue ? `: ${c.bValue}` : ""}</Button>
+                  <Button small disabled={!canResolve} onClick={() => setMode(mode === "value" ? null : "value")}>Enter a different value</Button></>}
+                <Button small disabled={!canResolve} onClick={() => { setMode(mode === "accept" ? null : "accept"); setReason(""); }}>Accept with a reason</Button>
+                {c.type === "against_contract" && <Button small disabled={!canResolve} onClick={() => { setMode(mode === "cr" ? null : "cr"); setReason(c.impact ? `Credit of up to ${inr(c.impact)} for Legal to confirm.` : ""); }}>Require a change request</Button>}
+              </div>
+              <div role="group" aria-label="Get input first" className="flex flex-wrap items-center gap-1.5">
+                <span className="w-full text-[12px] font-medium text-slate-600 sm:w-[88px] sm:shrink-0">Get input first</span>
+                <Button small variant="ghost" onClick={() => act({ type: "ask_supplier", requestId: c.requestId, conflictId: c.id }, viewAs)}>Ask the supplier</Button>
+                <Button small variant="ghost" onClick={() => { setMode(mode === "legal" ? null : "legal"); setReason(""); }}>Ask Legal</Button>
+                <Button small variant="ghost" onClick={() => setMode(mode === "comment" ? null : "comment")}>Comment</Button>
+              </div>
+              <details className="text-[12.5px]"><summary className="inline-block cursor-pointer text-slate-600 hover:text-slate-900">More</summary>
+                <div className="mt-1.5 flex flex-wrap gap-1.5"><Button small variant="ghost" onClick={rerun}>Re-run Ava</Button><Button small variant="danger" disabled={c.escalated} onClick={() => act({ type: "escalate", conflictId: c.id })}>{c.escalated ? "Escalated" : `Escalate to ${firstName(POLICY.vpApprover)}`}</Button></div></details>
             </div>
             {(mode === "accept" || mode === "legal" || mode === "cr") && <form className="mt-2 flex flex-wrap items-end gap-2" onSubmit={(e) => { e.preventDefault(); if (!reason.trim()) return;
               if (mode === "accept") act({ type: "resolve_conflict", conflictId: c.id, choice: "accept", reason });

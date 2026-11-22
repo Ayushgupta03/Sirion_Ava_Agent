@@ -54,6 +54,7 @@ Body 14 px / 1.5. Page title 20–24 px semibold. Card title 14 px semibold. Sec
 | `ItemCard` | ItemCard.tsx | One decision for one person | `compact` on the request page |
 | `ReceiptModal`, `HandoffPacket`, `FactsTable`, `ChecklistView`, `ApprovalsView`, `RoutingPanel`, `DocumentsPanel`, `TimelineView`, `DraftBox` | request.tsx | Request details | |
 | `SourceViewer` | SourceViewer.tsx | Source modal with highlight and compare | |
+| `Board` | Board.tsx, `lib/board.ts` | The pipeline board: click for a detail drawer, drag to hand over or to be told why a stage cannot move, stage switcher on phones | Used on the Dashboard and the Requests page. Rules and wording live in `lib/board.ts` so they can be tested |
 | `Shell` | Shell.tsx | Sidebar, top bar, demo dock, toasts, pulse | |
 
 ## Patterns
@@ -78,7 +79,7 @@ Focus ring on every interactive element; buttons are `<button>`; tabs use `role=
 
 | Debt | Suggested fix |
 |---|---|
-| The request page is long once a request has many conflicts | Done: "On this page" jump list in the sticky header; resolved collapsed. Still open: paginate the log |
+| The request page is long once a request has many conflicts | Done: the case file is tabs (Overview, Problems, Plan, Contract, Facts, Documents, Approvals, Timeline, Handoff packet); the Overview is about 1,500 px, was about 5,800. Still open: paginate the log |
 | The plan's "What changed" line can wrap to three lines at A3 | Render as chips; show the 3 most important and "more" |
 | Two places show the same recommendation (Needs you and the conflict card) | Done: on the request page a conflict item links to its card (`conflictAnchor`). Today still shows the full recommendation, by design |
 | Background cards look similar to live ones on Today | A distinct, quieter card style |
