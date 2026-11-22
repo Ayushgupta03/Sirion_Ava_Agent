@@ -1,7 +1,7 @@
 // The single pipeline. Every email (scripted or composed) and every user action goes through applyEvent.
 // ingest → classify → extract (done before, stored on the event) → file → diff → rules → notify → log
-import type { Action, AvaEvent, Conflict, Draft, Email, Extraction, Request, RequestType, State, TimelineEntry } from "../types";
-import { domainOf, fmtDT, hoursBetween, inr, lakh, norm, parseAmount, parseDate } from "../format";
+import type { Action, AvaEvent, Conflict, Draft, Email, Extraction, Person, Request, RequestType, State, Supplier, TimelineEntry } from "../types";
+import { addMinutes, domainOf, fmtDT, hoursBetween, inr, lakh, norm, parseAmount, parseDate } from "../format";
 import { classifyDoc, FIELD_LABEL, foldFacts, MATERIAL } from "./facts";
 import { analyze } from "./rules";
 import { deriveItems } from "./items";
@@ -15,6 +15,7 @@ export function initialState(): State {
     now: START_CLOCK, emails: [], extractions: {}, suppliers: structuredClone(SEED_SUPPLIERS), requests: {}, requestOrder: [], conflicts: {},
     drafts: [], orphans: [], changes: [], items: {}, reassigned: {}, counters: { answeredFromDocs: 0, approvalsReopened: 0, startedBeforeApproval: {} },
     lastReqNum: 1046, threadRequest: {}, addedSuppliers: [], ai: emptyAi(),
+    autonomy: { autoSendQuoteRequests: true, autoSendDocChasers: false },
   };
 }
 
@@ -88,6 +89,9 @@ function ingestEmail(state: State, email: Email, ex: Extraction | null, source: 
     return;
   }
 
+  // Ask Ava (the front door): an employee describes a need before any supplier email exists.
+  if (email.origin === "intake") { ingestIntake(state, email, ex, source, ctx); return; }
+
   // classify
   const addrs = [email.from, ...email.to, ...email.cc];
   const supplier = addrs.map((a) => state.suppliers.find((s) => s.domain === domainOf(a))).find(Boolean);
@@ -143,23 +147,7 @@ function ingestEmail(state: State, email: Email, ex: Extraction | null, source: 
   }
   if (!req) {
     if (!requester) return;
-    const id = nextReqId(state, at);
-    const baseline = supplier ? CONTRACTS.filter((c) => c.supplierId === supplier.id && (c.type === "SOW" || c.type === "Subscription")).find((c) => c.project && (norm(project).includes(norm(c.project)) || norm(c.project).includes(norm(project)))) ?? (rtype === "renewal" ? CONTRACTS.filter((c) => c.supplierId === supplier.id && c.type === "Subscription").pop() : undefined) : undefined;
-    const title = rtype === "renewal" ? `Renewal: ${project}` : rtype === "amendment" ? `Extension: ${project}` : rtype === "change_request" ? `Change: ${project}` : `New SOW: ${project}`;
-    req = {
-      id, title, type: rtype, supplierId: supplier?.id ?? null, supplierGuess: supplier ? undefined : { name: ex?.supplier?.name || domainOf(externals[0]), domain: domainOf(externals[0]) },
-      project, requesterId: requester.id, costCentre: requester.costCentre ?? "CC-UNKNOWN", createdAt: at, emailIds: [],
-      filing: { confidence: ex?.filing.confidence ?? (supplier ? "medium" : "low"), reason: ex?.filing.reason || (supplier ? `Known supplier ${supplier.name}; new project` : "Unknown domain with commercial content: possible new supplier"), source },
-      facts: {}, documents: [], approvals: {}, flags: [], exceptions: [], retroItems: [], comments: [], timeline: [], factEvents: [], checklistDone: {}, approvalCache: {},
-      baselineContractId: rtype === "renewal" || rtype === "amendment" ? baseline?.id : undefined,
-    };
-    state.requests[id] = req; state.requestOrder.push(id);
-    log(req, at, `Ava opened ${id} "${title}" under ${supplier?.name ?? "possible new supplier " + req.supplierGuess?.name} > ${project}. Filing confidence: ${req.filing.confidence}.`, "email");
-    if (baseline && req.baselineContractId) log(req, at, `Linked existing agreement ${baseline.id} (${baseline.title}).`, "rule");
-    if (supplier) {
-      const linked = CONTRACTS.filter((c) => c.supplierId === supplier.id && (c.type === "NDA" || c.type === "MSA"));
-      if (linked.length) log(req, at, `Found and linked ${linked.map((c) => `${c.type} (${c.date.slice(0, 4)})`).join(" and ")}.`, "rule");
-    }
+    req = openRequest(state, { at, supplier, requester, rtype, project, ex, source, externals });
     reason = req.filing.reason;
   }
   state.threadRequest[email.threadId] = req.id;
@@ -170,6 +158,73 @@ function ingestEmail(state: State, email: Email, ex: Extraction | null, source: 
   for (const a of email.attachments) log(req, at, `Read ${a.name} (${a.pages.length} page${a.pages.length === 1 ? "" : "s"}) and pulled out the facts.`, "fact");
   if (fromSupplier) Object.values(state.conflicts).filter((c) => c.requestId === req!.id && c.waitingOnSupplier).forEach((c) => { c.waitingOnSupplier = undefined; });
   ctx.touched.add(req.id);
+}
+
+
+interface OpenArgs { at: string; supplier?: Supplier; requester: Person; rtype: RequestType; project: string; ex: Extraction | null; source: State["extractions"][string]["source"]; externals: string[] }
+/** Opens a request under Supplier > Project, links the agreements on file, and logs why. Shared by supplier email and Ask Ava. */
+function openRequest(state: State, { at, supplier, requester, rtype, project, ex, source, externals }: OpenArgs): Request {
+  const id = nextReqId(state, at);
+  const baseline = supplier ? CONTRACTS.filter((c) => c.supplierId === supplier.id && (c.type === "SOW" || c.type === "Subscription")).find((c) => c.project && (norm(project).includes(norm(c.project)) || norm(c.project).includes(norm(project)))) ?? (rtype === "renewal" ? CONTRACTS.filter((c) => c.supplierId === supplier.id && c.type === "Subscription").pop() : undefined) : undefined;
+  const title = rtype === "renewal" ? `Renewal: ${project}` : rtype === "amendment" ? `Extension: ${project}` : rtype === "change_request" ? `Change: ${project}` : `New SOW: ${project}`;
+  const req: Request = {
+    id, title, type: rtype, supplierId: supplier?.id ?? null, supplierGuess: supplier ? undefined : { name: ex?.supplier?.name || domainOf(externals[0]), domain: domainOf(externals[0]) },
+    project, requesterId: requester.id, costCentre: requester.costCentre ?? "CC-UNKNOWN", createdAt: at, emailIds: [],
+    filing: { confidence: ex?.filing.confidence ?? (supplier ? "medium" : "low"), reason: ex?.filing.reason || (supplier ? `Known supplier ${supplier.name}; new project` : "Unknown domain with commercial content: possible new supplier"), source },
+    facts: {}, documents: [], approvals: {}, flags: [], exceptions: [], retroItems: [], comments: [], timeline: [], factEvents: [], checklistDone: {}, approvalCache: {},
+    baselineContractId: rtype === "renewal" || rtype === "amendment" ? baseline?.id : undefined,
+  };
+  state.requests[id] = req; state.requestOrder.push(id);
+  log(req, at, `Ava opened ${id} "${title}" under ${supplier?.name ?? "possible new supplier " + req.supplierGuess?.name} > ${project}. Filing confidence: ${req.filing.confidence}.`, "email");
+  if (baseline && req.baselineContractId) log(req, at, `Linked existing agreement ${baseline.id} (${baseline.title}).`, "rule");
+  if (supplier) {
+    const linked = CONTRACTS.filter((c) => c.supplierId === supplier.id && (c.type === "NDA" || c.type === "MSA"));
+    if (linked.length) log(req, at, `Found and linked ${linked.map((c) => `${c.type} (${c.date.slice(0, 4)})`).join(" and ")}.`, "rule");
+  }
+  return req;
+}
+
+/** Ask Ava: the request starts from the employee, before the supplier is contacted. Same facts, same rules, same plan. */
+function ingestIntake(state: State, email: Email, ex: Extraction | null, source: State["extractions"][string]["source"], ctx: Ctx) {
+  const at = email.sentAt;
+  const requester = personByEmail(email.from); if (!requester) return;
+  const supplier = state.suppliers.find((s) => s.domain === ex?.supplier?.domain) ?? state.suppliers.find((s) => norm(s.name).startsWith(norm(ex?.supplier?.name ?? "~")));
+  const rtype: RequestType = (ex?.filing.requestType && ex.filing.requestType !== "invoice" ? ex.filing.requestType : "new_sow") as RequestType;
+  const project = cleanProject(ex?.filing.project || email.subject);
+  const guessDomain = ex?.supplier?.domain || `${norm(ex?.supplier?.name ?? "supplier").replace(/[^a-z0-9]+/g, "")}.example`;
+  // Duplicate check: an open request with the same supplier, project and cost centre gets this note instead of a second request.
+  const dup = supplier ? state.requestOrder.map((id) => state.requests[id]).find((r) => r.supplierId === supplier.id && !r.readyAt && r.costCentre === (requester.costCentre ?? "CC-UNKNOWN") && (norm(r.project).includes(norm(project)) || norm(project).includes(norm(r.project)))) : undefined;
+  const req = dup ?? openRequest(state, { at, supplier, requester, rtype, project, ex, source, externals: [`x@${guessDomain}`] });
+  state.threadRequest[email.threadId] = req.id;
+  req.emailIds.push(email.id);
+  req.factEvents.push({ at, kind: "extraction", emailId: email.id });
+  const who = requester.name;
+  if (dup) log(req, at, `${who} asked about this through Ask Ava. ${req.id} was already open for ${supplier!.name} and "${req.project}", so Ava added the note to it instead of opening a duplicate.`, "email", requester.id);
+  else log(req, at, `${who} started this request through Ask Ava, before any supplier email. Extraction: ${labelSource(source)}.`, "email", requester.id);
+  ctx.touched.add(req.id);
+  if (dup || !supplier) return;
+  // Ava drafts the routine first message to the supplier: ask for a written proposal and tell them not to start before a PO.
+  const contact = ex?.supplierContact ? (supplier.contacts.find((c) => c.email.toLowerCase() === ex.supplierContact!.toLowerCase()) ?? { name: ex.supplierContact.split("@")[0].replace(/[._-]+/g, " ").replace(/\b\w/g, (c) => c.toUpperCase()), email: ex.supplierContact }) : supplier.contacts[0];
+  if (!contact) return;
+  const access = ex?.facts.some((f) => f.field === "data_access" && /yes|admin|customer|personal/i.test(f.value) && !/\bno access\b/i.test(f.value));
+  const amount = ex?.facts.find((f) => f.field === "amount_pre_gst")?.value;
+  const first = contact.name.split(" ")[0];
+  const body = `Hi ${first},\n\n${firstName(requester.id)} at Prayaan would like a written proposal for ${req.project}${amount ? `, with a rough budget of ${amount}` : ""}. Could you send:\n- a proposal with the price before GST, the scope, the start date and the duration\n- your current rate card${access ? "\n- your current security certificate (ISO 27001 or SOC 2) and insurance certificate, because the work involves customer data" : ""}\n\nPlease do not start work or access any of our systems until you have a purchase order from us.\n\nThanks,\n${firstName(requester.id)}`;
+  const d: Draft = { id: `draft-rfq-${req.id}`, requestId: req.id, forPersonId: requester.id, to: contact.email, subject: `RE: ${email.subject}`, body, threadId: email.threadId, createdAt: at, status: "draft", purpose: "ask for a written proposal" };
+  state.drafts.push(d);
+  log(req, at, `Ava drafted the first message to ${contact.name}: ask for a written proposal and say no work starts before a PO.`, "action");
+  if (state.autonomy?.autoSendQuoteRequests) sendDraft(state, d, addMinutes(at, 1), `auto-${d.id}`, "ava", true);
+}
+
+/** Records a draft as sent: by a person (clicked Send) or by Ava under the autonomy settings. */
+function sendDraft(state: State, d: Draft, at: string, evId: string, actor: string, auto = false) {
+  d.status = "sent"; d.sentAt = at;
+  const req = state.requests[d.requestId];
+  const email: Email = { id: `out-${evId}`, threadId: d.threadId ?? `t-${d.id}`, from: person(d.forPersonId)?.email ?? "", to: [d.to], cc: [], subject: d.subject, body: d.body, sentAt: at, attachments: [], origin: "ava_draft", autoSent: auto || undefined };
+  state.emails.push(email); state.extractions[email.id] = { source: "none", result: null };
+  req.emailIds.push(email.id); state.threadRequest[email.threadId] ??= req.id;
+  if (d.conflictId && state.conflicts[d.conflictId]) state.conflicts[d.conflictId].waitingOnSupplier = at;
+  log(req, at, auto ? `Ava sent ${personName(d.forPersonId)}'s routine message (${d.purpose}) to ${d.to}. Auto-send is on for this kind of message; it commits no money and changes no terms.` : `${personName(d.forPersonId)} sent Ava's draft to ${d.to}.`, "email", actor);
 }
 
 export function labelSource(s: string) { return s === "live" ? "Live AI" : s === "cached" ? "Cached AI" : s === "basic" ? "Basic extraction (AI unavailable)" : "None"; }
@@ -196,6 +251,7 @@ function applyAction(state: State, actor: string, a: Action, at: string, evId: s
   const reqOf = (id: string) => state.requests[id];
   switch (a.type) {
     case "tick": return;
+    case "set_autonomy": { state.autonomy = { ...(state.autonomy ?? { autoSendQuoteRequests: true, autoSendDocChasers: false }), [a.setting]: a.value }; return; }
     case "answer_flag": {
       const req = reqOf(a.requestId); let fl = req.flags.find((f) => f.id === a.flagId);
       if (!fl) { fl = { id: a.flagId, type: "unconfirmed", message: "", sendTo: "requester", personId: actor, status: "open", createdAt: at }; req.flags.push(fl); }
@@ -251,13 +307,7 @@ function applyAction(state: State, actor: string, a: Action, at: string, evId: s
     }
     case "mark_sent": {
       const d = state.drafts.find((x) => x.id === a.draftId); if (!d || d.status === "sent") return;
-      d.status = "sent"; d.sentAt = at;
-      const req = reqOf(d.requestId);
-      const email: Email = { id: `out-${evId}`, threadId: d.threadId ?? `t-${d.id}`, from: person(d.forPersonId)?.email ?? "", to: [d.to], cc: [], subject: d.subject, body: d.body, sentAt: at, attachments: [], origin: "ava_draft" };
-      state.emails.push(email); state.extractions[email.id] = { source: "none", result: null };
-      req.emailIds.push(email.id); state.threadRequest[email.threadId] ??= req.id;
-      if (d.conflictId && state.conflicts[d.conflictId]) state.conflicts[d.conflictId].waitingOnSupplier = at;
-      log(req, at, `${personName(d.forPersonId)} sent Ava's draft to ${d.to}.`, "email", actor); return;
+      sendDraft(state, d, at, evId, actor); return;
     }
     case "comment": {
       const req = reqOf(a.requestId);
@@ -452,7 +502,9 @@ function runRules(prev: State, state: State, at: string, ctx: Ctx): State {
       s.drafts = s.drafts.filter((x) => !(x.requestId === id && x.status === "draft" && x.id.includes("docs:")));
       const first = s.emails.find((e) => e.id === req.emailIds[0]);
       s.drafts.push({ id: `draft-${id}-${d.purpose}`, requestId: id, forPersonId: req.requesterId, to: d.to, subject: d.subject, body: d.body, threadId: first?.threadId, createdAt: at, status: "draft", purpose: keys.map((k) => k === "insurance" ? "ask for the insurance certificate" : k === "security_cert" ? "ask for the renewed ISO 27001 certificate" : k).join(" and ") });
-      log(req, at, `Ava drafted an email for ${personName(req.requesterId)} to send: ${keys.join(", ").replace("security_cert", "renewed security certificate")}. Ava does not send it.`, "action");
+      const created = s.drafts[s.drafts.length - 1];
+      if (s.autonomy?.autoSendDocChasers) { log(req, at, `Ava drafted a routine document request for ${personName(req.requesterId)}.`, "action"); sendDraft(s, created, addMinutes(at, 1), `auto-${created.id}`, "ava", true); }
+      else log(req, at, `Ava drafted an email for ${personName(req.requesterId)} to send: ${keys.join(", ").replace("security_cert", "renewed security certificate")}. Ava does not send it.`, "action");
     }
     s.drafts = s.drafts.filter((x) => !(x.requestId === id && x.status === "draft" && x.id.includes("docs:") && !an.drafts.some((d) => x.id.endsWith(d.purpose))));
     // Supplier says work started

@@ -4,6 +4,7 @@ import { analyze } from "./engine/rules";
 import { actionsOf, currentPlan } from "./engine/ai";
 import { BACKGROUND, BG_CONFLICTS, BG_TOTALS } from "./background";
 import { inr, istYmd, parseAmount, parseDate } from "./format";
+import { waitSplit } from "./engine/timing";
 
 export interface Catch { reqId: string; live: boolean; text: string; impact?: number; impactText: string; status: "open" | "resolved"; supplier: string }
 export interface Risk { reqId: string; live: boolean; title: string; reason: string; predicted?: string }
@@ -65,3 +66,21 @@ export function counters(state: State) {
   };
 }
 export { parseAmount };
+
+/** The north star and its drivers, computed from the event log. Live requests only: background requests are labelled sample data. */
+export function northStar(state: State) {
+  const ids = state.requestOrder.filter((id) => state.requests[id].type !== "invoice");
+  const ready = ids.filter((id) => state.requests[id].readyAt);
+  const rows = ids.map((id) => { const r = state.requests[id]; const w = waitSplit(state, id); const clean = !!r.readyAt && !(r.withdrawals?.length); return { id, ready: !!r.readyAt, clean, ...w, good: clean && w.ownMet }; });
+  const good = rows.filter((r) => r.good);
+  const decisions = ids.reduce((n, id) => n + actionsOf(state.requests[id]).people.length, 0);
+  const autoSent = state.emails.filter((e) => e.autoSent).length;
+  const fromAsk = ids.filter((id) => state.emails.find((e) => e.id === state.requests[id].emailIds[0])?.origin === "intake").length;
+  return {
+    rows, ready: ready.length, total: ids.length, good: good.length,
+    own: rows.filter((r) => r.ready).reduce((n, r) => n + r.own, 0), supplier: rows.filter((r) => r.ready).reduce((n, r) => n + r.supplier, 0), // the split covers finished requests; open ones are listed beside it
+    touches: ids.length ? decisions / ids.length : 0, reopened: state.counters.approvalsReopened, autoSent,
+    fromAsk, withdrawn: ids.filter((id) => state.requests[id].withdrawals?.length).length,
+    cleanReady: rows.filter((r) => r.clean).length,
+  };
+}

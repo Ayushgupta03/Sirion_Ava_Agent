@@ -2,7 +2,7 @@
 import Link from "next/link";
 import { usePathname, useRouter } from "next/navigation";
 import { useEffect, useMemo, useRef, useState, type ReactNode } from "react";
-import { useAva, STEPS } from "@/lib/store";
+import { useAva, STEPS, type Ripple } from "@/lib/store";
 import { resolveFocus } from "@/lib/story";
 import { deriveItems } from "@/lib/engine/items";
 import { fmtDT } from "@/lib/format";
@@ -20,6 +20,7 @@ export const roleOf = (id: string) => VIEW_AS.find((v) => v.id === id)?.role ?? 
 export const initials = (id: string) => (person(id)?.name ?? id).split(" ").map((w) => w[0]).join("").slice(0, 2);
 
 const WORK: { href: string; label: string; icon: IconName; key?: "mine" | "requests" }[] = [
+  { href: "/new", label: "Ask Ava", icon: "spark" },
   { href: "/mail", label: "Captured mail", icon: "inbox" },
   { href: "/today", label: "Today", icon: "checkCircle", key: "mine" },
   { href: "/requests", label: "Requests", icon: "list", key: "requests" },
@@ -61,7 +62,7 @@ export default function Shell({ children }: { children: ReactNode }) {
         </main>
         {hydrated && <DemoDock />}
       </div>
-      {hydrated && <ActorToast />}
+      {hydrated && <ToastStack />}
       <SourceViewer />
     </div>
   );
@@ -187,13 +188,22 @@ function ViewAsMenu({ counts }: { counts: Record<string, number> }) {
   );
 }
 
+function ToastStack() {
+  return (
+    <div className="pointer-events-none fixed right-4 top-[68px] z-40 flex w-[min(360px,calc(100vw-32px))] flex-col gap-2">
+      <ActorToast />
+      <RippleToast />
+    </div>
+  );
+}
+
 function ActorToast() {
   const toast = useAva((s) => s.toast); const dismiss = useAva((s) => s.dismissToast); const setViewAs = useAva((s) => s.setViewAs);
   const router = useRouter();
   useEffect(() => { if (!toast) return; const t = setTimeout(dismiss, 8000); return () => clearTimeout(t); }, [toast, dismiss]);
   if (!toast) return null;
   return (
-    <div role="status" className="fixed right-4 top-[68px] z-40 w-[min(360px,calc(100vw-32px))] rounded-xl border border-slate-200 bg-white p-3 shadow-lg">
+    <div role="status" className="pointer-events-auto rounded-xl border border-slate-200 bg-white p-3 shadow-lg">
       <div className="flex items-start gap-2.5">
         <Icon name="users" className="mt-0.5 shrink-0 text-accent" />
         <div className="min-w-0 flex-1 text-[13px]">
@@ -202,6 +212,38 @@ function ActorToast() {
           <div className="mt-2 flex flex-wrap gap-1.5">{toast.actors.map((a) => <button key={a} onClick={() => { setViewAs(a); dismiss(); router.push("/today"); }} className="rounded-md border border-slate-300 px-2 py-1 text-[12.5px] font-medium hover:bg-slate-50">Switch view to {person(a)?.name.split(" ")[0]}</button>)}</div>
         </div>
         <button onClick={dismiss} aria-label="Dismiss" className="grid h-7 w-7 place-items-center rounded text-slate-400 hover:bg-slate-100"><Icon name="x" size={14} /></button>
+      </div>
+    </div>
+  );
+}
+
+const NOUN: Record<string, string> = { question: "question", info: "note", draft: "draft to send", approval: "approval", reconfirm: "reconfirmation", conflict: "conflict", competing: "quote task", retro: "reason to record", legal: "legal item", packet: "handoff packet", supplier: "supplier check", orphan: "invoice to confirm", unsorted: "unsorted invoice", finance: "finance task", mention: "mention" };
+const tally = (xs: { kind: string }[]) => { const m = new Map<string, number>(); xs.forEach((x) => m.set(x.kind, (m.get(x.kind) ?? 0) + 1)); return [...m].map(([k, n]) => `${n} ${NOUN[k] ?? k}${n > 1 ? "s" : ""}`).join(", "); };
+
+/** Who the last change reached. Each row is a person whose queue changed, with a way to step into their view. */
+function RippleToast() {
+  const ripple = useAva((s) => s.ripple); const dismiss = useAva((s) => s.dismissRipple); const setViewAs = useAva((s) => s.setViewAs); const viewAs = useAva((s) => s.viewAs);
+  const router = useRouter();
+  useEffect(() => { if (!ripple) return; const t = setTimeout(dismiss, 14000); return () => clearTimeout(t); }, [ripple, dismiss]);
+  if (!ripple) return null;
+  const R: Ripple = ripple; const who = R.actor === "none" || R.actor === "system" ? "" : `${person(R.actor)?.name.split(" ")[0] ?? R.actor} `;
+  return (
+    <div role="status" aria-label="Who this change reached" className="pointer-events-auto rounded-xl border border-accent-100 bg-white p-3 shadow-lg">
+      <div className="flex items-start gap-2">
+        <Icon name="send" className="mt-0.5 shrink-0 text-accent" />
+        <div className="min-w-0 flex-1 text-[13px]">
+          <p className="font-semibold">What this reached</p>
+          <p className="line-clamp-2 text-[12px] text-slate-500">{who}{R.label}</p>
+          <ul className="mt-2 space-y-1.5">
+            {R.rows.slice(0, 5).map((r) => (
+              <li key={r.personId} className="flex items-start gap-2">
+                <span className="mt-0.5 grid h-6 w-6 shrink-0 place-items-center rounded-full bg-slate-100 text-[10.5px] font-semibold text-slate-700">{initials(r.personId)}</span>
+                <span className="min-w-0 flex-1 leading-snug"><b>{person(r.personId)?.name.split(" ")[0]}</b>{r.opened.length > 0 && <span className="text-slate-700"> now has {tally(r.opened)}</span>}{r.closed.length > 0 && <span className="text-slate-500">{r.opened.length ? "; " : " "}{tally(r.closed)} cleared</span>}</span>
+                {r.personId !== viewAs && <button onClick={() => { setViewAs(r.personId); dismiss(); router.push("/today"); }} className="shrink-0 rounded border border-slate-300 px-1.5 py-0.5 text-[11.5px] font-medium hover:bg-slate-50">View as</button>}
+              </li>))}
+          </ul>
+        </div>
+        <button onClick={dismiss} aria-label="Dismiss" className="grid h-7 w-7 shrink-0 place-items-center rounded text-slate-400 hover:bg-slate-100"><Icon name="x" size={14} /></button>
       </div>
     </div>
   );
@@ -218,9 +260,12 @@ function DemoDock() {
   const steps = STEPS[scenario]; const i = pos[scenario];
   const [collapsed, setCollapsed] = useState(false);
   const [confirmReset, setConfirmReset] = useState(false);
+  // On a phone the dock would cover the page, so it starts as a pill.
+  useEffect(() => { if (window.matchMedia("(max-width: 639px)").matches) setCollapsed(true); }, []);
   const ref = useRef<HTMLElement>(null);
   // The landing page carries its own "Watch" buttons; before a demo starts, the dock would be a second primary action.
-  const hidden = usePathname() === "/" && pos.A === 0 && pos.B === 0;
+  const path = usePathname();
+  const hidden = (path === "/" && pos.A === 0 && pos.B === 0) || path.startsWith("/supplier/");
   useEffect(() => {
     const el = ref.current; const root = document.documentElement;
     if (!el) { root.style.setProperty("--dock-h", hidden ? "0px" : "64px"); return; }
